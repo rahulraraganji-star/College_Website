@@ -1,10 +1,15 @@
 import mongoose from "mongoose";
 
-const NavigationMenuSchema = new mongoose.Schema({
+const navigationMenuSchema = new mongoose.Schema({
+  key: String,
   title: String,
-  slug: String,
   order: Number,
   isActive: Boolean,
+  showInNavbar: Boolean,
 });
 
-export default mongoose.model("NavigationMenu", NavigationMenuSchema);
+export default mongoose.model(
+  "NavigationMenu",
+  navigationMenuSchema,
+  "Navigation_Menu"   // ← IMPORTANT
+);

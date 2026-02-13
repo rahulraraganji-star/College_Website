@@ -1,14 +1,16 @@
 import mongoose from "mongoose";
 
-const NavigationItemSchema = new mongoose.Schema({
-  menuSlug: String,
+const navigationItemSchema = new mongoose.Schema({
+  menuKey: String,
   label: String,
-  href: String,
   slug: String,
-  parentSlug: String,
-  order: Number,
   icon: String,
+  order: Number,
   isActive: Boolean,
 });
 
-export default mongoose.model("NavigationItem", NavigationItemSchema);
+export default mongoose.model(
+  "NavigationItem",
+  navigationItemSchema,
+  "Navigation_Items"   // ← IMPORTANT
+);

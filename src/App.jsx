@@ -1,4 +1,5 @@
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
+
 import Header from "./Components/Header";
 import Navbar from "./Components/NavBar";
 import Hero from "./Components/Hero_Section";
@@ -22,8 +23,9 @@ import AlumniLayout from "./Layouts/AlumniLayout";
 import InfrastructureLayout from "./Layouts/InfrastructureLayout";
 import IqacLayout from "./Layouts/IqacLayout";
 
-/* dynamic page */
+/* dynamic */
 import DynamicPage from "./Pages/DynamicPage";
+import DynamicLayout from "./Layouts/DynamicLayout";
 
 function App() {
   return (
@@ -32,7 +34,7 @@ function App() {
       <Navbar />
 
       <Routes>
-        {/* HOME */}
+        {/* ================= HOME ================= */}
         <Route
           path="/"
           element={
@@ -46,65 +48,104 @@ function App() {
           }
         />
 
-        {/* ABOUT */}
+        {/* ================= ABOUT ================= */}
         <Route path="about" element={<AboutLayout />}>
-          <Route path=":slug" element={<DynamicPage />} />
+          <Route index element={<Navigate to="history" replace />} />
+          <Route element={<DynamicLayout />}>
+            <Route path=":slug" element={<DynamicPage />} />
+          </Route>
         </Route>
 
-        {/* ADMINISTRATION */}
+        {/* ================= ADMINISTRATION ================= */}
         <Route path="administration" element={<AdministrationLayout />}>
-          <Route path=":slug" element={<DynamicPage />} />
+          <Route index element={<Navigate to="organogram" replace />} />
+          <Route element={<DynamicLayout />}>
+            <Route path=":slug" element={<DynamicPage />} />
+          </Route>
         </Route>
 
-        {/* STUDENT LIFE */}
+        {/* ================= STUDENT LIFE ================= */}
         <Route path="student-life" element={<StudentLifeLayout />}>
-          <Route path=":slug" element={<DynamicPage />} />
+          <Route index element={<Navigate to="support" replace />} />
+          <Route element={<DynamicLayout />}>
+            <Route path=":slug" element={<DynamicPage />} />
+          </Route>
         </Route>
 
-        {/* ACADEMICS */}
+        {/* ================= ACADEMICS ================= */}
         <Route path="academics" element={<AcademicsLayout />}>
-          <Route path=":slug" element={<DynamicPage />} />
+          <Route index element={<Navigate to="programmes" replace />} />
+          <Route element={<DynamicLayout />}>
+            <Route path=":slug" element={<DynamicPage />} />
+          </Route>
         </Route>
 
-        {/* STAFF */}
+        {/* ================= STAFF ================= */}
         <Route path="staff" element={<StaffLayout />}>
-          <Route path=":slug" element={<DynamicPage />} />
+          <Route index element={<Navigate to="faculty" replace />} />
+          <Route element={<DynamicLayout />}>
+            <Route path=":slug" element={<DynamicPage />} />
+          </Route>
         </Route>
 
-        {/* ADMISSIONS */}
+        {/* ================= ADMISSIONS ================= */}
         <Route path="admissions" element={<AdmissionsLayout />}>
-          <Route path=":slug" element={<DynamicPage />} />
+          <Route index element={<Navigate to="prospectus" replace />} />
+          <Route element={<DynamicLayout />}>
+            <Route path=":slug" element={<DynamicPage />} />
+          </Route>
         </Route>
 
-        {/* EXAMINATION */}
+        {/* ================= EXAMINATION ================= */}
         <Route path="examination" element={<ExaminationLayout />}>
-          <Route path=":slug" element={<DynamicPage />} />
+          <Route index element={<Navigate to="examination-committee" replace />} />
+          <Route element={<DynamicLayout />}>
+            <Route path=":slug" element={<DynamicPage />} />
+          </Route>
         </Route>
 
-        {/* ACCREDITATION */}
+        {/* ================= ACCREDITATION ================= */}
         <Route path="accreditation" element={<AccreditationLayout />}>
-          <Route path=":slug" element={<DynamicPage />} />
+          <Route index element={<Navigate to="iqac" replace />} />
+          <Route element={<DynamicLayout />}>
+            <Route path=":slug" element={<DynamicPage />} />
+          </Route>
         </Route>
 
-        {/* RTI */}
+        {/* ================= RTI / POLICIES ================= */}
         <Route path="rti" element={<RTILayout />}>
-          <Route path=":slug" element={<DynamicPage />} />
+          <Route index element={<Navigate to="reservation-admission-recruitment" replace />} />
+          <Route element={<DynamicLayout />}>
+            <Route path=":slug" element={<DynamicPage />} />
+          </Route>
         </Route>
 
-        {/* ALUMNI */}
+        {/* ================= ALUMNI ================= */}
         <Route path="alumni" element={<AlumniLayout />}>
-          <Route path=":slug" element={<DynamicPage />} />
+          <Route index element={<Navigate to="about" replace />} />
+          <Route element={<DynamicLayout />}>
+            <Route path=":slug" element={<DynamicPage />} />
+          </Route>
         </Route>
 
-        {/* INFRASTRUCTURE */}
+        {/* ================= INFRASTRUCTURE ================= */}
         <Route path="infrastructure" element={<InfrastructureLayout />}>
-          <Route path=":slug" element={<DynamicPage />} />
+          <Route index element={<Navigate to="facilities" replace />} />
+          <Route element={<DynamicLayout />}>
+            <Route path=":slug" element={<DynamicPage />} />
+          </Route>
         </Route>
 
-        {/* IQAC */}
+        {/* ================= IQAC ================= */}
         <Route path="iqac" element={<IqacLayout />}>
-          <Route path=":slug" element={<DynamicPage />} />
+          <Route index element={<Navigate to="about" replace />} />
+          <Route element={<DynamicLayout />}>
+            <Route path=":slug" element={<DynamicPage />} />
+          </Route>
         </Route>
+
+        {/* ================= 404 ================= */}
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
 
       <Footer />
