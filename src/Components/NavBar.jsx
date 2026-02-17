@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { navData } from "./navData";
+import * as Icons from "lucide-react";
 
 const Navbar = () => {
   const [menus, setMenus] = useState([]);
@@ -22,47 +22,47 @@ const Navbar = () => {
       });
   }, []);
 
-  // 🔹 Prevent first-load click bug
-  if (loading) {
-    return <nav className="bg-white border-b h-[64px]" />;
+  if (loading) return <nav className="bg-white border-b h-[64px]" />;
+
+  // 🔹 Dropdown positioning (RESTORED)
+ const positionDropdown = (index, isAbout) => {
+  const el = dropdownRefs.current[index];
+  if (!el) return;
+
+  const vw = window.innerWidth;
+
+  // 1️⃣ Reset first
+  el.style.left = "0";
+  el.style.right = "auto";
+  el.style.transform = "translateX(0)";
+
+  // 2️⃣ Center About dropdown
+  if (isAbout) {
+    el.style.left = "50%";
+    el.style.transform = "translateX(-50%)";
   }
 
-  // 🔹 Helper: find icon from navData
-  const findIcon = (menuTitle, itemLabel) => {
-    const menu = navData.find((m) => m.title === menuTitle);
-    const item = menu?.children?.find((c) => c.label === itemLabel);
-    return item?.icon || null;
-  };
+  // 3️⃣ Recalculate AFTER centering
+  let rect = el.getBoundingClientRect();
 
-  // 🔹 Dropdown positioning logic
-  const positionDropdown = (index, isAbout) => {
-    const el = dropdownRefs.current[index];
-    if (!el) return;
+  // 4️⃣ Fix RIGHT overflow
+  if (rect.right > vw - 16) {
+    el.style.left = "auto";
+    el.style.right = "0";
+    el.style.transform = "translateX(0)";
+  }
 
-    const vw = window.innerWidth;
+  // 5️⃣ Recalculate again before LEFT fix
+  rect = el.getBoundingClientRect();
 
-    if (isAbout) {
-      el.style.left = "50%";
-      el.style.transform = "translateX(-50%)";
-    } else {
-      el.style.left = "0";
-      el.style.transform = "translateX(0)";
-    }
+  // 6️⃣ Fix LEFT overflow
+  if (rect.left < 16) {
+    el.style.left = "0";
+    el.style.right = "auto";
+    el.style.transform = "translateX(0)";
+  }
+};
 
-    const rect = el.getBoundingClientRect();
-
-    if (rect.right > vw - 16) {
-      el.style.left = "auto";
-      el.style.right = "0";
-      el.style.transform = "translateX(0)";
-    }
-
-    if (rect.left < 16) {
-      el.style.left = "0";
-      el.style.right = "auto";
-      el.style.transform = "translateX(0)";
-    }
-  };
 
   return (
     <nav className="bg-white border-b font-jaini">
@@ -74,7 +74,7 @@ const Navbar = () => {
 
             return (
               <li
-                key={menu.key}
+                key={menu._id || index}
                 className="relative group"
                 onMouseEnter={
                   hasChildren
@@ -100,33 +100,16 @@ const Navbar = () => {
                 {hasChildren && (
                   <div
                     ref={(el) => (dropdownRefs.current[index] = el)}
-                    className="
-                      absolute top-full z-50
-                      invisible group-hover:visible
-                      pointer-events-none group-hover:pointer-events-auto
-                    "
+                    className="absolute top-full z-50 invisible group-hover:visible pointer-events-none group-hover:pointer-events-auto"
                   >
-                    <div
-                      className="
-                        mt-3 bg-[#F9FAFB]
-                        border border-gray-300 rounded-xl shadow-xl
-                        p-6
-                        w-[820px] max-w-[90vw]
-                        transition-transform duration-200
-                        scale-95 group-hover:scale-100
-                      "
-                    >
-                      {/* ===== ABOUT US SPECIAL ===== */}
+                    <div className="mt-3 bg-[#F9FAFB] border border-gray-300 rounded-xl shadow-xl p-6 w-[820px] max-w-[90vw] scale-95 group-hover:scale-100 transition-transform">
+                      
+                      {/* ABOUT SPECIAL */}
                       {isAbout ? (
                         <div className="flex gap-8">
                           <Link
                             to="/about"
-                            className="
-                              w-[170px]
-                              border border-[#F5B301]
-                              rounded-lg p-4 bg-white
-                              flex flex-col justify-between
-                            "
+                            className="w-[170px] border border-[#F5B301] rounded-lg p-4 bg-white flex flex-col justify-between"
                           >
                             <h3 className="text-sm font-semibold mb-2">
                               About Our Institution
@@ -141,28 +124,19 @@ const Navbar = () => {
 
                           <div className="grid grid-cols-2 gap-6">
                             {menu.items.map((item) => {
+                              const Icon = Icons[item.icon] || null;
                               const safeSlug = item.slug?.startsWith("/")
                                 ? item.slug
                                 : `/${item.slug}`;
 
-                              const Icon = findIcon(menu.title, item.label);
-
                               return (
-                                <Link
-                                  key={item._id}
-                                  to={safeSlug}
-                                  className="flex gap-3"
-                                >
+                                <Link key={item._id} to={safeSlug} className="flex gap-3">
                                   <div className="w-8 h-8 bg-[#FFF4D6] rounded-full flex items-center justify-center text-[#F5B301]">
                                     {Icon && <Icon size={16} />}
                                   </div>
                                   <div>
-                                    <h4 className="text-sm font-semibold">
-                                      {item.label}
-                                    </h4>
-                                    <p className="text-xs text-gray-500">
-                                      View details
-                                    </p>
+                                    <h4 className="text-sm font-semibold">{item.label}</h4>
+                                    <p className="text-xs text-gray-500">View details</p>
                                   </div>
                                 </Link>
                               );
@@ -170,31 +144,21 @@ const Navbar = () => {
                           </div>
                         </div>
                       ) : (
-                        /* ===== OTHER DROPDOWNS ===== */
                         <div className="grid grid-cols-3 gap-6">
                           {menu.items.map((item) => {
+                            const Icon = Icons[item.icon] || null;
                             const safeSlug = item.slug?.startsWith("/")
                               ? item.slug
                               : `/${item.slug}`;
 
-                            const Icon = findIcon(menu.title, item.label);
-
                             return (
-                              <Link
-                                key={item._id}
-                                to={safeSlug}
-                                className="flex gap-3"
-                              >
+                              <Link key={item._id} to={safeSlug} className="flex gap-3">
                                 <div className="w-8 h-8 bg-[#FFF4D6] rounded-full flex items-center justify-center text-[#F5B301]">
                                   {Icon && <Icon size={16} />}
                                 </div>
                                 <div>
-                                  <h4 className="text-sm font-semibold">
-                                    {item.label}
-                                  </h4>
-                                  <p className="text-xs text-gray-500">
-                                    View details
-                                  </p>
+                                  <h4 className="text-sm font-semibold">{item.label}</h4>
+                                  <p className="text-xs text-gray-500">View details</p>
                                 </div>
                               </Link>
                             );
