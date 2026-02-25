@@ -39,11 +39,20 @@ function App() {
           path="/"
           element={
             <>
-              <Hero />
-              <ScrollingText />
-              <LearningSpacesCarousel />
+            <Hero />
+             <ScrollingText />
+             <LearningSpacesCarousel />
               <Events_Section />
-              <CoreStrengths />
+                <CoreStrengths />
+             
+         
+            {/*
+              
+             
+              
+             
+              
+              */}
             </>
           }
         />
@@ -145,7 +154,7 @@ function App() {
         </Route>
 
         {/* ================= 404 ================= */}
-        <Route path="*" element={<Navigate to="/" replace />} />
+        <Route path="*" element={<div>404 – Page Not Found</div>} />
       </Routes>
 
       <Footer />

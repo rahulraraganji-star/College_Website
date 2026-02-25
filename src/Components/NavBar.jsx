@@ -7,7 +7,6 @@ const Navbar = () => {
   const [loading, setLoading] = useState(true);
   const dropdownRefs = useRef({});
 
-  // 🔹 Fetch navigation from backend
   useEffect(() => {
     fetch("http://localhost:5000/api/navigation")
       .then((res) => res.json())
@@ -22,47 +21,48 @@ const Navbar = () => {
       });
   }, []);
 
-  if (loading) return <nav className="bg-white border-b h-[64px]" />;
-
-  // 🔹 Dropdown positioning (RESTORED)
- const positionDropdown = (index, isAbout) => {
-  const el = dropdownRefs.current[index];
-  if (!el) return;
-
-  const vw = window.innerWidth;
-
-  // 1️⃣ Reset first
-  el.style.left = "0";
-  el.style.right = "auto";
-  el.style.transform = "translateX(0)";
-
-  // 2️⃣ Center About dropdown
-  if (isAbout) {
-    el.style.left = "50%";
-    el.style.transform = "translateX(-50%)";
+  if (loading) {
+    return <nav className="bg-white border-b h-[64px]" />;
   }
 
-  // 3️⃣ Recalculate AFTER centering
-  let rect = el.getBoundingClientRect();
+  // 🔥 Safe absolute path generator
+  const buildPath = (slug) => {
+    if (!slug) return "/";
+    const cleaned = slug.replace(/^\/+/, ""); // remove leading slashes
+    return `/${cleaned}`;
+  };
 
-  // 4️⃣ Fix RIGHT overflow
-  if (rect.right > vw - 16) {
-    el.style.left = "auto";
-    el.style.right = "0";
-    el.style.transform = "translateX(0)";
-  }
+  const positionDropdown = (index, isAbout) => {
+    const el = dropdownRefs.current[index];
+    if (!el) return;
 
-  // 5️⃣ Recalculate again before LEFT fix
-  rect = el.getBoundingClientRect();
+    const vw = window.innerWidth;
 
-  // 6️⃣ Fix LEFT overflow
-  if (rect.left < 16) {
     el.style.left = "0";
     el.style.right = "auto";
     el.style.transform = "translateX(0)";
-  }
-};
 
+    if (isAbout) {
+      el.style.left = "50%";
+      el.style.transform = "translateX(-50%)";
+    }
+
+    let rect = el.getBoundingClientRect();
+
+    if (rect.right > vw - 16) {
+      el.style.left = "auto";
+      el.style.right = "0";
+      el.style.transform = "translateX(0)";
+    }
+
+    rect = el.getBoundingClientRect();
+
+    if (rect.left < 16) {
+      el.style.left = "0";
+      el.style.right = "auto";
+      el.style.transform = "translateX(0)";
+    }
+  };
 
   return (
     <nav className="bg-white border-b font-jaini">
@@ -82,21 +82,21 @@ const Navbar = () => {
                     : undefined
                 }
               >
-                {/* ===== TOP LEVEL ===== */}
+                {/* TOP LEVEL */}
                 {hasChildren ? (
                   <span className="block py-4 text-sm font-semibold tracking-wide cursor-pointer hover:text-[#F5B301] whitespace-nowrap">
                     {menu.title}
                   </span>
                 ) : (
                   <Link
-                    to={menu.slug || `/${menu.key}`}
+                    to={buildPath(menu.slug || menu.key)}
                     className="block py-4 text-sm font-semibold tracking-wide hover:text-[#F5B301] whitespace-nowrap"
                   >
                     {menu.title}
                   </Link>
                 )}
 
-                {/* ===== DROPDOWN ===== */}
+                {/* DROPDOWN */}
                 {hasChildren && (
                   <div
                     ref={(el) => (dropdownRefs.current[index] = el)}
@@ -104,11 +104,10 @@ const Navbar = () => {
                   >
                     <div className="mt-3 bg-[#F9FAFB] border border-gray-300 rounded-xl shadow-xl p-6 w-[820px] max-w-[90vw] scale-95 group-hover:scale-100 transition-transform">
                       
-                      {/* ABOUT SPECIAL */}
                       {isAbout ? (
                         <div className="flex gap-8">
                           <Link
-                            to="/about"
+                            to="/about/history"
                             className="w-[170px] border border-[#F5B301] rounded-lg p-4 bg-white flex flex-col justify-between"
                           >
                             <h3 className="text-sm font-semibold mb-2">
@@ -125,18 +124,23 @@ const Navbar = () => {
                           <div className="grid grid-cols-2 gap-6">
                             {menu.items.map((item) => {
                               const Icon = Icons[item.icon] || null;
-                              const safeSlug = item.slug?.startsWith("/")
-                                ? item.slug
-                                : `/${item.slug}`;
 
                               return (
-                                <Link key={item._id} to={safeSlug} className="flex gap-3">
+                                <Link
+                                  key={item._id}
+                                  to={buildPath(item.slug)}
+                                  className="flex gap-3"
+                                >
                                   <div className="w-8 h-8 bg-[#FFF4D6] rounded-full flex items-center justify-center text-[#F5B301]">
                                     {Icon && <Icon size={16} />}
                                   </div>
                                   <div>
-                                    <h4 className="text-sm font-semibold">{item.label}</h4>
-                                    <p className="text-xs text-gray-500">View details</p>
+                                    <h4 className="text-sm font-semibold">
+                                      {item.label}
+                                    </h4>
+                                    <p className="text-xs text-gray-500">
+                                      View details
+                                    </p>
                                   </div>
                                 </Link>
                               );
@@ -147,18 +151,23 @@ const Navbar = () => {
                         <div className="grid grid-cols-3 gap-6">
                           {menu.items.map((item) => {
                             const Icon = Icons[item.icon] || null;
-                            const safeSlug = item.slug?.startsWith("/")
-                              ? item.slug
-                              : `/${item.slug}`;
 
                             return (
-                              <Link key={item._id} to={safeSlug} className="flex gap-3">
+                              <Link
+                                key={item._id}
+                                to={buildPath(item.slug)}
+                                className="flex gap-3"
+                              >
                                 <div className="w-8 h-8 bg-[#FFF4D6] rounded-full flex items-center justify-center text-[#F5B301]">
                                   {Icon && <Icon size={16} />}
                                 </div>
                                 <div>
-                                  <h4 className="text-sm font-semibold">{item.label}</h4>
-                                  <p className="text-xs text-gray-500">View details</p>
+                                  <h4 className="text-sm font-semibold">
+                                    {item.label}
+                                  </h4>
+                                  <p className="text-xs text-gray-500">
+                                    View details
+                                  </p>
                                 </div>
                               </Link>
                             );

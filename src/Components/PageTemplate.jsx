@@ -4,25 +4,35 @@ const hasData = (section) => {
   switch (section.type) {
     case "content":
       return Boolean(section.body?.trim());
+
     case "richText":
       return Boolean(section.content?.trim());
+
     case "timeline":
       return Array.isArray(section.events) && section.events.length > 0;
+
     case "list":
       return Array.isArray(section.items) && section.items.length > 0;
+
     case "eventList":
       return Array.isArray(section.events) && section.events.length > 0;
+
     case "table":
       return Array.isArray(section.rows) && section.rows.length > 0;
+
     case "documents":
     case "documentList":
       return Array.isArray(section.documents) && section.documents.length > 0;
+
     case "gallery":
       return Array.isArray(section.images) && section.images.length > 0;
+
     case "embed":
       return Boolean(section.url);
+
     case "hero":
       return true;
+
     default:
       return false;
   }
@@ -36,8 +46,10 @@ const PageTemplate = ({ slug }) => {
   useEffect(() => {
     if (!slug) return;
 
-    setLoading(true);
+    // 🔥 Reset previous page state
+    setData(null);
     setError(null);
+    setLoading(true);
 
     fetch(`http://localhost:5000/api/pages/${slug}`)
       .then((res) => {
@@ -54,9 +66,37 @@ const PageTemplate = ({ slug }) => {
       });
   }, [slug]);
 
-  if (loading) return <p className="text-gray-500">Loading...</p>;
-  if (error) return <p className="text-red-500">{error}</p>;
-  if (!data) return null;
+  // =====================
+  // Stable Render Guards
+  // =====================
+
+  if (loading) {
+    return (
+      <div className="min-h-[300px] flex items-center justify-center">
+        <p className="text-gray-500 text-lg">Loading...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-[300px] flex items-center justify-center">
+        <p className="text-red-500 text-lg">{error}</p>
+      </div>
+    );
+  }
+
+  if (!data) {
+    return (
+      <div className="min-h-[300px] flex items-center justify-center">
+        <p className="text-gray-400 text-lg">No content available</p>
+      </div>
+    );
+  }
+
+  // =====================
+  // Content Processing
+  // =====================
 
   const contentSections = data.sections?.filter(
     (section) => section.type !== "hero" && hasData(section)
@@ -71,53 +111,98 @@ const PageTemplate = ({ slug }) => {
     <section className="space-y-8">
       <h1 className="text-3xl font-semibold">{data.title}</h1>
 
+      {/* HERO */}
       {heroSections.map((section, i) => (
         <div key={i} className="py-4 space-y-1">
-          {section.heading && <h2 className="text-2xl font-bold">{section.heading}</h2>}
-          {section.subheading && <p className="text-gray-500">{section.subheading}</p>}
+          {section.heading && (
+            <h2 className="text-2xl font-bold">{section.heading}</h2>
+          )}
+          {section.subheading && (
+            <p className="text-gray-500">{section.subheading}</p>
+          )}
         </div>
       ))}
 
+      {/* FALLBACK IF NO CONTENT */}
       {contentSections.length === 0 && (
         <p className="text-gray-500">Content will be updated soon.</p>
       )}
 
+      {/* CONTENT SECTIONS */}
       {contentSections.map((section, i) => {
         switch (section.type) {
           case "content":
             return (
-              <div key={i}>
-                {section.heading && <h3 className="text-xl font-semibold">{section.heading}</h3>}
-                <p className="text-gray-700">{section.body}</p>
+              <div key={i} className="space-y-2">
+                {section.heading && (
+                  <h3 className="text-xl font-semibold">{section.heading}</h3>
+                )}
+                <p className="text-gray-700 leading-relaxed">
+                  {section.body}
+                </p>
               </div>
             );
 
           case "richText":
             return (
-              <div key={i}>
-                {section.heading && <h3 className="text-xl font-semibold">{section.heading}</h3>}
-                <p className="text-gray-700">{section.content}</p>
+              <div key={i} className="space-y-2">
+                {section.heading && (
+                  <h3 className="text-xl font-semibold">{section.heading}</h3>
+                )}
+                <p className="text-gray-700 leading-relaxed">
+                  {section.content}
+                </p>
               </div>
             );
 
           case "timeline":
             return (
-              <ul key={i} className="border-l-2 pl-4 space-y-2">
-                {section.events.map((e, j) => (
-                  <li key={j}>
-                    <strong>{e.year}</strong> — {e.text}
-                  </li>
-                ))}
-              </ul>
+              <div key={i} className="space-y-4">
+                <h3 className="text-xl font-semibold">Timeline</h3>
+                <ul className="border-l-2 pl-4 space-y-3">
+                  {section.events.map((event, j) => (
+                    <li key={j}>
+                      <strong>{event.year}</strong> — {event.text}
+                    </li>
+                  ))}
+                </ul>
+              </div>
             );
 
           case "list":
             return (
-              <ul key={i} className="list-disc pl-6">
+              <ul key={i} className="list-disc pl-6 text-gray-700">
                 {section.items.map((item, j) => (
                   <li key={j}>{item}</li>
                 ))}
               </ul>
+            );
+
+          case "eventList":
+            return (
+              <div key={i} className="space-y-3">
+                {section.heading && (
+                  <h3 className="text-xl font-semibold">{section.heading}</h3>
+                )}
+                {section.events.map((event, j) => (
+                  <div
+                    key={j}
+                    className="border p-3 rounded-md"
+                  >
+                    <strong>{event.title}</strong>
+                    {event.date && (
+                      <div className="text-sm text-gray-500">
+                        {event.date}
+                      </div>
+                    )}
+                    {event.description && (
+                      <p className="text-gray-700 mt-1">
+                        {event.description}
+                      </p>
+                    )}
+                  </div>
+                ))}
+              </div>
             );
 
           default:
