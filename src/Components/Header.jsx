@@ -16,7 +16,7 @@ const Header = () => {
         <div className="flex-1 text-center">
           {/* Main heading — Playfair Display Regular */}
           <h1 className="text-2xl md:text-3xl font-Playfair font-serif text-black leading-tight">
-            Fr Agnel College Of Arts And Commerce
+            Fr.Agnel College Of Arts & Commerce
           </h1>
 
           {/* Sub texts — Inter Regular */}

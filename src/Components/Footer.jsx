@@ -175,7 +175,7 @@ export default function Footer({
             © {CURRENT_YEAR} {brand}. All rights reserved.
           </div>
           <div className="text-sm text-slate-400">
-            Built with React. Tailwind styled.
+           
 
           </div>
         </div>

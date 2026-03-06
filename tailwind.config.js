@@ -9,7 +9,8 @@ export default {
       fontFamily: {
         playfair: ["Playfair Display", "serif"],
         inter: ["Inter", "sans-serif"],
-        jaini: ["Jaini", "cursive"]
+        jaini: ["Jaini", "cursive"],
+         jaini: ["Jaini", "sans-serif"],
       },
     },
   },
