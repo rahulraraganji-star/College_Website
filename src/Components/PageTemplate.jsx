@@ -146,61 +146,14 @@ const PageTemplate = ({ slug }) => {
               </div>
             );
 
-          /* 🔥 UPDATED LIST → CARD DESIGN */
+       
    case "list":
   return (
-    <div key={i} className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-      {section.items.map((item, j) => {
-        const parts = item.split(" – ");
-
-        const name = parts[0] || "";
-        const role = parts[1] || "";
-
-        return (
-          <div
-            key={j}
-            className="bg-white rounded-3xl shadow-md p-5 transition hover:shadow-lg"
-          >
-            {/* Image */}
-            <div className="rounded-2xl overflow-hidden">
-              <img
-                src="https://images.unsplash.com/photo-1494790108377-be9c29b29330"
-                alt={name}
-                className="w-full h-64 object-cover"
-              />
-            </div>
-
-            {/* Info */}
-            <div className="mt-4 space-y-2">
-              <div className="flex items-center gap-2">
-                <h3 className="text-lg font-semibold">{name}</h3>
-
-                {/* Verified badge */}
-                <span className="bg-green-500 text-white text-xs px-2 py-1 rounded-full">
-                  ✓
-                </span>
-              </div>
-
-              <p className="text-gray-600 text-sm">
-                {role}
-              </p>
-
-              {/* Stats + Button */}
-              <div className="flex items-center justify-between mt-4">
-                <div className="flex gap-6 text-gray-500 text-sm">
-                  <span>👤 312</span>
-                  <span>📄 48</span>
-                </div>
-
-                <button className="bg-gray-100 hover:bg-gray-200 px-4 py-2 rounded-full text-sm font-medium">
-                  Profile +
-                </button>
-              </div>
-            </div>
-          </div>
-        );
-      })}
-    </div>
+    <ul key={i} className="list-disc pl-6 text-gray-700">
+      {section.items.map((item, j) => (
+        <li key={j}>{item}</li>
+      ))}
+    </ul>
   );
 
 
