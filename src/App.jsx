@@ -26,7 +26,7 @@ import IqacLayout from "./Layouts/IqacLayout";
 /* dynamic */
 import DynamicPage from "./Pages/DynamicPage";
 import DynamicLayout from "./Layouts/DynamicLayout";
-import FacultyPage from "./Pages/FacultyPage";
+
 
 function App() {
   return (
@@ -91,11 +91,12 @@ function App() {
         </Route>
 
         {/* ================= STAFF ================= */}
-        <Route path="staff" element={<StaffLayout />}>
-          <Route index element={<Navigate to="faculty" replace />} />
-          <Route path=":type" element={<FacultyPage />} />
-        </Route>
-
+       <Route path="staff" element={<StaffLayout />}>
+  <Route index element={<Navigate to="faculty" replace />} />
+  <Route element={<DynamicLayout />}>
+    <Route path=":slug" element={<DynamicPage />} />
+  </Route>
+</Route>
         {/* ================= ADMISSIONS ================= */}
         <Route path="admissions" element={<AdmissionsLayout />}>
           <Route index element={<Navigate to="prospectus" replace />} />

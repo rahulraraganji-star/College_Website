@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import Card from "./Card";
 
 const hasData = (section) => {
   switch (section.type) {
@@ -90,6 +91,8 @@ const PageTemplate = ({ slug }) => {
 
   return (
     <section className="space-y-8">
+
+      {/* Page Title */}
       <h1 className="text-3xl font-semibold">{data.title}</h1>
 
       {/* HERO */}
@@ -109,7 +112,9 @@ const PageTemplate = ({ slug }) => {
       )}
 
       {contentSections.map((section, i) => {
+
         switch (section.type) {
+
           case "content":
             return (
               <div key={i} className="space-y-2">
@@ -146,8 +151,47 @@ const PageTemplate = ({ slug }) => {
               </div>
             );
 
-       
-   case "list":
+          /* LIST SECTION */
+case "list":
+
+  if (
+    slug === "management" ||
+    slug === "faculty" ||
+    slug === "non-teaching"
+  ) {
+    return (
+      <div
+        key={i}
+        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10 mt-8"
+      >
+        {section.items.map((item, j) => {
+
+          const parts = item.split(" – ");
+
+          const person = {
+            name: parts[0] || "",
+            designation: parts[1] || "",
+            photo: "staff/placeholder.jpg",
+          };
+
+          return (
+            <Card
+              key={j}
+              item={person}
+            />
+          );
+        })}
+      </div>
+    );
+  }
+
+  return (
+    <ul key={i} className="list-disc pl-6 text-gray-700">
+      {section.items.map((item, j) => (
+        <li key={j}>{item}</li>
+      ))}
+    </ul>
+  );
   return (
     <ul key={i} className="list-disc pl-6 text-gray-700">
       {section.items.map((item, j) => (
@@ -156,6 +200,14 @@ const PageTemplate = ({ slug }) => {
     </ul>
   );
 
+            /* DEFAULT LIST */
+            return (
+              <ul key={i} className="list-disc pl-6 text-gray-700">
+                {section.items.map((item, j) => (
+                  <li key={j}>{item}</li>
+                ))}
+              </ul>
+            );
 
           case "eventList":
             return (
@@ -282,6 +334,7 @@ const PageTemplate = ({ slug }) => {
           default:
             return null;
         }
+
       })}
     </section>
   );
