@@ -11,10 +11,23 @@ const PageSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+
+    parentSlug: {
+  type: String,
+  default: null,
+},
+
+    
+   sections: {
+  type: Array,
+  default: [],
+},
+
     content: {
       type: Array,
       default: [],
     },
+
     isPublished: {
       type: Boolean,
       default: true,

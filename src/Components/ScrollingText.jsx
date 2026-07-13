@@ -1,36 +1,36 @@
 import { useEffect, useRef } from "react";
 import gsap from "gsap";
 
-const events = [
-  { text: "HACKATHON", font: "Oswald" },
-  { text: "TECH FEST", font: "Playfair Display" },
-  { text: "CULTURAL NIGHT", font: "Londrina Solid" },
-  { text: "WORKSHOP", font: "Fjalla One" },
-  { text: "AI SUMMIT", font: "Oswald" },
-  { text: "DESIGN SPRINT", font: "Playfair Display" },
-  { text: "CODING JAM", font: "Fjalla One" },
-  { text: "STARTUP MEET", font: "Londrina Solid" },
-];
-
-const EventsMarquee = () => {
+const EventsMarquee = ({ data }) => {
   const trackRef = useRef(null);
 
+  const items = data?.items || [];
+
   useEffect(() => {
+    if (!items.length) return;
+
     const track = trackRef.current;
     let tween;
 
     const setupMarquee = () => {
-      const totalWidth = track.scrollWidth / 2;
+      // track renders 3 copies of items, so one full set is 1/3 of scrollWidth
+      const setWidth = track.scrollWidth / 3;
 
-      gsap.set(track, { x: 0, willChange: "transform" });
+      gsap.set(track, {
+        x: 0,
+        force3D: true,
+        willChange: "transform",
+      });
 
       tween = gsap.to(track, {
-        x: -totalWidth,
+        x: -setWidth,
         duration: 20,
-        ease: "linear",
+        ease: "none",
         repeat: -1,
         modifiers: {
-          x: gsap.utils.unitize((x) => parseFloat(x) % totalWidth),
+          // wraps the x value every frame so the loop point is mathematically
+          // seamless instead of snapping back on each repeat
+          x: gsap.utils.unitize((x) => parseFloat(x) % -setWidth),
         },
       });
     };
@@ -42,23 +42,28 @@ const EventsMarquee = () => {
     }
 
     return () => tween && tween.kill();
-  }, []);
+  }, [items.length]);
+
+  if (!items.length) return null;
+
+  // Purely visual font/weight variety, applied by position — not derived from data
+  const fontPattern = ["Fraunces", "Playfair Display", "Inter"];
+  const getFont = (i) => fontPattern[i % fontPattern.length];
+  const getIsBold = (i) => (i * 37) % 5 === 0; // scattered, deterministic "random" look
 
   return (
-    /* pushed further down from hero */
     <section className="mt-48 w-full overflow-hidden bg-white py-4">
       <div
         ref={trackRef}
         className="flex w-max items-center whitespace-nowrap"
       >
-        {[...events, ...events].map((item, i) => (
+        {[...items, ...items, ...items].map((item, i) => (
           <span
             key={i}
             className="mr-16 text-[26px] tracking-[1.4px] text-black whitespace-nowrap"
             style={{
-              fontFamily: item.font,
-              fontWeight:
-                item.font === "Playfair Display" ? 600 : 500,
+              fontFamily: getFont(i),
+              fontWeight: getIsBold(i) ? 700 : 500,
             }}
           >
             {item.text}

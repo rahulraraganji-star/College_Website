@@ -1,343 +1,533 @@
-import { useEffect, useState } from "react";
+
 import Card from "./Card";
 
 const hasData = (section) => {
+
   switch (section.type) {
+
     case "content":
-      return Boolean(section.body?.trim());
+      return Boolean(
+        section.body?.trim()
+      );
+
     case "richText":
-      return Boolean(section.content?.trim());
+      return Boolean(
+        section.content?.trim()
+      );
+
+    case "heading":
+      return Boolean(
+        section.text?.trim()
+      );
+
     case "timeline":
-      return Array.isArray(section.events) && section.events.length > 0;
+      return (
+        Array.isArray(section.events) &&
+        section.events.length > 0
+      );
+
     case "list":
-      return Array.isArray(section.items) && section.items.length > 0;
+      return (
+        Array.isArray(section.items) &&
+        section.items.length > 0
+      );
+
+    case "faculty-grid":
+      return (
+        Array.isArray(section.items) &&
+        section.items.length > 0
+      );
+
     case "eventList":
-      return Array.isArray(section.events) && section.events.length > 0;
+      return (
+        Array.isArray(section.events) &&
+        section.events.length > 0
+      );
+
     case "table":
-      return Array.isArray(section.rows) && section.rows.length > 0;
+      return (
+        Array.isArray(section.rows) &&
+        section.rows.length > 0
+      );
+
     case "documents":
     case "documentList":
-      return Array.isArray(section.documents) && section.documents.length > 0;
+      return (
+        Array.isArray(section.documents) &&
+        section.documents.length > 0
+      );
+
     case "gallery":
-      return Array.isArray(section.images) && section.images.length > 0;
+      return (
+        Array.isArray(section.images) &&
+        section.images.length > 0
+      );
+
     case "embed":
       return Boolean(section.url);
+
     case "hero":
       return true;
+
     default:
       return false;
+
   }
+
 };
 
-const PageTemplate = ({ slug }) => {
-  const [data, setData] = useState(null);
-  const [error, setError] = useState(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    if (!slug) return;
-
-    setData(null);
-    setError(null);
-    setLoading(true);
-
-    fetch(`http://localhost:5000/api/pages/${slug}`)
-      .then((res) => {
-        if (!res.ok) throw new Error("Page not found");
-        return res.json();
-      })
-      .then((page) => {
-        setData(page);
-        setLoading(false);
-      })
-      .catch(() => {
-        setError("Page not found");
-        setLoading(false);
-      });
-  }, [slug]);
-
-  if (loading) {
-    return (
-      <div className="min-h-[300px] flex items-center justify-center">
-        <p className="text-gray-500 text-lg">Loading...</p>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="min-h-[300px] flex items-center justify-center">
-        <p className="text-red-500 text-lg">{error}</p>
-      </div>
-    );
-  }
+const PageTemplate = ({ data }) => {
 
   if (!data) {
+
     return (
       <div className="min-h-[300px] flex items-center justify-center">
-        <p className="text-gray-400 text-lg">No content available</p>
+
+        <p className="text-gray-400 text-lg">
+          No content available
+        </p>
+
       </div>
     );
+
   }
 
-  const contentSections = data.sections?.filter(
-    (section) => section.type !== "hero" && hasData(section)
-  );
-
-  const heroSections =
-    contentSections.length > 0
-      ? data.sections?.filter((s) => s.type === "hero")
+  /* SAFE */
+  const safeSections =
+    Array.isArray(data.sections)
+      ? data.sections
       : [];
 
-  return (
-    <section className="space-y-8">
+  /* CONTENT */
+  const contentSections =
+    safeSections.filter(
+      (section) =>
+        section.type !== "hero" &&
+        hasData(section)
+    );
 
-      {/* Page Title */}
-      <h1 className="text-3xl font-semibold">{data.title}</h1>
+  /* HERO */
+  const heroSections =
+    safeSections.filter(
+      (s) => s.type === "hero"
+    );
+
+  return (
+
+    <section className="space-y-10">
+
+      {/* TITLE */}
+      <div className="space-y-3">
+
+        <h1
+          className="
+            text-4xl
+            font-bold
+            tracking-tight
+            text-neutral-900
+          "
+        >
+
+          {data.title}
+
+        </h1>
+
+      </div>
 
       {/* HERO */}
       {heroSections.map((section, i) => (
-        <div key={i} className="py-4 space-y-1">
+
+        <div
+          key={i}
+          className="
+            rounded-3xl
+            border
+            border-neutral-200
+            bg-neutral-50
+            p-8
+            space-y-3
+          "
+        >
+
           {section.heading && (
-            <h2 className="text-2xl font-bold">{section.heading}</h2>
+
+            <h2
+              className="
+                text-3xl
+                font-bold
+                text-neutral-900
+              "
+            >
+
+              {section.heading}
+
+            </h2>
+
           )}
+
           {section.subheading && (
-            <p className="text-gray-500">{section.subheading}</p>
+
+            <p
+              className="
+                text-neutral-600
+                text-lg
+              "
+            >
+
+              {section.subheading}
+
+            </p>
+
           )}
+
         </div>
+
       ))}
 
+      {/* EMPTY */}
       {contentSections.length === 0 && (
-        <p className="text-gray-500">Content will be updated soon.</p>
+
+        <div className="py-20 text-center">
+
+          <p className="text-gray-500">
+            Content will be updated soon.
+          </p>
+
+        </div>
+
       )}
 
+      {/* RENDER */}
       {contentSections.map((section, i) => {
 
         switch (section.type) {
 
+          /* HEADING */
+          case "heading":
+
+            return (
+
+              <div
+                key={i}
+                className="pt-10"
+              >
+
+                <h2
+                  className="
+                    text-2xl
+                    font-bold
+                    tracking-tight
+                    text-neutral-900
+                    border-b
+                    border-neutral-200
+                    pb-3
+                  "
+                >
+
+                  {section.text}
+
+                </h2>
+
+              </div>
+
+            );
+
+          /* CONTENT */
           case "content":
-            return (
-              <div key={i} className="space-y-2">
-                {section.heading && (
-                  <h3 className="text-xl font-semibold">{section.heading}</h3>
-                )}
-                <p className="text-gray-700 leading-relaxed">{section.body}</p>
-              </div>
-            );
 
-          case "richText":
             return (
-              <div key={i} className="space-y-2">
+
+              <div
+                key={i}
+                className="space-y-4"
+              >
+
                 {section.heading && (
-                  <h3 className="text-xl font-semibold">{section.heading}</h3>
+
+                  <h3 className="text-2xl font-semibold">
+
+                    {section.heading}
+
+                  </h3>
+
                 )}
-                <p className="text-gray-700 leading-relaxed">
-                  {section.content}
+
+                <p
+                  className="
+                    text-neutral-700
+                    leading-8
+                    text-[17px]
+                  "
+                >
+
+                  {section.body}
+
                 </p>
+
               </div>
+
             );
 
+          /* RICH TEXT */
+          case "richText":
+
+            return (
+
+              <div
+                key={i}
+                className="space-y-4"
+              >
+
+                {section.heading && (
+
+                  <h3 className="text-2xl font-semibold">
+
+                    {section.heading}
+
+                  </h3>
+
+                )}
+
+                <p
+                  className="
+                    text-neutral-700
+                    leading-8
+                    text-[17px]
+                  "
+                >
+
+                  {section.content}
+
+                </p>
+
+              </div>
+
+            );
+
+          /* TIMELINE */
           case "timeline":
+
             return (
-              <div key={i} className="space-y-4">
-                <h3 className="text-xl font-semibold">Timeline</h3>
-                <ul className="border-l-2 pl-4 space-y-3">
-                  {section.events.map((event, j) => (
-                    <li key={j}>
-                      <strong>{event.year}</strong> — {event.text}
-                    </li>
-                  ))}
+
+              <div
+                key={i}
+                className="space-y-6"
+              >
+
+                <h3 className="text-2xl font-bold">
+                  Timeline
+                </h3>
+
+                <ul
+                  className="
+                    border-l-2
+                    border-neutral-300
+                    pl-6
+                    space-y-6
+                  "
+                >
+
+                  {section.events.map(
+                    (event, j) => (
+
+                      <li
+                        key={j}
+                        className="relative"
+                      >
+
+                        <div
+                          className="
+                            absolute
+                            -left-[31px]
+                            top-2
+                            h-3
+                            w-3
+                            rounded-full
+                            bg-black
+                          "
+                        />
+
+                        <strong className="text-lg">
+
+                          {event.year}
+
+                        </strong>
+
+                        <p className="text-neutral-700 mt-1">
+
+                          {event.text}
+
+                        </p>
+
+                      </li>
+
+                    )
+                  )}
+
                 </ul>
+
               </div>
+
             );
 
-          /* LIST SECTION */
-case "list":
+          /* NORMAL LIST */
+          case "list":
 
-  if (
-    slug === "management" ||
-    slug === "faculty" ||
-    slug === "non-teaching"
-  ) {
-    return (
-      <div
-        key={i}
-        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10 mt-8"
-      >
-        {section.items.map((item, j) => {
-
-          const parts = item.split(" – ");
-
-          const person = {
-            name: parts[0] || "",
-            designation: parts[1] || "",
-            photo: "staff/placeholder.jpg",
-          };
-
-          return (
-            <Card
-              key={j}
-              item={person}
-            />
-          );
-        })}
-      </div>
-    );
-  }
-
-  return (
-    <ul key={i} className="list-disc pl-6 text-gray-700">
-      {section.items.map((item, j) => (
-        <li key={j}>{item}</li>
-      ))}
-    </ul>
-  );
-  return (
-    <ul key={i} className="list-disc pl-6 text-gray-700">
-      {section.items.map((item, j) => (
-        <li key={j}>{item}</li>
-      ))}
-    </ul>
-  );
-
-            /* DEFAULT LIST */
             return (
-              <ul key={i} className="list-disc pl-6 text-gray-700">
-                {section.items.map((item, j) => (
-                  <li key={j}>{item}</li>
-                ))}
+
+              <ul
+                key={i}
+                className="
+                  list-disc
+                  pl-6
+                  text-neutral-700
+                  space-y-3
+                "
+              >
+
+                {section.items.map(
+                  (item, j) => (
+
+                    <li
+                      key={j}
+                      className="leading-7"
+                    >
+
+                      {item}
+
+                    </li>
+
+                  )
+                )}
+
               </ul>
+
             );
 
+          /* FACULTY GRID */
+          case "faculty-grid":
+
+            return (
+
+              <div
+                key={i}
+                className="
+                  grid
+                  grid-cols-1
+                  md:grid-cols-2
+                  xl:grid-cols-3
+                  gap-8
+                "
+              >
+
+                {section.items.map(
+                  (item, j) => (
+
+                    <Card
+                      key={j}
+                      item={item}
+                    />
+
+                  )
+                )}
+
+              </div>
+
+            );
+
+          /* EVENTS */
           case "eventList":
-            return (
-              <div key={i} className="space-y-3">
-                {section.heading && (
-                  <h3 className="text-xl font-semibold">{section.heading}</h3>
-                )}
-                {section.events.map((event, j) => (
-                  <div key={j} className="border p-3 rounded-md">
-                    <strong>{event.title}</strong>
-                    {event.date && (
-                      <div className="text-sm text-gray-500">{event.date}</div>
-                    )}
-                    {event.description && (
-                      <p className="text-gray-700 mt-1">{event.description}</p>
-                    )}
-                  </div>
-                ))}
-              </div>
-            );
 
-          case "table":
             return (
-              <div key={i} className="overflow-x-auto">
-                {section.heading && (
-                  <h3 className="text-xl font-semibold mb-4">{section.heading}</h3>
-                )}
-                <table className="min-w-full border-collapse border border-gray-300">
-                  <thead>
-                    <tr className="bg-gray-100">
-                      {section.headers?.map((header, j) => (
-                        <th key={j} className="border border-gray-300 p-3 text-left">
-                          {header}
-                        </th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {section.rows.map((row, j) => (
-                      <tr key={j} className="hover:bg-gray-50">
-                        {row.map((cell, k) => (
-                          <td key={k} className="border border-gray-300 p-3">
-                            {cell}
-                          </td>
-                        ))}
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            );
 
-          case "documents":
-          case "documentList":
-            return (
-              <div key={i} className="space-y-3">
+              <div
+                key={i}
+                className="space-y-5"
+              >
+
                 {section.heading && (
-                  <h3 className="text-xl font-semibold">{section.heading}</h3>
+
+                  <h3 className="text-2xl font-semibold">
+
+                    {section.heading}
+
+                  </h3>
+
                 )}
-                <div className="grid md:grid-cols-2 gap-4">
-                  {section.documents.map((doc, j) => (
-                    <div key={j} className="border p-4 rounded-lg hover:shadow-md">
-                      <h4 className="font-semibold">{doc.title}</h4>
-                      {doc.description && (
-                        <p className="text-sm text-gray-600 mt-1">{doc.description}</p>
-                      )}
-                      {doc.url && (
-                        <a
-                          href={doc.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-blue-600 hover:underline text-sm mt-2 inline-block"
+
+                {section.events.map(
+                  (event, j) => (
+
+                    <div
+                      key={j}
+                      className="
+                        border
+                        border-neutral-200
+                        rounded-2xl
+                        p-5
+                        bg-white
+                      "
+                    >
+
+                      <strong className="text-lg">
+
+                        {event.title}
+
+                      </strong>
+
+                      {event.date && (
+
+                        <div
+                          className="
+                            text-sm
+                            text-neutral-500
+                            mt-1
+                          "
                         >
-                          Download →
-                        </a>
+
+                          {event.date}
+
+                        </div>
+
                       )}
+
+                      {event.description && (
+
+                        <p
+                          className="
+                            text-neutral-700
+                            mt-3
+                            leading-7
+                          "
+                        >
+
+                          {event.description}
+
+                        </p>
+
+                      )}
+
                     </div>
-                  ))}
-                </div>
-              </div>
-            );
 
-          case "gallery":
-            return (
-              <div key={i} className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                {section.heading && (
-                  <h3 className="text-xl font-semibold col-span-full">{section.heading}</h3>
+                  )
                 )}
-                {section.images.map((image, j) => (
-                  <div key={j} className="aspect-square bg-gray-200 rounded-lg overflow-hidden">
-                    {image.url ? (
-                      <img
-                        src={image.url}
-                        alt={image.alt || "Gallery image"}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center">
-                        <span className="text-gray-500 text-sm">Image</span>
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            );
 
-          case "embed":
-            return (
-              <div key={i} className="space-y-2">
-                {section.heading && (
-                  <h3 className="text-xl font-semibold">{section.heading}</h3>
-                )}
-                <div className="aspect-video bg-gray-100 rounded-lg overflow-hidden">
-                  <iframe
-                    src={section.url}
-                    className="w-full h-full"
-                    frameBorder="0"
-                    allowFullScreen
-                  />
-                </div>
               </div>
+
             );
 
           default:
             return null;
+
         }
 
       })}
+
     </section>
+
   );
+
 };
 
 export default PageTemplate;
+

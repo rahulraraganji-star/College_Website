@@ -3,36 +3,181 @@ import { Link } from "react-router-dom";
 import * as Icons from "lucide-react";
 
 const Navbar = () => {
+
   const [menus, setMenus] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [scrolled, setScrolled] = useState(false);
+
   const dropdownRefs = useRef({});
 
+  // FETCH NAVIGATION + PAGES
   useEffect(() => {
-    fetch("http://localhost:5000/api/navigation")
-      .then((res) => res.json())
-      .then((data) => {
-        setMenus(Array.isArray(data) ? data : []);
-        setLoading(false);
-      })
-      .catch((err) => {
-        console.error("NAV FETCH ERROR:", err);
-        setMenus([]);
-        setLoading(false);
-      });
+
+    const fetchNavbarData = () => {
+
+      Promise.all([
+        fetch("http://localhost:5000/api/navigation")
+          .then((res) => res.json()),
+
+        fetch("http://localhost:5000/api/pages")
+          .then((res) => res.json()),
+      ])
+
+        .then(([navData, pagesData]) => {
+
+          const safeMenus = Array.isArray(navData)
+            ? navData
+            : [];
+
+          const safePages = Array.isArray(pagesData)
+            ? pagesData
+            : [];
+
+          // MERGE DYNAMIC PAGES
+          const updatedMenus = safeMenus.map((menu) => {
+
+            const parentKey =
+              (
+                menu.key ||
+                menu.slug ||
+                ""
+              )
+                .replace(/^\/+/, "")
+                .toLowerCase();
+
+            // MATCH PAGES
+            const relatedPages = safePages.filter(
+              (page) =>
+                page.parentSlug?.toLowerCase() ===
+                parentKey
+            );
+
+            // CONVERT TO NAV ITEMS
+            const dynamicItems = relatedPages.map(
+              (page) => ({
+                _id: page._id,
+                label: page.title,
+
+                // IMPORTANT FIX
+                slug: `/${parentKey}/${page.slug}`,
+
+                icon: "ChevronRight",
+              })
+            );
+
+            // MERGE + DEDUPE
+            const mergedItems = [
+              ...(menu.items || []),
+              ...dynamicItems,
+            ];
+
+            const seen = new Set();
+
+            const uniqueItems = mergedItems.filter(
+              (item) => {
+
+                // NORMALIZE SLUG SO FORMAT DIFFERENCES
+                // (leading slash, casing) DON'T SLIP
+                // PAST THE DEDUPE CHECK
+                const normalizedSlug = (item.slug || "")
+                  .replace(/^\/+/, "")
+                  .toLowerCase();
+
+                const key =
+                  normalizedSlug ||
+                  (item.label || "").toLowerCase();
+
+                if (seen.has(key)) return false;
+
+                seen.add(key);
+
+                return true;
+
+              }
+            );
+
+            return {
+              ...menu,
+
+              items: uniqueItems,
+            };
+          });
+
+          setMenus(updatedMenus);
+
+          setLoading(false);
+
+        })
+
+        .catch((err) => {
+
+          console.error("NAV FETCH ERROR:", err);
+
+          setMenus([]);
+
+          setLoading(false);
+
+        });
+
+    };
+
+    // INITIAL FETCH
+    fetchNavbarData();
+
+    // LISTEN FOR CREATE/UPDATE EVENTS
+    window.addEventListener(
+      "navbarRefresh",
+      fetchNavbarData
+    );
+
+    // CLEANUP
+    return () => {
+
+      window.removeEventListener(
+        "navbarRefresh",
+        fetchNavbarData
+      );
+
+    };
+
   }, []);
 
+  // SCROLL EFFECT
+  useEffect(() => {
+
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 10);
+    };
+
+    window.addEventListener("scroll", handleScroll);
+
+    return () =>
+      window.removeEventListener(
+        "scroll",
+        handleScroll
+      );
+
+  }, []);
+
+  // LOADING
   if (loading) {
-    return <nav className="bg-white border-b h-[64px]" />;
+    return <nav className="h-[90px]" />;
   }
 
+  // BUILD PATH
   const buildPath = (slug) => {
+
     if (!slug) return "/";
-    const cleaned = slug.replace(/^\/+/, "");
-    return `/${cleaned}`;
+
+    return `/${slug.replace(/^\/+/, "")}`;
+
   };
 
+  // DROPDOWN POSITIONING
   const positionDropdown = (index, isAbout) => {
+
     const el = dropdownRefs.current[index];
+
     if (!el) return;
 
     const vw = window.innerWidth;
@@ -42,160 +187,253 @@ const Navbar = () => {
     el.style.transform = "translateX(0)";
 
     if (isAbout) {
+
       el.style.left = "50%";
       el.style.transform = "translateX(-50%)";
+
     }
 
     let rect = el.getBoundingClientRect();
 
     if (rect.right > vw - 16) {
+
       el.style.left = "auto";
       el.style.right = "0";
       el.style.transform = "translateX(0)";
+
     }
 
     rect = el.getBoundingClientRect();
 
     if (rect.left < 16) {
+
       el.style.left = "0";
       el.style.right = "auto";
       el.style.transform = "translateX(0)";
+
     }
+
   };
 
   return (
-    <nav className="bg-white border-b font-jaini">
-      <div className="max-w-7xl mx-auto px-10">
-        <ul className="flex items-center justify-between w-full">
-          {menus.map((menu, index) => {
-            const isAbout = menu.title === "About Us";
-            const hasChildren = menu.items && menu.items.length > 0;
+    <nav className="sticky top-0 z-50 bg-[#F8F6F1] border-b border-[#E8E2D3]">
 
-            return (
-              <li
-                key={menu._id || index}
-                className="relative group"
-                onMouseEnter={
-                  hasChildren
-                    ? () => positionDropdown(index, isAbout)
-                    : undefined
-                }
-              >
-                {/* TOP LEVEL */}
-                {hasChildren ? (
-                  <span className="block py-4 text-sm font-semibold tracking-wide cursor-pointer hover:text-[#F5B301] whitespace-nowrap">
-                    {menu.title}
-                  </span>
-                ) : (
-                  <Link
-                    to={buildPath(menu.slug || menu.key)}
-                    className="block py-4 text-sm font-semibold tracking-wide hover:text-[#F5B301] whitespace-nowrap"
-                  >
-                    {menu.title}
-                  </Link>
-                )}
+      <div className="h-[2px] bg-[#C89B2F]" />
 
-                {/* DROPDOWN */}
-                {hasChildren && (
-                  <div
-                    ref={(el) => (dropdownRefs.current[index] = el)}
-                    className="absolute top-full z-50 invisible group-hover:visible pointer-events-none group-hover:pointer-events-auto"
-                  >
-                    <div className="mt-3 bg-[#F9FAFB] border border-gray-300 rounded-xl shadow-xl p-6 w-[820px] max-w-[90vw] scale-95 group-hover:scale-100 transition-transform">
+      <div
+        className={`
+          ${scrolled ? "h-[64px]" : "h-[78px]"}
+          transition-all duration-300
+          flex items-center
+        `}
+      >
 
-                      {/* ABOUT US SPECIAL LAYOUT */}
-                      {isAbout ? (
-                        <div className="flex gap-10 items-start">
+        <div className="max-w-[1300px] mx-auto w-full px-6">
 
-                          {/* LEFT FEATURE CARD */}
-                          <Link
-                            to="/about/history"
-                            className="w-[190px] border border-[#F5B301] rounded-xl p-6 bg-white flex flex-col justify-between min-h-[220px]"
-                          >
-                            <div>
-                              <h3 className="text-[15px] font-semibold mb-6">
-                                About Our Institution
-                              </h3>
+         <ul className="flex items-center justify-center gap-10 whitespace-nowrap">
 
-                              <p className="text-sm text-gray-600 leading-relaxed">
-                                Learn about our legacy
-                                <br />
-                                and values.
-                              </p>
+            {menus.map((menu, index) => {
+
+              const isAbout =
+                menu.title === "About Us";
+
+              const hasChildren =
+                menu.items &&
+                menu.items.length > 0;
+
+              return (
+                <li
+                  key={menu._id || index}
+                  className="relative group"
+                  onMouseEnter={
+                    hasChildren
+                      ? () =>
+                          positionDropdown(
+                            index,
+                            isAbout
+                          )
+                      : undefined
+                  }
+                >
+
+                  {/* TOP ITEM */}
+                  {hasChildren ? (
+
+                    <span className="relative px-3 py-2 text-[18px] font-medium font-['Inter'] text-gray-800 cursor-pointer">
+
+                      {menu.title}
+
+                      <span className="absolute left-0 bottom-0 h-[2px] w-0 bg-[#C89B2F] transition-all duration-300 group-hover:w-full" />
+
+                    </span>
+
+                  ) : (
+
+                    <Link
+                      to={buildPath(
+                        menu.slug || menu.key
+                      )}
+                      className="relative px-3 py-2 text-[16px] font-medium font-['Inter'] text-gray-800"
+                    >
+
+                      {menu.title}
+
+                      <span className="absolute left-0 bottom-0 h-[2px] w-0 bg-[#C89B2F] transition-all duration-300 hover:w-full" />
+
+                    </Link>
+
+                  )}
+
+                  {/* DROPDOWN */}
+                  {hasChildren && (
+
+                    <div
+                      ref={(el) =>
+                        (dropdownRefs.current[index] =
+                          el)
+                      }
+                      className="
+                        absolute top-full z-50
+                        opacity-0 translate-y-3
+                        pointer-events-none
+                        group-hover:opacity-100
+                        group-hover:translate-y-0
+                        group-hover:pointer-events-auto
+                        transition-all duration-300
+                      "
+                    >
+
+                      <div className="mt-4 bg-white border border-[#E5E5E5] shadow-[0_25px_60px_rgba(0,0,0,0.12)] rounded-xl p-6 w-[820px] max-w-[90vw]">
+
+                        {isAbout ? (
+
+                          <div className="flex gap-10 items-start">
+
+                            <Link
+                              to="/about/history"
+                              className="w-[190px] border border-[#C89B2F] rounded-xl p-6 bg-[#FFF8E6] flex flex-col justify-between min-h-[220px]"
+                            >
+
+                              <div>
+
+                                <h3 className="text-[15px] font-semibold mb-6">
+                                  About Our Institution
+                                </h3>
+
+                                <p className="text-sm text-gray-600">
+                                  Learn about our legacy and values.
+                                </p>
+
+                              </div>
+
+                              <span className="text-sm font-semibold text-[#C89B2F] mt-8">
+                                Explore →
+                              </span>
+
+                            </Link>
+
+                            <div className="grid grid-cols-2 gap-x-12 gap-y-8">
+
+                              {menu.items.map((item) => {
+
+                                const Icon =
+                                  Icons[item.icon] || null;
+
+                                return (
+                                  <Link
+                                    key={item._id}
+                                    to={buildPath(item.slug)}
+                                    className="flex items-start gap-4 group"
+                                  >
+
+                                    <div className="w-10 h-10 rounded-full bg-[#FFF4D6] flex items-center justify-center text-[#C89B2F]">
+
+                                      {Icon && (
+                                        <Icon size={18} />
+                                      )}
+
+                                    </div>
+
+                                    <div>
+
+                                      <h4 className="text-[15px] font-medium group-hover:text-[#C89B2F]">
+                                        {item.label}
+                                      </h4>
+
+                                      <p className="text-sm text-gray-500">
+                                        View details
+                                      </p>
+
+                                    </div>
+
+                                  </Link>
+                                );
+                              })}
+
                             </div>
 
-                            <span className="text-sm font-semibold mt-8">
-                              Explore More →
-                            </span>
-                          </Link>
+                          </div>
 
-                          {/* RIGHT ITEMS */}
-                          <div className="grid grid-cols-2 gap-x-12 gap-y-8">
+                        ) : (
+
+                          <div className="grid grid-cols-3 gap-6">
+
                             {menu.items.map((item) => {
-                              const Icon = Icons[item.icon] || null;
+
+                              const Icon =
+                                Icons[item.icon] || null;
 
                               return (
                                 <Link
                                   key={item._id}
                                   to={buildPath(item.slug)}
-                                  className="flex items-start gap-4 group"
+                                  className="flex gap-3"
                                 >
-                                  <div className="w-10 h-10 rounded-full bg-[#FFF4D6] flex items-center justify-center text-[#F5B301]">
-                                    {Icon && <Icon size={18} />}
+
+                                  <div className="w-8 h-8 bg-[#FFF4D6] rounded-full flex items-center justify-center text-[#C89B2F]">
+
+                                    {Icon && (
+                                      <Icon size={16} />
+                                    )}
+
                                   </div>
 
                                   <div>
-                                    <h4 className="text-[15px] font-semibold group-hover:text-[#F5B301] transition">
+
+                                    <h4 className="text-sm font-medium">
                                       {item.label}
                                     </h4>
 
-                                    <p className="text-sm text-gray-500">
+                                    <p className="text-xs text-gray-500">
                                       View details
                                     </p>
+
                                   </div>
+
                                 </Link>
                               );
                             })}
+
                           </div>
-                        </div>
-                      ) : (
-                        /* OTHER MENUS */
-                        <div className="grid grid-cols-3 gap-6">
-                          {menu.items.map((item) => {
-                            const Icon = Icons[item.icon] || null;
 
-                            return (
-                              <Link
-                                key={item._id}
-                                to={buildPath(item.slug)}
-                                className="flex gap-3"
-                              >
-                                <div className="w-8 h-8 bg-[#FFF4D6] rounded-full flex items-center justify-center text-[#F5B301]">
-                                  {Icon && <Icon size={16} />}
-                                </div>
+                        )}
 
-                                <div>
-                                  <h4 className="text-sm font-semibold">
-                                    {item.label}
-                                  </h4>
+                      </div>
 
-                                  <p className="text-xs text-gray-500">
-                                    View details
-                                  </p>
-                                </div>
-                              </Link>
-                            );
-                          })}
-                        </div>
-                      )}
                     </div>
-                  </div>
-                )}
-              </li>
-            );
-          })}
-        </ul>
+
+                  )}
+
+                </li>
+              );
+            })}
+
+          </ul>
+
+        </div>
+
       </div>
+
     </nav>
   );
 };

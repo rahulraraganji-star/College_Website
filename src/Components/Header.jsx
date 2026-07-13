@@ -1,35 +1,81 @@
-import logo from '../assets/logo.png'
 import { Link } from "react-router-dom";
+import logo from "../assets/logo.svg";
 
-const Header = () => {
+
+const Header = ({ data }) => {
+  if (!data) return null;
+
   return (
-    <header className="bg-white border-y-4 border-black">
-      <div className="max-w-7xl mx-auto flex items-center gap-2 px-70 py-4">
-        
-        {/* Logo */}
-        <Link to="/">
-          <img
-            src={logo}
-            alt="Fr Agnel College Logo"
-            className="w-20 h-auto -mt-3 cursor-pointer"
-          />
-        </Link>
+    <header className="w-full bg-[#FAF8F5] border-b border-[#E8E1D5]">
 
-        {/* Centered Text */}
-        <div className="flex-1 text-center">
-          <h1 className="text-2xl md:text-3xl font-Playfair font-serif text-black leading-tight">
-            Fr.Agnel College Of Arts & Commerce
-          </h1>
+      <div className="max-w-7xl mx-auto px-4 md:px-8 py-4">
 
-          <p className="text-base font-Inter font-sans-serif text-black mt-1">
-            Affiliated to Goa University
-          </p>
+        <div className="flex items-center justify-center gap-5 md:gap-6">
 
-          <p className="text-sm font-Inter font-sans-serif text-black tracking-wide mt-1 uppercase">
-            Accredited by NAAC with Grade ‘A+’ (CGPA of 3.28)
-          </p>
+          {/* Logo */}
+          <Link to="/" className="flex-shrink-0 flex items-center">
+            <img
+              src={logo}
+              alt="College Logo"
+              className="w-16 md:w-20 h-auto object-contain"
+            />
+          </Link>
+
+          {/* Text Content */}
+          <div className="text-center">
+
+            {/* College Name */}
+            <h1
+              className="
+                text-[#233044]
+                text-2xl
+                md:text-[3.2rem]
+                leading-none
+                tracking-wide
+                font-normal
+                font-[Jaini_Purva]
+              "
+            >
+              {data.title}
+            </h1>
+
+            {/* Subtitle */}
+            {data.subtitle && (
+              <p
+                className="
+                  mt-2
+                  text-[#9A7B4F]
+                  md:text-[19px]
+                  text-sm
+                  md:text-base
+                  tracking-[0.08em]
+                  font-medium
+                "
+              >
+                {data.subtitle}
+              </p>
+            )}
+
+            {/* Tagline */}
+            {data.tagline && (
+              <p
+                className="
+                  mt-1.5
+                  text-[#6B7280]
+                  text-[10px]
+                  md:text-[12px]
+                  uppercase
+                  tracking-[0.22em]
+                  font-normal
+                "
+              >
+                {data.tagline}
+              </p>
+            )}
+
+          </div>
+
         </div>
-
       </div>
     </header>
   );

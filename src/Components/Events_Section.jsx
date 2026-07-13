@@ -1,13 +1,22 @@
 import { useLayoutEffect, useRef } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import image from "../assets/image.png";
 
 gsap.registerPlugin(ScrollTrigger);
 
-const BIG_IMAGE = image;
+const getEventImage = (event) =>
+  event?.image || event?.imageUrl || event?.photo || event?.thumbnail || "";
 
-const Events_Section = () => {
+const getEventTitle = (event) => event?.title || event?.name || "";
+const getEventDescription = (event) => event?.description || event?.desc || "";
+const getEventDepartment = (event) =>
+  event?.department || event?.dept || event?.organizer || event?.organisedBy || "";
+const getEventLocation = (event) =>
+  event?.location || event?.campusLine || event?.venue || "";
+const getEventUpdated = (event) =>
+  event?.updated || event?.updatedText || event?.date || "";
+
+const Events_Section = ({ data }) => {
   const sectionRef = useRef(null);
   const headerRef = useRef(null);
   const subTextRef = useRef(null);
@@ -16,7 +25,17 @@ const Events_Section = () => {
   const cardsRef = useRef([]);
   const innersRef = useRef([]);
 
+  const events = data?.events || data?.items || data?.cards || [];
+  const visibleEvents = events.slice(0, 3);
+  const frontImage =
+    data?.frontImage ||
+    data?.coverImage ||
+    data?.image ||
+    getEventImage(visibleEvents[0]);
+
   useLayoutEffect(() => {
+    if (!visibleEvents.length) return undefined;
+
     const ctx = gsap.context(() => {
       const cards = cardsRef.current;
       const inners = innersRef.current;
@@ -69,8 +88,8 @@ const Events_Section = () => {
         ease: "expo.out",
       });
 
-      tl.to(cards[0], { x: -24, duration: 0.75 }, "<");
-      tl.to(cards[2], { x: 24, duration: 0.75 }, "<");
+      if (cards[0]) tl.to(cards[0], { x: -24, duration: 0.75 }, "<");
+      if (cards[2]) tl.to(cards[2], { x: 24, duration: 0.75 }, "<");
 
       tl.to(
         inners,
@@ -85,78 +104,41 @@ const Events_Section = () => {
     }, sectionRef);
 
     return () => ctx.revert();
-  }, []);
+  }, [visibleEvents.length]);
 
-  const titles = [
-    "Dance Competition",
-    "Bharatanatyam Performance",
-    "Student Creativity",
-  ];
-
-  const descriptions = [
-    "The Dance Competition at Fr. Agnel's lit up the stage.",
-    "A mesmerizing Bharatanatyam performance.",
-    "Students celebrating creativity and learning.",
-  ];
-
-  const eventImages = [
-    "https://images.unsplash.com/photo-1521336575822-6da63fb45455?auto=format&fit=crop&w=1200&q=80",
-    "https://images.unsplash.com/photo-1545239351-1141bd82e8a6?auto=format&fit=crop&w=1200&q=80",
-    "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=1200&q=80",
-  ];
-
-  const dept = [
-    "Cultural Committee",
-    "Performing Arts Club",
-    "Student Council",
-  ];
-
-  const campusLine = [
-    "Fr. Agnel Campus",
-    "Fr. Agnel Auditorium",
-    "Innovation Hub",
-  ];
-
-  const updated = [
-    "Updated this week",
-    "Updated today",
-    "Updated recently",
-  ];
+  if (!visibleEvents.length) return null;
 
   return (
     <section
       ref={sectionRef}
       className="relative min-h-[240vh] bg-[#F1EEE8]"
     >
-      {/* Sticky wrapper replaces pin */}
       <div className="sticky top-0 h-screen flex items-center justify-center">
-        {/* HEADER */}
         <div className="absolute top-[18%] left-1/2 -translate-x-1/2 text-center z-20">
           <h1
             ref={headerRef}
             className="text-5xl mb-4 font-serif text-gray-900"
           >
-            What’s On Fr Agnel
+            {data?.title}
           </h1>
           <p ref={subTextRef} className="text-lg text-gray-600 mb-6">
-            From academics to celebrations — catch every highlight here.
+            {data?.subtitle || data?.description}
           </p>
           <button
             ref={buttonRef}
             className="bg-[#FFC107] px-8 py-3 rounded-xl font-semibold"
           >
-            Explore More
+            {data?.buttonText}
           </button>
         </div>
 
-        {/* CARDS */}
         <div
           ref={containerRef}
           className="flex translate-y-28 [perspective:1400px]"
         >
-          {[0, 1, 2].map((i) => (
+          {visibleEvents.map((event, i) => (
             <div
-              key={i}
+              key={event._id || event.id || i}
               ref={(el) => (cardsRef.current[i] = el)}
               className="relative flex-1 aspect-[5/7]"
             >
@@ -164,101 +146,92 @@ const Events_Section = () => {
                 ref={(el) => (innersRef.current[i] = el)}
                 className="relative w-full h-full [transform-style:preserve-3d]"
               >
-                {/* FRONT */}
                 <div className="absolute inset-0 backface-hidden overflow-hidden">
                   <div
-                    className="absolute inset-0"
+                    className="absolute inset-0 bg-gray-200"
                     style={{
-                      backgroundImage: `url(${BIG_IMAGE})`,
+                      backgroundImage: frontImage ? `url(${frontImage})` : undefined,
                       backgroundSize: "300% 100%",
                       backgroundPosition: `${i * 50}% center`,
                     }}
                   />
                 </div>
 
-                {/* BACK */}
-               {/* BACK — original premium design restored */}
-<div className="absolute inset-0 rotate-y-180 backface-hidden bg-white border shadow-xl flex flex-col overflow-hidden rounded-2xl ring-1 ring-black/5">
+                <div className="absolute inset-0 rotate-y-180 backface-hidden bg-white border shadow-xl flex flex-col overflow-hidden rounded-2xl ring-1 ring-black/5">
+                  <div className="relative h-[58%] w-full">
+                    <img
+                      src={getEventImage(event)}
+                      alt={getEventTitle(event)}
+                      className="absolute inset-0 h-full w-full object-cover"
+                      loading="lazy"
+                    />
 
-  {/* HERO IMAGE */}
-  <div className="relative h-[58%] w-full">
-    <img
-      src={eventImages[i]}
-      alt={titles[i]}
-      className="absolute inset-0 h-full w-full object-cover"
-      loading="lazy"
-    />
+                    <div className="absolute inset-0 bg-black/20" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/25 to-transparent" />
 
-    {/* overlays */}
-    <div className="absolute inset-0 bg-black/20" />
-    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/25 to-transparent" />
+                    <div className="absolute top-4 left-4 right-4 flex items-center justify-between">
+                      <span className="px-3 py-1 rounded-full text-xs font-semibold bg-white/90 text-gray-900 border border-black/5">
+                        {getEventDepartment(event)}
+                      </span>
 
-    {/* Top row */}
-    <div className="absolute top-4 left-4 right-4 flex items-center justify-between">
-      <span className="px-3 py-1 rounded-full text-xs font-semibold bg-white/90 text-gray-900 border border-black/5">
-        {dept[i]}
-      </span>
+                      <span className="h-9 w-9 rounded-full bg-white/15 border border-white/25 backdrop-blur-md flex items-center justify-center">
+                        <span className="h-2 w-2 rounded-full bg-amber-400" />
+                      </span>
+                    </div>
 
-      <span className="h-9 w-9 rounded-full bg-white/15 border border-white/25 backdrop-blur-md flex items-center justify-center">
-        <span className="h-2 w-2 rounded-full bg-amber-400" />
-      </span>
-    </div>
+                    <div className="absolute bottom-4 left-4 right-4">
+                      <h3 className="text-white text-[26px] leading-tight font-semibold">
+                        {getEventTitle(event)}
+                      </h3>
+                      <p className="mt-1 text-sm text-white/85">
+                        {getEventLocation(event)}
+                      </p>
+                    </div>
+                  </div>
 
-    {/* Title */}
-    <div className="absolute bottom-4 left-4 right-4">
-      <h3 className="text-white text-[26px] leading-tight font-semibold">
-        {titles[i]}
-      </h3>
-      <p className="mt-1 text-sm text-white/85">
-        {campusLine[i]}
-      </p>
-    </div>
-  </div>
+                  <div className="flex-1 p-6 flex flex-col justify-between bg-white">
+                    <div>
+                      <p className="text-gray-700 leading-relaxed">
+                        {getEventDescription(event)}
+                      </p>
 
-  {/* BODY */}
-  <div className="flex-1 p-6 flex flex-col justify-between bg-white">
-    <div>
-      <p className="text-gray-700 leading-relaxed">
-        {descriptions[i]}
-      </p>
+                      <div className="mt-5 flex items-center justify-between rounded-2xl bg-gray-50 border border-black/5 px-4 py-3">
+                        <div className="flex items-center gap-3">
+                          <span className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-white border border-black/5">
+                            <svg
+                              viewBox="0 0 24 24"
+                              className="h-5 w-5 text-gray-800"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            >
+                              <path d="M12 3l9 4-9 4-9-4 9-4z" />
+                              <path d="M21 10v6" />
+                              <path d="M3 10v6c0 3 4 5 9 5s9-2 9-5v-6" />
+                            </svg>
+                          </span>
 
-      <div className="mt-5 flex items-center justify-between rounded-2xl bg-gray-50 border border-black/5 px-4 py-3">
-        <div className="flex items-center gap-3">
-          <span className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-white border border-black/5">
-            <svg
-              viewBox="0 0 24 24"
-              className="h-5 w-5 text-gray-800"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M12 3l9 4-9 4-9-4 9-4z" />
-              <path d="M21 10v6" />
-              <path d="M3 10v6c0 3 4 5 9 5s9-2 9-5v-6" />
-            </svg>
-          </span>
+                          <div className="text-left">
+                            <p className="text-xs text-gray-500">Organised by</p>
+                            <p className="text-sm font-semibold text-gray-900">
+                              {getEventDepartment(event)}
+                            </p>
+                          </div>
+                        </div>
 
-          <div className="text-left">
-            <p className="text-xs text-gray-500">Organised by</p>
-            <p className="text-sm font-semibold text-gray-900">
-              {dept[i]}
-            </p>
-          </div>
-        </div>
+                        <span className="text-xs font-medium text-gray-600">
+                          {getEventUpdated(event)}
+                        </span>
+                      </div>
+                    </div>
 
-        <span className="text-xs font-medium text-gray-600">
-          {updated[i]}
-        </span>
-      </div>
-    </div>
-
-    <div className="pt-3 text-center text-xs text-gray-500">
-      Explore more events from clubs & committees.
-    </div>
-  </div>
-</div>
+                    <div className="pt-3 text-center text-xs text-gray-500">
+                      {data?.footerText}
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           ))}
