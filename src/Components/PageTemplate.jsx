@@ -1,73 +1,48 @@
-
 import Card from "./Card";
 
 const hasData = (section) => {
 
   switch (section.type) {
 
-    case "content":
-      return Boolean(
-        section.body?.trim()
-      );
-
-    case "richText":
-      return Boolean(
-        section.content?.trim()
-      );
+    case "hero":
+      return true;
 
     case "heading":
-      return Boolean(
-        section.text?.trim()
-      );
+      return Boolean(section.text?.trim());
 
-    case "timeline":
-      return (
-        Array.isArray(section.events) &&
-        section.events.length > 0
-      );
+    case "richText":
+      return Boolean(section.content?.trim());
 
     case "list":
-      return (
-        Array.isArray(section.items) &&
-        section.items.length > 0
-      );
+      return Array.isArray(section.items) &&
+        section.items.length > 0;
+
+    case "timeline":
+      return Array.isArray(section.events) &&
+        section.events.length > 0;
 
     case "faculty-grid":
-      return (
-        Array.isArray(section.items) &&
-        section.items.length > 0
-      );
-
-    case "eventList":
-      return (
-        Array.isArray(section.events) &&
-        section.events.length > 0
-      );
-
-    case "table":
-      return (
-        Array.isArray(section.rows) &&
-        section.rows.length > 0
-      );
-
-    case "documents":
-    case "documentList":
-      return (
-        Array.isArray(section.documents) &&
-        section.documents.length > 0
-      );
+      return Array.isArray(section.departments) &&
+        section.departments.length > 0;
 
     case "gallery":
-      return (
-        Array.isArray(section.images) &&
-        section.images.length > 0
-      );
+      return Array.isArray(section.images) &&
+        section.images.length > 0;
+
+    case "table":
+      return Array.isArray(section.rows) &&
+        section.rows.length > 0;
+
+    case "documentList":
+      return Array.isArray(section.documents) &&
+        section.documents.length > 0;
+
+    case "eventList":
+      return Array.isArray(section.events) &&
+        section.events.length > 0;
 
     case "embed":
       return Boolean(section.url);
-
-    case "hero":
-      return true;
 
     default:
       return false;
@@ -81,146 +56,146 @@ const PageTemplate = ({ data }) => {
   if (!data) {
 
     return (
+
       <div className="min-h-[300px] flex items-center justify-center">
 
         <p className="text-gray-400 text-lg">
+
           No content available
+
         </p>
 
       </div>
+
     );
 
   }
 
-  /* SAFE */
-  const safeSections =
-    Array.isArray(data.sections)
-      ? data.sections
-      : [];
+  const safeSections = Array.isArray(data.sections)
+    ? data.sections
+    : [];
 
-  /* CONTENT */
-  const contentSections =
-    safeSections.filter(
-      (section) =>
-        section.type !== "hero" &&
-        hasData(section)
-    );
+  const heroSection = safeSections.find(
+    (section) => section.type === "hero"
+  );
 
-  /* HERO */
-  const heroSections =
-    safeSections.filter(
-      (s) => s.type === "hero"
-    );
+  const heroSections = heroSection
+    ? [heroSection]
+    : [];
+
+  const contentSections = safeSections.filter(
+    (section) =>
+      section.type !== "hero" &&
+      hasData(section)
+  );
 
   return (
 
-    <section className="space-y-10">
+    <section className="space-y-12">
 
-      {/* TITLE */}
-      <div className="space-y-3">
+      {/* PAGE TITLE */}
 
-        <h1
-          className="
-            text-4xl
-            font-bold
-            tracking-tight
-            text-neutral-900
-          "
-        >
+      {!heroSection && (
 
-          {data.title}
+        <div>
 
-        </h1>
+          <h1 className="text-4xl font-bold tracking-tight">
 
-      </div>
+            {data.title}
 
-      {/* HERO */}
-      {heroSections.map((section, i) => (
-
-        <div
-          key={i}
-          className="
-            rounded-3xl
-            border
-            border-neutral-200
-            bg-neutral-50
-            p-8
-            space-y-3
-          "
-        >
-
-          {section.heading && (
-
-            <h2
-              className="
-                text-3xl
-                font-bold
-                text-neutral-900
-              "
-            >
-
-              {section.heading}
-
-            </h2>
-
-          )}
-
-          {section.subheading && (
-
-            <p
-              className="
-                text-neutral-600
-                text-lg
-              "
-            >
-
-              {section.subheading}
-
-            </p>
-
-          )}
+          </h1>
 
         </div>
 
-      ))}
+      )}
 
-      {/* EMPTY */}
+      {/* HERO */}
+
+      {heroSections.map((section, index) => {
+
+        const hasHeroContent =
+          section.subheading ||
+          section.backgroundImage ||
+          section.backgroundVideo ||
+          section.buttonText;
+
+        if (!hasHeroContent) return null;
+
+        return (
+
+          <section
+            key={index}
+            className="rounded-3xl border bg-neutral-50 p-10"
+          >
+
+            {section.heading && (
+
+              <h2 className="text-3xl font-bold">
+
+                {section.heading}
+
+              </h2>
+
+            )}
+
+            {section.subheading && (
+
+              <p className="mt-4 text-lg text-neutral-600">
+
+                {section.subheading}
+
+              </p>
+
+            )}
+
+          </section>
+
+        );
+
+      })}
+
+      {/* EMPTY STATE */}
+
       {contentSections.length === 0 && (
 
         <div className="py-20 text-center">
 
           <p className="text-gray-500">
+
             Content will be updated soon.
+
           </p>
 
         </div>
 
       )}
 
-      {/* RENDER */}
-      {contentSections.map((section, i) => {
+      {/* SECTION RENDERING */}
+
+      {contentSections.map((section, index) => {
 
         switch (section.type) {
+                    /* -----------------------------
+              HEADING
+          ----------------------------- */
 
-          /* HEADING */
           case "heading":
 
             return (
 
-              <div
-                key={i}
+              <section
+                key={index}
                 className="pt-10"
               >
 
                 <h2
                   className="
-                    text-2xl
+                    text-3xl
                     font-bold
                     tracking-tight
-                    text-neutral-900
                     border-b
                     border-neutral-200
-                    pb-3
+                    pb-4
                   "
                 >
 
@@ -228,295 +203,670 @@ const PageTemplate = ({ data }) => {
 
                 </h2>
 
-              </div>
+              </section>
 
             );
 
-          /* CONTENT */
-          case "content":
+          /* -----------------------------
+              RICH TEXT
+          ----------------------------- */
 
-            return (
-
-              <div
-                key={i}
-                className="space-y-4"
-              >
-
-                {section.heading && (
-
-                  <h3 className="text-2xl font-semibold">
-
-                    {section.heading}
-
-                  </h3>
-
-                )}
-
-                <p
-                  className="
-                    text-neutral-700
-                    leading-8
-                    text-[17px]
-                  "
-                >
-
-                  {section.body}
-
-                </p>
-
-              </div>
-
-            );
-
-          /* RICH TEXT */
           case "richText":
 
             return (
 
-              <div
-                key={i}
-                className="space-y-4"
+              <section
+                key={index}
+                className="space-y-6"
               >
 
                 {section.heading && (
 
-                  <h3 className="text-2xl font-semibold">
+                  <h2 className="text-3xl font-bold">
 
                     {section.heading}
 
-                  </h3>
+                  </h2>
 
                 )}
 
-                <p
+                <div
                   className="
-                    text-neutral-700
+                    whitespace-pre-wrap
                     leading-8
+                    text-neutral-700
                     text-[17px]
                   "
                 >
 
                   {section.content}
 
-                </p>
+                </div>
 
-              </div>
+              </section>
 
             );
 
-          /* TIMELINE */
+          /* -----------------------------
+              LIST
+          ----------------------------- */
+
+          case "list":
+
+            return (
+
+              <section
+                key={index}
+                className="space-y-6"
+              >
+
+                {section.title && (
+
+                  <h2 className="text-2xl font-bold">
+
+                    {section.title}
+
+                  </h2>
+
+                )}
+
+                <ul
+                  className="
+                    list-disc
+                    pl-6
+                    space-y-3
+                    text-neutral-700
+                  "
+                >
+
+                  {section.items.map(
+
+                    (item, i) => (
+
+                      <li key={i}>
+
+                        {item}
+
+                      </li>
+
+                    )
+
+                  )}
+
+                </ul>
+
+              </section>
+
+            );
+
+          /* -----------------------------
+              TIMELINE
+          ----------------------------- */
+
           case "timeline":
 
             return (
 
-              <div
-                key={i}
-                className="space-y-6"
+              <section
+                key={index}
+                className="space-y-8"
               >
 
-                <h3 className="text-2xl font-bold">
-                  Timeline
-                </h3>
+                {section.title && (
 
-                <ul
+                  <h2 className="text-2xl font-bold">
+
+                    {section.title}
+
+                  </h2>
+
+                )}
+
+                <div
                   className="
                     border-l-2
                     border-neutral-300
-                    pl-6
-                    space-y-6
+                    pl-8
+                    space-y-8
                   "
                 >
 
                   {section.events.map(
-                    (event, j) => (
 
-                      <li
-                        key={j}
+                    (event, i) => (
+
+                      <div
+                        key={i}
                         className="relative"
                       >
 
                         <div
                           className="
                             absolute
-                            -left-[31px]
+                            -left-[38px]
                             top-2
-                            h-3
                             w-3
+                            h-3
                             rounded-full
                             bg-black
                           "
                         />
 
-                        <strong className="text-lg">
+                        <h3 className="font-bold text-lg">
 
                           {event.year}
 
-                        </strong>
+                        </h3>
 
-                        <p className="text-neutral-700 mt-1">
+                        <p className="mt-2 text-neutral-700">
 
                           {event.text}
 
                         </p>
 
-                      </li>
+                      </div>
 
                     )
+
                   )}
 
-                </ul>
+                </div>
 
-              </div>
+              </section>
 
             );
 
-          /* NORMAL LIST */
-          case "list":
+          /* -----------------------------
+              DOCUMENTS
+          ----------------------------- */
+
+          case "documentList":
 
             return (
 
-              <ul
-                key={i}
-                className="
-                  list-disc
-                  pl-6
-                  text-neutral-700
-                  space-y-3
-                "
+              <section
+                key={index}
+                className="space-y-6"
               >
 
-                {section.items.map(
-                  (item, j) => (
+                {section.title && (
 
-                    <li
-                      key={j}
-                      className="leading-7"
-                    >
+                  <h2 className="text-2xl font-bold">
 
-                      {item}
+                    {section.title}
 
-                    </li>
+                  </h2>
 
-                  )
                 )}
 
-              </ul>
+                <div className="space-y-4">
+
+                  {section.documents.map(
+
+                    (doc, i) => (
+
+                      <div
+                        key={i}
+                        className="
+                          border
+                          rounded-2xl
+                          p-5
+                          flex
+                          justify-between
+                          items-center
+                        "
+                      >
+
+                        <div>
+
+                          <h3 className="font-semibold">
+
+                            {doc.title}
+
+                          </h3>
+
+                          {doc.description && (
+
+                            <p className="text-sm text-neutral-500 mt-1">
+
+                              {doc.description}
+
+                            </p>
+
+                          )}
+
+                        </div>
+
+                        <a
+                          href={doc.url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="font-medium underline"
+                        >
+
+                          Open
+
+                        </a>
+
+                      </div>
+
+                    )
+
+                  )}
+
+                </div>
+
+              </section>
 
             );
 
-          /* FACULTY GRID */
-          case "faculty-grid":
+          /* -----------------------------
+              EVENTS
+          ----------------------------- */
 
-            return (
-
-              <div
-                key={i}
-                className="
-                  grid
-                  grid-cols-1
-                  md:grid-cols-2
-                  xl:grid-cols-3
-                  gap-8
-                "
-              >
-
-                {section.items.map(
-                  (item, j) => (
-
-                    <Card
-                      key={j}
-                      item={item}
-                    />
-
-                  )
-                )}
-
-              </div>
-
-            );
-
-          /* EVENTS */
           case "eventList":
 
             return (
 
-              <div
-                key={i}
-                className="space-y-5"
+              <section
+                key={index}
+                className="space-y-6"
               >
 
-                {section.heading && (
+                {section.title && (
 
-                  <h3 className="text-2xl font-semibold">
+                  <h2 className="text-2xl font-bold">
 
-                    {section.heading}
+                    {section.title}
 
-                  </h3>
+                  </h2>
 
                 )}
 
-                {section.events.map(
-                  (event, j) => (
+                <div className="space-y-5">
 
-                    <div
-                      key={j}
-                      className="
-                        border
-                        border-neutral-200
-                        rounded-2xl
-                        p-5
-                        bg-white
-                      "
-                    >
+                  {section.events.map(
 
-                      <strong className="text-lg">
+                    (event, i) => (
 
-                        {event.title}
+                      <div
+                        key={i}
+                        className="
+                          border
+                          rounded-2xl
+                          p-6
+                          bg-white
+                        "
+                      >
 
-                      </strong>
+                        <h3 className="text-xl font-semibold">
 
-                      {event.date && (
+                          {event.title}
 
-                        <div
-                          className="
-                            text-sm
-                            text-neutral-500
-                            mt-1
-                          "
-                        >
+                        </h3>
 
-                          {event.date}
+                        {event.date && (
+
+                          <p className="text-sm text-neutral-500 mt-1">
+
+                            {event.date}
+
+                          </p>
+
+                        )}
+
+                        {event.description && (
+
+                          <p className="mt-4 text-neutral-700 leading-7">
+
+                            {event.description}
+
+                          </p>
+
+                        )}
+
+                      </div>
+
+                    )
+
+                  )}
+
+                </div>
+
+              </section>
+
+            );
+                      /* -----------------------------
+              GALLERY
+          ----------------------------- */
+
+          case "gallery":
+
+            return (
+
+              <section
+                key={index}
+                className="space-y-8"
+              >
+
+                {section.title && (
+
+                  <h2 className="text-2xl font-bold">
+
+                    {section.title}
+
+                  </h2>
+
+                )}
+
+                <div
+                  className={`
+                    grid
+                    gap-6
+                    ${
+                      section.columns === 2
+                        ? "grid-cols-1 md:grid-cols-2"
+                        : section.columns === 4
+                        ? "grid-cols-2 lg:grid-cols-4"
+                        : "grid-cols-1 md:grid-cols-2 lg:grid-cols-3"
+                    }
+                  `}
+                >
+
+                  {(section.images || []).map(
+
+                    (image, i) => (
+
+                      <div
+                        key={i}
+                        className="overflow-hidden rounded-2xl border bg-white"
+                      >
+
+                        <div className="aspect-[4/3] bg-neutral-100 flex items-center justify-center">
+
+                          {image.image ? (
+
+                            <img
+                              src={image.image}
+                              alt={image.alt || ""}
+                              className="h-full w-full object-cover"
+                            />
+
+                          ) : (
+
+                            <div className="text-neutral-400">
+
+                              No Image
+
+                            </div>
+
+                          )}
 
                         </div>
 
-                      )}
+                        {(image.caption || image.alt) && (
 
-                      {event.description && (
+                          <div className="p-4">
 
-                        <p
-                          className="
-                            text-neutral-700
-                            mt-3
-                            leading-7
-                          "
-                        >
+                            {image.caption && (
 
-                          {event.description}
+                              <h3 className="font-semibold">
 
-                        </p>
+                                {image.caption}
 
-                      )}
+                              </h3>
+
+                            )}
+
+                            {image.alt && (
+
+                              <p className="text-sm text-neutral-500 mt-1">
+
+                                {image.alt}
+
+                              </p>
+
+                            )}
+
+                          </div>
+
+                        )}
+
+                      </div>
+
+                    )
+
+                  )}
+
+                </div>
+
+              </section>
+
+            );
+
+          /* -----------------------------
+              FACULTY GRID
+          ----------------------------- */
+
+          case "faculty-grid":
+
+            return (
+
+              <section
+                key={index}
+                className="space-y-12"
+              >
+
+                {section.title && (
+
+                  <h2 className="text-3xl font-bold">
+
+                    {section.title}
+
+                  </h2>
+
+                )}
+
+                {(section.departments || []).map(
+
+                  (department, departmentIndex) => (
+
+                    <div
+                      key={department.id || departmentIndex}
+                      className="space-y-8"
+                    >
+
+                      <div className="border-b pb-3">
+
+                        <h3 className="text-2xl font-semibold">
+
+                          {department.name}
+
+                        </h3>
+
+                      </div>
+
+                      <div
+                        className="
+                          grid
+                          grid-cols-1
+                          md:grid-cols-2
+                          xl:grid-cols-3
+                          gap-8
+                        "
+                      >
+
+                        {(department.members || []).map(
+
+                          (member, memberIndex) => (
+
+                            <Card
+                              key={
+                                member.id ||
+                                memberIndex
+                              }
+                              item={member}
+                            />
+
+                          )
+
+                        )}
+
+                      </div>
 
                     </div>
 
                   )
+
                 )}
 
-              </div>
+              </section>
 
             );
 
+                      /* -----------------------------
+              TABLE
+          ----------------------------- */
+
+          case "table":
+
+            return (
+
+              <section
+                key={index}
+                className="space-y-8"
+              >
+
+                {section.title && (
+
+                  <h2 className="text-2xl font-bold">
+
+                    {section.title}
+
+                  </h2>
+
+                )}
+
+                <div className="overflow-x-auto rounded-2xl border">
+
+                  <table className="min-w-full border-collapse">
+
+                    <thead className="bg-neutral-100">
+
+                      <tr>
+
+                        {(section.headers || []).map(
+
+                          (header, i) => (
+
+                            <th
+                              key={i}
+                              className="border px-6 py-4 text-left font-semibold"
+                            >
+
+                              {header}
+
+                            </th>
+
+                          )
+
+                        )}
+
+                      </tr>
+
+                    </thead>
+
+                    <tbody>
+
+                      {(section.rows || []).map(
+
+                        (row, rowIndex) => (
+
+                          <tr
+                            key={rowIndex}
+                            className="hover:bg-neutral-50"
+                          >
+
+                            {row.map(
+
+                              (cell, cellIndex) => (
+
+                                <td
+                                  key={cellIndex}
+                                  className="border px-6 py-4"
+                                >
+
+                                  {cell}
+
+                                </td>
+
+                              )
+
+                            )}
+
+                          </tr>
+
+                        )
+
+                      )}
+
+                    </tbody>
+
+                  </table>
+
+                </div>
+
+              </section>
+
+            );
+
+          /* -----------------------------
+              EMBED
+          ----------------------------- */
+
+          case "embed":
+
+            return (
+
+              <section
+                key={index}
+                className="space-y-6"
+              >
+
+                {section.title && (
+
+                  <h2 className="text-2xl font-bold">
+
+                    {section.title}
+
+                  </h2>
+
+                )}
+
+                <div className="overflow-hidden rounded-2xl border">
+
+                  <iframe
+                    src={section.url}
+                    title={section.title || "Embedded Content"}
+                    width={section.responsive ? "100%" : (section.width || "100%")}
+                    height={section.height || 500}
+                    loading={section.lazyLoad ? "lazy" : "eager"}
+                    allowFullScreen={section.allowFullscreen}
+                    className="border-0 w-full"
+                  />
+
+                </div>
+
+              </section>
+
+            );
+
+          /* -----------------------------
+              DEFAULT
+          ----------------------------- */
+
           default:
+
             return null;
 
         }
@@ -530,4 +880,3 @@ const PageTemplate = ({ data }) => {
 };
 
 export default PageTemplate;
-
