@@ -1,5 +1,7 @@
 import { useState } from "react";
 
+import useMediaLibrary from "../hooks/useMediaLibrary";
+
 import FolderCard from "../components/FolderCard";
 import MediaCard from "../components/MediaCard";
 import UploadDropzone from "../components/UploadDropzone";
@@ -14,6 +16,14 @@ const MediaLibrary = () => {
 
   const [search, setSearch] =
     useState("");
+
+  const handleSearch = (value) => {
+
+    setSearch(value);
+
+    setLibrarySearch(value);
+
+  };
 
   const [filter, setFilter] =
     useState("all");
@@ -30,77 +40,81 @@ const MediaLibrary = () => {
   const [selectedMedia, setSelectedMedia] =
     useState(null);
 
-  /* -----------------------------
-      TEMP DATA
-      (Replace with API later)
-  ----------------------------- */
+  const [successMessage, setSuccessMessage] =
+    useState("");
 
-  const folders = [
+  const [uploading, setUploading] =
+    useState(false);
 
-    {
-      id: "1",
-      name: "Images",
-      itemCount: 120,
-      updatedAt: "Today",
-    },
+  const {
 
-    {
-      id: "2",
-      name: "Documents",
-      itemCount: 42,
-      updatedAt: "Yesterday",
-    },
+    media,
 
-    {
-      id: "3",
-      name: "Events",
-      itemCount: 88,
-      updatedAt: "2 days ago",
-    },
+    folders,
 
-  ];
+    loading,
 
-  const media = [
+    error,
 
-    {
-      id: "1",
-      filename: "college.jpg",
-      type: "image",
-      url: "https://placehold.co/600x400",
-      width: 1920,
-      height: 1080,
-      size: "2.3 MB",
-    },
+    loadLibrary,
 
-    {
-      id: "2",
-      filename: "Prospectus.pdf",
-      type: "pdf",
-      size: "4.5 MB",
-    },
+    uploadMedia,
 
-    {
-      id: "3",
-      filename: "principal.jpg",
-      type: "image",
-      url: "https://placehold.co/600x600",
-      width: 800,
-      height: 800,
-      size: "650 KB",
-    },
+    deleteMedia,
 
-  ];
+    createFolder,
+
+    setSearch: setLibrarySearch,
+
+    setCurrentFolder,
+
+  } = useMediaLibrary();
 
   /* -----------------------------
       UPLOAD
   ----------------------------- */
 
-  const handleUpload = (files) => {
+  const handleUpload = async (
+    files
+  ) => {
 
-    console.log(files);
+    if (!files.length) return;
 
-    // TODO
-    // mediaService.upload(files)
+    try {
+
+      setUploading(true);
+
+      const formData =
+        new FormData();
+
+      formData.append(
+        "file",
+        files[0]
+      );
+
+      await uploadMedia(formData);
+
+      setSuccessMessage(
+        "Media uploaded successfully."
+      );
+
+      setTimeout(() => {
+
+        setSuccessMessage("");
+
+      }, 3000);
+
+    } catch (error) {
+
+      console.error(error);
+
+      alert(error.message);
+
+    } finally {
+
+      setUploading(false);
+
+    }
 
   };
 
@@ -128,13 +142,78 @@ const MediaLibrary = () => {
 
         </div>
 
+        <div className="flex gap-3">
+
+          <button
+            type="button"
+            aria-label="Refresh media library"
+            onClick={loadLibrary}
+            className="
+              border
+              px-4
+              py-2
+              rounded-lg
+              hover:bg-gray-100
+            "
+          >
+
+            Refresh
+
+          </button>
+
+        </div>
+
       </div>
+
+      {/* ERROR BANNER */}
+
+      {error && (
+
+        <div
+          className="
+            border
+            border-red-300
+            bg-red-50
+            text-red-600
+            rounded-xl
+            px-5
+            py-4
+          "
+        >
+
+          {error}
+
+        </div>
+
+      )}
+
+      {/* SUCCESS BANNER */}
+
+      {successMessage && (
+
+        <div
+          className="
+            rounded-xl
+            border
+            border-green-300
+            bg-green-50
+            text-green-700
+            px-5
+            py-3
+          "
+        >
+
+          {successMessage}
+
+        </div>
+
+      )}
 
       {/* TOOLBAR */}
 
       <MediaToolbar
         search={search}
-        onSearch={setSearch}
+        onSearch={handleSearch}
         filter={filter}
         onFilter={setFilter}
         sort={sort}
@@ -142,7 +221,21 @@ const MediaLibrary = () => {
         view={view}
         onViewChange={setView}
         onUpload={() => {}}
-        onNewFolder={() => {}}
+        onNewFolder={async () => {
+
+          const name = window.prompt(
+            "Folder name"
+          );
+
+          if (!name) return;
+
+          await createFolder({
+
+            name,
+
+          });
+
+        }}
       />
 
       {/* BREADCRUMB */}
@@ -155,6 +248,8 @@ const MediaLibrary = () => {
 
             setPath([]);
 
+            setCurrentFolder(null);
+
             return;
 
           }
@@ -162,7 +257,8 @@ const MediaLibrary = () => {
           const index =
             path.findIndex(
               (f) =>
-                f.id === folder.id
+                (f._id || f.id) ===
+                (folder._id || folder.id)
             );
 
           setPath(
@@ -172,270 +268,321 @@ const MediaLibrary = () => {
             )
           );
 
+          setCurrentFolder(
+            folder._id || folder.id
+          );
+
         }}
       />
 
       {/* UPLOAD */}
 
-      <UploadDropzone
-        onFilesSelected={handleUpload}
-      />
+      <div className="space-y-3">
+
+        <UploadDropzone
+          onFilesSelected={handleUpload}
+        />
+
+        {uploading && (
+
+          <div
+            className="
+              text-sm
+              text-blue-600
+            "
+          >
+
+            Uploading...
+
+          </div>
+
+        )}
+
+      </div>
 
       {/* CONTENT */}
 
-      <div className="space-y-10">
+      {loading ? (
 
-        {/* CONTENT */}
+        <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-6 gap-5">
 
-<div className="space-y-10">
+          {Array.from({
 
-  {/* -----------------------------
-      FOLDERS
-  ----------------------------- */}
+            length: 12,
 
-  {path.length === 0 && folders.length > 0 && (
+          }).map((_, index) => (
 
-    <section>
+            <div
+              key={index}
+              className="aspect-square rounded-xl bg-gray-200 animate-pulse"
+            />
 
-      <h2 className="text-xl font-semibold mb-5">
+          ))}
 
-        Folders
+        </div>
 
-      </h2>
+      ) : (
 
-      <div
-        className="
-          grid
-          grid-cols-2
-          md:grid-cols-4
-          xl:grid-cols-6
-          gap-5
-        "
-      >
+        <div className="space-y-10">
 
-        {folders.map((folder) => (
+          {/* -----------------------------
+              FOLDERS
+          ----------------------------- */}
 
-          <FolderCard
-            key={folder.id}
-            folder={folder}
-            onOpen={(selectedFolder) =>
-              setPath([
-                ...path,
-                selectedFolder,
-              ])
-            }
-          />
+          {path.length === 0 && folders.length > 0 && (
 
-        ))}
+            <section>
 
-      </div>
+              <h2 className="text-xl font-semibold mb-5">
 
-    </section>
+                Folders
 
-  )}
+              </h2>
 
-  {/* -----------------------------
-      MEDIA
-  ----------------------------- */}
+              <div
+                className="
+                  grid
+                  grid-cols-2
+                  md:grid-cols-4
+                  xl:grid-cols-6
+                  gap-5
+                "
+              >
 
-  <section>
+                {folders.map((folder) => (
 
-    <h2 className="text-xl font-semibold mb-5">
+                  <FolderCard
+                    key={folder._id || folder.id}
+                    folder={folder}
+                    onOpen={(selectedFolder) => {
 
-      Media
+                      setPath((prev) => [
+                        ...prev,
+                        selectedFolder,
+                      ]);
 
-    </h2>
+                      setCurrentFolder(
+                        selectedFolder._id ||
+                        selectedFolder.id
+                      );
 
-    <div
-      className={
-        view === "grid"
-          ? `
-            grid
-            grid-cols-2
-            md:grid-cols-4
-            xl:grid-cols-6
-            gap-5
-          `
-          : `
-            flex
-            flex-col
-            gap-4
-          `
-      }
-    >
+                    }}
+                  />
 
-      {media
+                ))}
 
-        .filter((item) => {
+              </div>
 
-          const matchesSearch =
-            item.filename
-              .toLowerCase()
-              .includes(
-                search.toLowerCase()
-              );
+            </section>
 
-          const matchesFilter =
-            filter === "all"
-              ? true
-              : item.type === filter;
+          )}
 
-          return (
-            matchesSearch &&
-            matchesFilter
-          );
+          {/* -----------------------------
+              MEDIA
+          ----------------------------- */}
 
-        })
+          <section>
 
-        .sort((a, b) => {
+            <h2 className="text-xl font-semibold mb-5">
 
-          switch (sort) {
+              Media
 
-            case "name":
+            </h2>
 
-              return a.filename.localeCompare(
-                b.filename
-              );
+            <div
+              className={
+                view === "grid"
+                  ? `
+                    grid
+                    grid-cols-2
+                    md:grid-cols-4
+                    xl:grid-cols-6
+                    gap-5
+                  `
+                  : `
+                    flex
+                    flex-col
+                    gap-4
+                  `
+              }
+            >
 
-            case "size":
+              {[...media]
 
-              return (
-                (a.size || "")
-                  .localeCompare(
-                    b.size || ""
-                  )
-              );
+                .sort((a, b) => {
 
-            case "oldest":
+                  switch (sort) {
 
-              return -1;
+                    case "name":
 
-            default:
+                      return (
+                        a.originalName ||
+                        a.filename
+                      ).localeCompare(
+                        b.originalName ||
+                        b.filename
+                      );
 
-              return 1;
+                    case "oldest":
 
-          }
+                      return (
+                        new Date(a.createdAt) -
+                        new Date(b.createdAt)
+                      );
 
-        })
+                    case "latest":
 
-        .map((item) => (
+                      return (
+                        new Date(b.createdAt) -
+                        new Date(a.createdAt)
+                      );
 
-          <MediaCard
-            key={item.id}
-            media={item}
-            selected={
-              selectedMedia?.id ===
-              item.id
-            }
-            onSelect={
-              setSelectedMedia
-            }
-          />
+                    default:
 
-        ))}
+                      return 0;
 
-    </div>
+                  }
 
-  </section>
+                })
 
-  {/* -----------------------------
-      EMPTY STATE
-  ----------------------------- */}
+                .map((item) => (
 
-  {media.length === 0 && (
+                  <MediaCard
+                    key={item._id}
+                    media={item}
+                    selected={
+                      selectedMedia?._id ===
+                      item._id
+                    }
+                    onSelect={
+                      setSelectedMedia
+                    }
+                    onDelete={async () => {
 
-    <div
-      className="
-        border-2
-        border-dashed
-        rounded-2xl
-        p-20
-        text-center
-      "
-    >
+                      if (
+                        !window.confirm(
+                          "Delete this file?"
+                        )
+                      ) {
 
-      <div className="text-6xl">
+                        return;
 
-        📁
+                      }
 
-      </div>
+                      await deleteMedia(
+                        item._id
+                      );
 
-      <h3 className="text-2xl font-semibold mt-6">
+                    }}
+                  />
 
-        No media found
+                ))}
 
-      </h3>
+            </div>
 
-      <p className="text-gray-500 mt-3">
+          </section>
 
-        Upload images, documents or videos
-        to populate your media library.
+          {/* -----------------------------
+              EMPTY STATE
+          ----------------------------- */}
 
-      </p>
+          {media.length === 0 && (
 
-    </div>
+            <div
+              className="
+                border-2
+                border-dashed
+                rounded-2xl
+                p-20
+                text-center
+              "
+            >
 
-  )}
+              <div className="text-7xl">
 
-  {/* -----------------------------
-      SELECTED MEDIA
-  ----------------------------- */}
+                🖼️
 
-  {selectedMedia && (
+              </div>
 
-    <div
-      className="
-        bg-gray-50
-        border
-        rounded-xl
-        p-5
-        flex
-        justify-between
-        items-center
-      "
-    >
+              <h3 className="text-2xl font-semibold mt-6">
 
-      <div>
+                No media has been uploaded yet.
 
-        <h3 className="font-semibold">
+              </h3>
 
-          Selected
+              <p className="text-gray-500 mt-3">
 
-        </h3>
+                Drag & drop files above or click to upload.
 
-        <p className="text-gray-500">
+              </p>
 
-          {selectedMedia.filename}
+            </div>
 
-        </p>
+          )}
 
-      </div>
+          {/* -----------------------------
+              SELECTED MEDIA
+          ----------------------------- */}
 
-      <button
-        type="button"
-        onClick={() =>
-          setSelectedMedia(null)
-        }
-        className="
-          border
-          px-4
-          py-2
-          rounded-lg
-          hover:bg-gray-100
-        "
-      >
+          {selectedMedia && (
 
-        Clear Selection
+            <div
+              className="
+                bg-gray-50
+                border
+                rounded-xl
+                p-5
+                flex
+                justify-between
+                items-center
+              "
+            >
 
-      </button>
+              <div>
 
-    </div>
+                <h3 className="font-semibold">
 
-  )}
+                  Selected
 
-</div>
+                </h3>
 
-      </div>
+                <p className="text-gray-500">
+
+                  {
+                    selectedMedia.originalName ||
+                    selectedMedia.filename
+                  }
+
+                </p>
+
+              </div>
+
+              <button
+                type="button"
+                aria-label="Clear selected media"
+                onClick={() =>
+                  setSelectedMedia(null)
+                }
+                className="
+                  border
+                  px-4
+                  py-2
+                  rounded-lg
+                  hover:bg-gray-100
+                "
+              >
+
+                Clear Selection
+
+              </button>
+
+            </div>
+
+          )}
+
+        </div>
+
+      )}
 
     </div>
 

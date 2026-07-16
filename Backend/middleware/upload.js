@@ -2,61 +2,23 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 
+import {
+  getMediaType,
+  MEDIA_DIRECTORIES,
+} from "../utils/mediaHelpers.js";
+
 /* -----------------------------
     UPLOAD DIRECTORIES
 ----------------------------- */
 
-const uploadDirectories = {
-  image: "uploads/media/images",
-  document: "uploads/media/documents",
-  pdf: "uploads/media/documents",
-  video: "uploads/media/videos",
-  audio: "uploads/media/audio",
-  archive: "uploads/media/archives",
-  other: "uploads/media/others",
-};
-
-/* -----------------------------
-    DETERMINE MEDIA TYPE
------------------------------ */
-
-const getMediaType = (mimeType) => {
-
-  if (mimeType.startsWith("image/")) {
-    return "image";
-  }
-
-  if (mimeType === "application/pdf") {
-    return "pdf";
-  }
-
-  if (
-    mimeType.includes("word") ||
-    mimeType.includes("excel") ||
-    mimeType.includes("powerpoint") ||
-    mimeType.startsWith("text/")
-  ) {
-    return "document";
-  }
-
-  if (mimeType.startsWith("video/")) {
-    return "video";
-  }
-
-  if (mimeType.startsWith("audio/")) {
-    return "audio";
-  }
-
-  if (
-    mimeType.includes("zip") ||
-    mimeType.includes("rar")
-  ) {
-    return "archive";
-  }
-
-  return "other";
-
-};
+const uploadDirectories = Object.fromEntries(
+  Object.entries(MEDIA_DIRECTORIES).map(
+    ([key, folder]) => [
+      key,
+      `uploads/media/${folder}`,
+    ]
+  )
+);
 
 /* -----------------------------
     STORAGE
@@ -175,8 +137,7 @@ const upload = multer({
 
   limits: {
 
-    fileSize:
-      50 * 1024 * 1024,
+    fileSize: 50 * 1024 * 1024,
 
   },
 
