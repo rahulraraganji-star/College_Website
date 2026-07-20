@@ -49,6 +49,31 @@ const request = async (
 
 };
 
+// RESOLVE A MEDIA ITEM'S URL AGAINST API_BASE IF IT'S RELATIVE
+const resolveMediaUrl = (item) => {
+
+  if (!item || !item.url) return item;
+
+  const isAbsolute =
+    item.url.startsWith("http://") ||
+    item.url.startsWith("https://");
+
+  if (isAbsolute) return item;
+
+  return {
+    ...item,
+    url: `${API_BASE}${
+      item.url.startsWith("/") ? "" : "/"
+    }${item.url}`,
+  };
+
+};
+
+const resolveMediaUrls = (items) =>
+  Array.isArray(items)
+    ? items.map(resolveMediaUrl)
+    : items;
+
 /* ==========================================
     Media Service
 ========================================== */
@@ -67,7 +92,7 @@ const mediaService = {
         { signal }
       );
 
-    return data.media;
+    return resolveMediaUrls(data.media);
 
   },
 
@@ -82,7 +107,7 @@ const mediaService = {
         { signal }
       );
 
-    return data.media;
+    return resolveMediaUrl(data.media);
 
   },
 
@@ -105,7 +130,7 @@ const mediaService = {
         }
       );
 
-    return data.media;
+    return resolveMediaUrl(data.media);
 
   },
 
@@ -135,7 +160,7 @@ const mediaService = {
         }
       );
 
-    return data.media;
+    return resolveMediaUrl(data.media);
 
   },
 
@@ -207,7 +232,7 @@ const mediaService = {
         { signal }
       );
 
-    return data.media;
+    return resolveMediaUrls(data.media);
 
   },
 
