@@ -115,6 +115,7 @@ const mediaService = {
     formData,
     signal
   ) {
+     console.log("5");
 
     const data =
       await request(
@@ -129,6 +130,7 @@ const mediaService = {
 
         }
       );
+          console.log("6");
 
     return resolveMediaUrl(data.media);
 

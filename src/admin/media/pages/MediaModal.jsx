@@ -3,6 +3,7 @@ import {
   useEffect,
   useMemo,
   useCallback,
+  useRef,
 } from "react";
 
 import useMediaLibrary from "../hooks/useMediaLibrary";
@@ -65,6 +66,8 @@ const MediaModal = ({
 
   const [selectedItems, setSelectedItems] =
     useState([]);
+
+  const uploadInputRef = useRef(null);
 
   /* ==========================================================
       SYNC TYPE PROP
@@ -134,34 +137,47 @@ const MediaModal = ({
 
   /* ==========================================================
       UPLOAD
+      Uploads every selected file, one at a time, against the
+      existing single-file endpoint (formData key "file"). This
+      avoids depending on backend support for a multi-file payload.
   ========================================================== */
+const handleUpload = async (files) => {
 
-  const handleUpload = async (files) => {
+   console.log("🔥🔥🔥 NEW HANDLEUPLOAD", files);
+
     if (!files.length) return;
 
-    try {
-      setUploading(true);
+    setUploading(true);
 
-      const formData = new FormData();
+    for (const file of files) {
 
-      formData.append("file", files[0]);
+        console.log("2. Uploading", file.name);
 
-      await uploadMedia(formData);
+        const formData = new FormData();
+        formData.append("file", file);
 
-      setSuccessMessage(
-        "Media uploaded successfully."
-      );
+        try {
 
-      setTimeout(() => {
-        setSuccessMessage("");
-      }, 3000);
-    } catch (err) {
-      console.error(err);
-      alert(err.message);
-    } finally {
-      setUploading(false);
+            console.log("3. Calling uploadMedia");
+            console.log("1");
+            await uploadMedia(formData);
+            console.log("2");
+
+            console.log("4. Upload success");
+
+        } catch (err) {
+
+            console.error("UPLOAD ERROR", err);
+
+        }
+
     }
-  };
+
+    console.log("5. Finished");
+
+    setUploading(false);
+
+};
 
   /* ==========================================================
       CREATE FOLDER
@@ -254,617 +270,637 @@ const MediaModal = ({
   /* ==========================================================
       DO NOT RENDER
   ========================================================== */
+ 
 
   if (!isOpen) return null;
 
   return (
-    <div
-      className="fixed inset-0 z-[9999] bg-black/60 flex items-center justify-center p-6"
-      onClick={handleBackdropClick}
-    >
-      <div className="w-full max-w-7xl h-[90vh] bg-white rounded-2xl shadow-2xl flex flex-col overflow-hidden">
+    <>
+      {/* Hidden file input for toolbar upload button */}
+      <input
+        ref={uploadInputRef}
+        type="file"
+        hidden
+        multiple
+        onChange={(e) => {
+          const files = Array.from(e.target.files || []);
+          handleUpload(files);
+          // Allow selecting the same file again
+          e.target.value = "";
+        }}
+      />
 
-        {/* ======================================================
-            HEADER
-        ====================================================== */}
-
-        <div className="border-b px-6 py-5 flex justify-between items-center">
-
-          <div>
-            <h2 className="text-2xl font-bold">
-              {title}
-            </h2>
-
-            <p className="text-gray-500 mt-1">
-              Browse and select media.
-            </p>
-          </div>
-
-          <button
-            type="button"
-            onClick={handleClose}
-            aria-label="Close Media Modal"
-            className="w-10 h-10 rounded-lg hover:bg-gray-100 text-xl"
-          >
-            ✕
-          </button>
-        </div>
-
-        {/* ======================================================
-            TOOLBAR
-        ====================================================== */}
-
-        <div className="border-b p-5 space-y-4">
-
-          <MediaToolbar
-            search={search}
-            onSearch={handleSearch}
-            filter={filter}
-            onFilter={setFilter}
-            sort={sort}
-            onSort={setSort}
-            view={view}
-            onViewChange={setView}
-            onUpload={() => {}}
-            onNewFolder={handleCreateFolder}
-          />
-
-          <UploadDropzone
-            onFilesSelected={handleUpload}
-          />
-
-          {uploading && (
-            <div className="text-blue-600 text-sm">
-              Uploading...
-            </div>
-          )}
-
-          {successMessage && (
-            <div className="rounded-lg border border-green-300 bg-green-50 px-4 py-3 text-green-700">
-              {successMessage}
-            </div>
-          )}
-
-          {error && (
-            <div className="rounded-lg border border-red-300 bg-red-50 px-4 py-3 text-red-700">
-              {error}
-            </div>
-          )}
-        </div>
-
-               {/* ======================================================
-            CONTENT
-        ====================================================== */}
-
-        <div className="flex-1 overflow-hidden flex flex-col">
+      <div
+        className="fixed inset-0 z-[9999] bg-black/60 flex items-center justify-center p-6"
+        onClick={handleBackdropClick}
+      >
+        <div className="w-full max-w-7xl h-[90vh] bg-white rounded-2xl shadow-2xl flex flex-col overflow-hidden">
 
           {/* ======================================================
-              BREADCRUMB
+              HEADER
           ====================================================== */}
 
-          <div className="border-b px-6 py-4">
+          <div className="border-b px-6 py-5 flex justify-between items-center">
 
-            <FolderBreadcrumb
-              folders={path}
-              onNavigate={(folder) => {
+            <div>
+              <h2 className="text-2xl font-bold">
+                {title}
+              </h2>
 
-                if (!folder) {
+              <p className="text-gray-500 mt-1">
+                Browse and select media.
+              </p>
+            </div>
 
-                  setPath([]);
+            <button
+              type="button"
+              onClick={handleClose}
+              aria-label="Close Media Modal"
+              className="w-10 h-10 rounded-lg hover:bg-gray-100 text-xl"
+            >
+              ✕
+            </button>
+          </div>
 
-                  setCurrentFolder(null);
+          {/* ======================================================
+              TOOLBAR
+          ====================================================== */}
 
-                  return;
-                }
+          <div className="border-b p-5 space-y-4">
 
-                const index = path.findIndex(
-                  (f) =>
-                    (f._id || f.id) ===
-                    (folder._id || folder.id)
-                );
+            <MediaToolbar
+              search={search}
+              onSearch={handleSearch}
+              filter={filter}
+              onFilter={setFilter}
+              sort={sort}
+              onSort={setSort}
+              view={view}
+              onViewChange={setView}
+              onUpload={() => uploadInputRef.current?.click()}
+              onNewFolder={handleCreateFolder}
+            />
 
-                setPath((prev) =>
-                  prev.slice(0, index + 1)
-                );
-
-                setCurrentFolder(
-                  folder._id || folder.id
-                );
+            <UploadDropzone
+              multiple={true}
+              onFilesSelected={(files) => {
+                  console.log("Dropzone fired");
+                  handleUpload(files);
               }}
             />
 
-          </div>
-
-          {/* ======================================================
-              SCROLLABLE CONTENT
-          ====================================================== */}
-
-          <div className="flex-1 overflow-y-auto p-6 space-y-10">
-
-            {/* ==================================================
-                FOLDERS
-            ================================================== */}
-
-            {path.length === 0 &&
-              folders.length > 0 && (
-
-              <section>
-
-                <div className="flex items-center justify-between mb-5">
-
-                  <h3 className="text-xl font-semibold">
-
-                    Folders
-
-                  </h3>
-
-                  <span className="text-sm text-gray-500">
-
-                    {folders.length} Folder
-                    {folders.length !== 1 ? "s" : ""}
-
-                  </span>
-
-                </div>
-
-                <div
-                  className="
-                    grid
-                    grid-cols-2
-                    md:grid-cols-4
-                    xl:grid-cols-6
-                    gap-5
-                  "
-                >
-
-                  {folders.map((folder) => (
-
-                    <FolderCard
-                      key={folder._id || folder.id}
-
-                      folder={folder}
-
-                      onOpen={(selectedFolder) => {
-
-                        setPath((prev) => [
-                          ...prev,
-                          selectedFolder,
-                        ]);
-
-                        setCurrentFolder(
-                          selectedFolder._id ||
-                          selectedFolder.id
-                        );
-
-                      }}
-                    />
-
-                  ))}
-
-                </div>
-
-              </section>
-
+            {uploading && (
+              <div className="text-blue-600 text-sm">
+                Uploading...
+              </div>
             )}
 
-            {/* ==================================================
-                CURRENT FOLDER INFO
-            ================================================== */}
+            {successMessage && (
+              <div className="rounded-lg border border-green-300 bg-green-50 px-4 py-3 text-green-700">
+                {successMessage}
+              </div>
+            )}
 
-            {path.length > 0 && (
+            {error && (
+              <div className="rounded-lg border border-red-300 bg-red-50 px-4 py-3 text-red-700">
+                {error}
+              </div>
+            )}
+          </div>
 
-              <div
-                className="
-                  rounded-xl
-                  border
-                  bg-gray-50
-                  px-5
-                  py-4
-                  flex
-                  justify-between
-                  items-center
-                "
-              >
+                 {/* ======================================================
+              CONTENT
+          ====================================================== */}
 
-                <div>
+          <div className="flex-1 overflow-hidden flex flex-col">
 
-                  <h3 className="font-semibold">
+            {/* ======================================================
+                BREADCRUMB
+            ====================================================== */}
 
-                    {
-                      path[path.length - 1]
-                        ?.name
-                    }
+            <div className="border-b px-6 py-4">
 
-                  </h3>
+              <FolderBreadcrumb
+                folders={path}
+                onNavigate={(folder) => {
 
-                  <p className="text-sm text-gray-500">
-
-                    Viewing folder contents
-
-                  </p>
-
-                </div>
-
-                <button
-                  type="button"
-
-                  className="
-                    border
-                    rounded-lg
-                    px-4
-                    py-2
-                    hover:bg-white
-                  "
-
-                  onClick={() => {
+                  if (!folder) {
 
                     setPath([]);
 
                     setCurrentFolder(null);
 
-                  }}
-                >
+                    return;
+                  }
 
-                  Back to Root
+                  const index = path.findIndex(
+                    (f) =>
+                      (f._id || f.id) ===
+                      (folder._id || folder.id)
+                  );
 
-                </button>
+                  setPath((prev) =>
+                    prev.slice(0, index + 1)
+                  );
 
-              </div>
+                  setCurrentFolder(
+                    folder._id || folder.id
+                  );
+                }}
+              />
 
-            )}
+            </div>
 
-            {/* ==================================================
-                MEDIA SECTION STARTS HERE
-                (Part 3 continues)
-            ================================================== */}
+            {/* ======================================================
+                SCROLLABLE CONTENT
+            ====================================================== */}
 
-                        <section>
+            <div className="flex-1 overflow-y-auto p-6 space-y-10">
 
-              <div className="flex items-center justify-between mb-5">
+              {/* ==================================================
+                  FOLDERS
+              ================================================== */}
 
-                <h3 className="text-xl font-semibold">
-                  Media
-                </h3>
+              {path.length === 0 &&
+                folders.length > 0 && (
 
-                <span className="text-sm text-gray-500">
-                  {filteredMedia.length} Item
-                  {filteredMedia.length !== 1 ? "s" : ""}
-                </span>
+                <section>
 
-              </div>
+                  <div className="flex items-center justify-between mb-5">
 
-              {/* ==========================================
-                  LOADING SKELETON
-              ========================================== */}
+                    <h3 className="text-xl font-semibold">
 
-              {loading ? (
+                      Folders
 
-                <div
-                  className="
-                    grid
-                    grid-cols-2
-                    md:grid-cols-4
-                    xl:grid-cols-6
-                    gap-5
-                  "
-                >
+                    </h3>
 
-                  {Array.from({
-                    length: 12,
-                  }).map((_, index) => (
+                    <span className="text-sm text-gray-500">
 
-                    <div
-                      key={index}
-                      className="
-                        aspect-square
-                        rounded-xl
-                        bg-gray-200
-                        animate-pulse
-                      "
-                    />
+                      {folders.length} Folder
+                      {folders.length !== 1 ? "s" : ""}
 
-                  ))}
-
-                </div>
-
-              ) : filteredMedia.length === 0 ? (
-
-                /* ======================================
-                    EMPTY STATE
-                ====================================== */
-
-                <div
-                  className="
-                    border-2
-                    border-dashed
-                    rounded-2xl
-                    p-20
-                    text-center
-                  "
-                >
-
-                  <div className="text-7xl">
-
-                    🖼️
+                    </span>
 
                   </div>
 
-                  <h3 className="text-2xl font-semibold mt-6">
+                  <div
+                    className="
+                      grid
+                      grid-cols-2
+                      md:grid-cols-4
+                      xl:grid-cols-6
+                      gap-5
+                    "
+                  >
 
-                    No media found
+                    {folders.map((folder) => (
 
-                  </h3>
+                      <FolderCard
+                        key={folder._id || folder.id}
 
-                  <p className="text-gray-500 mt-3">
+                        folder={folder}
 
-                    Upload files or change the filter.
+                        onOpen={(selectedFolder) => {
 
-                  </p>
+                          setPath((prev) => [
+                            ...prev,
+                            selectedFolder,
+                          ]);
 
-                </div>
+                          setCurrentFolder(
+                            selectedFolder._id ||
+                            selectedFolder.id
+                          );
 
-              ) : (
+                        }}
+                      />
 
-                /* ======================================
-                    MEDIA GRID / LIST
-                ====================================== */
+                    ))}
+
+                  </div>
+
+                </section>
+
+              )}
+
+              {/* ==================================================
+                  CURRENT FOLDER INFO
+              ================================================== */}
+
+              {path.length > 0 && (
 
                 <div
-                  className={
-                    view === "grid"
-
-                      ? `
-                          grid
-                          grid-cols-2
-                          md:grid-cols-4
-                          xl:grid-cols-6
-                          gap-5
-                        `
-
-                      : `
-                          flex
-                          flex-col
-                          gap-4
-                        `
-                  }
+                  className="
+                    rounded-xl
+                    border
+                    bg-gray-50
+                    px-5
+                    py-4
+                    flex
+                    justify-between
+                    items-center
+                  "
                 >
 
-                  {filteredMedia.map((item) => {
+                  <div>
 
-                    const selected =
-                      selectedItems.some(
-                        (media) =>
-                          media._id === item._id
-                      );
+                    <h3 className="font-semibold">
 
-                    return (
+                      {
+                        path[path.length - 1]
+                          ?.name
+                      }
 
-                      <div
-                        key={item._id}
-                        className="relative"
-                      >
+                    </h3>
 
-                        {/* Selection Badge */}
+                    <p className="text-sm text-gray-500">
 
-                        {selected && (
+                      Viewing folder contents
 
-                          <div
-                            className="
-                              absolute
-                              top-2
-                              right-2
-                              z-20
-                              h-7
-                              w-7
-                              rounded-full
-                              bg-blue-600
-                              text-white
-                              flex
-                              items-center
-                              justify-center
-                              text-sm
-                              font-bold
-                              shadow-lg
-                            "
-                          >
+                    </p>
 
-                            ✓
+                  </div>
 
-                          </div>
+                  <button
+                    type="button"
 
-                        )}
+                    className="
+                      border
+                      rounded-lg
+                      px-4
+                      py-2
+                      hover:bg-white
+                    "
 
-                        <MediaCard
-                          media={item}
+                    onClick={() => {
 
-                          selected={selected}
+                      setPath([]);
 
-                          onSelect={() =>
-                            toggleSelection(item)
-                          }
-                        />
+                      setCurrentFolder(null);
 
-                      </div>
+                    }}
+                  >
 
-                    );
+                    Back to Root
 
-                  })}
+                  </button>
 
                 </div>
 
               )}
 
-            </section>
+              {/* ==================================================
+                  MEDIA SECTION STARTS HERE
+                  (Part 3 continues)
+              ================================================== */}
 
-            {/* ==========================================
-                SELECTED ITEMS SUMMARY
-            ========================================== */}
+                          <section>
 
-            {selectedItems.length > 0 && (
+                <div className="flex items-center justify-between mb-5">
 
-              <div
-                className="
-                  rounded-xl
-                  border
-                  bg-blue-50
-                  border-blue-200
-                  px-5
-                  py-4
-                  flex
-                  justify-between
-                  items-center
-                "
-              >
+                  <h3 className="text-xl font-semibold">
+                    Media
+                  </h3>
 
-                <div>
-
-                  <h4 className="font-semibold">
-
-                    {multiple
-                      ? `${selectedItems.length} item${selectedItems.length > 1 ? "s" : ""} selected`
-                      : "1 item selected"}
-
-                  </h4>
-
-                  <p className="text-sm text-gray-600 mt-1">
-
-                    {selectedItems
-                      .slice(0, 3)
-                      .map(
-                        (item) =>
-                          item.originalName ||
-                          item.filename
-                      )
-                      .join(", ")}
-
-                    {selectedItems.length > 3 &&
-                      ` +${selectedItems.length - 3} more`}
-
-                  </p>
+                  <span className="text-sm text-gray-500">
+                    {filteredMedia.length} Item
+                    {filteredMedia.length !== 1 ? "s" : ""}
+                  </span>
 
                 </div>
 
-                <button
-                  type="button"
+                {/* ==========================================
+                    LOADING SKELETON
+                ========================================== */}
+
+                {loading ? (
+
+                  <div
+                    className="
+                      grid
+                      grid-cols-2
+                      md:grid-cols-4
+                      xl:grid-cols-6
+                      gap-5
+                    "
+                  >
+
+                    {Array.from({
+                      length: 12,
+                    }).map((_, index) => (
+
+                      <div
+                        key={index}
+                        className="
+                          aspect-square
+                          rounded-xl
+                          bg-gray-200
+                          animate-pulse
+                        "
+                      />
+
+                    ))}
+
+                  </div>
+
+                ) : filteredMedia.length === 0 ? (
+
+                  /* ======================================
+                      EMPTY STATE
+                  ====================================== */
+
+                  <div
+                    className="
+                      border-2
+                      border-dashed
+                      rounded-2xl
+                      p-20
+                      text-center
+                    "
+                  >
+
+                    <div className="text-7xl">
+
+                      🖼️
+
+                    </div>
+
+                    <h3 className="text-2xl font-semibold mt-6">
+
+                      No media found
+
+                    </h3>
+
+                    <p className="text-gray-500 mt-3">
+
+                      Upload files or change the filter.
+
+                    </p>
+
+                  </div>
+
+                ) : (
+
+                  /* ======================================
+                      MEDIA GRID / LIST
+                  ====================================== */
+
+                  <div
+                    className={
+                      view === "grid"
+
+                        ? `
+                            grid
+                            grid-cols-2
+                            md:grid-cols-4
+                            xl:grid-cols-6
+                            gap-5
+                          `
+
+                        : `
+                            flex
+                            flex-col
+                            gap-4
+                          `
+                    }
+                  >
+
+                    {filteredMedia.map((item) => {
+
+                      const selected =
+                        selectedItems.some(
+                          (media) =>
+                            media._id === item._id
+                        );
+
+                      return (
+
+                        <div
+                          key={item._id}
+                          className="relative"
+                        >
+
+                          {/* Selection Badge */}
+
+                          {selected && (
+
+                            <div
+                              className="
+                                absolute
+                                top-2
+                                right-2
+                                z-20
+                                h-7
+                                w-7
+                                rounded-full
+                                bg-blue-600
+                                text-white
+                                flex
+                                items-center
+                                justify-center
+                                text-sm
+                                font-bold
+                                shadow-lg
+                              "
+                            >
+
+                              ✓
+
+                            </div>
+
+                          )}
+
+                          <MediaCard
+                            media={item}
+
+                            selected={selected}
+
+                            onSelect={() =>
+                              toggleSelection(item)
+                            }
+                          />
+
+                        </div>
+
+                      );
+
+                    })}
+
+                  </div>
+
+                )}
+
+              </section>
+
+              {/* ==========================================
+                  SELECTED ITEMS SUMMARY
+              ========================================== */}
+
+              {selectedItems.length > 0 && (
+
+                <div
                   className="
+                    rounded-xl
                     border
-                    rounded-lg
-                    px-4
-                    py-2
-                    hover:bg-white
+                    bg-blue-50
+                    border-blue-200
+                    px-5
+                    py-4
+                    flex
+                    justify-between
+                    items-center
                   "
-                  onClick={() =>
-                    setSelectedItems([])
-                  }
                 >
 
-                  Clear
+                  <div>
 
-                </button>
+                    <h4 className="font-semibold">
 
-              </div>
+                      {multiple
+                        ? `${selectedItems.length} item${selectedItems.length > 1 ? "s" : ""} selected`
+                        : "1 item selected"}
 
-            )}
+                    </h4>
+
+                    <p className="text-sm text-gray-600 mt-1">
+
+                      {selectedItems
+                        .slice(0, 3)
+                        .map(
+                          (item) =>
+                            item.originalName ||
+                            item.filename
+                        )
+                        .join(", ")}
+
+                      {selectedItems.length > 3 &&
+                        ` +${selectedItems.length - 3} more`}
+
+                    </p>
+
+                  </div>
+
+                  <button
+                    type="button"
+                    className="
+                      border
+                      rounded-lg
+                      px-4
+                      py-2
+                      hover:bg-white
+                    "
+                    onClick={() =>
+                      setSelectedItems([])
+                    }
+                  >
+
+                    Clear
+
+                  </button>
+
+                </div>
+
+              )}
+
+            </div>
 
           </div>
 
-        </div>
+                {/* ======================================================
+              FOOTER
+          ====================================================== */}
 
-              {/* ======================================================
-            FOOTER
-        ====================================================== */}
+          <div
+            className="
+              border-t
+              px-6
+              py-4
+              flex
+              items-center
+              justify-between
+              bg-white
+            "
+          >
 
-        <div
-          className="
-            border-t
-            px-6
-            py-4
-            flex
-            items-center
-            justify-between
-            bg-white
-          "
-        >
+            <div className="text-sm text-gray-500">
 
-          <div className="text-sm text-gray-500">
+              {selectedItems.length === 0
+                ? "No media selected"
+                : multiple
+                ? `${selectedItems.length} item${
+                    selectedItems.length > 1 ? "s" : ""
+                  } selected`
+                : selectedItems[0]?.originalName ||
+                  selectedItems[0]?.filename}
 
-            {selectedItems.length === 0
-              ? "No media selected"
-              : multiple
-              ? `${selectedItems.length} item${
-                  selectedItems.length > 1 ? "s" : ""
-                } selected`
-              : selectedItems[0]?.originalName ||
-                selectedItems[0]?.filename}
+            </div>
 
-          </div>
+            <div className="flex items-center gap-3">
 
-          <div className="flex items-center gap-3">
+              {/* Cancel */}
 
-            {/* Cancel */}
+              <button
+                type="button"
+                onClick={handleClose}
+                className="
+                  px-5
+                  py-2.5
+                  rounded-lg
+                  border
+                  hover:bg-gray-100
+                  transition-colors
+                "
+              >
+                Cancel
+              </button>
 
-            <button
-              type="button"
-              onClick={handleClose}
-              className="
-                px-5
-                py-2.5
-                rounded-lg
-                border
-                hover:bg-gray-100
-                transition-colors
-              "
-            >
-              Cancel
-            </button>
+              {/* Select */}
 
-            {/* Select */}
+              <button
+                type="button"
+                disabled={selectedItems.length === 0 || uploading}
+                onClick={() => {
 
-            <button
-              type="button"
-              disabled={selectedItems.length === 0}
-              onClick={() => {
+                  if (multiple) {
 
-                if (multiple) {
+                    onSelect?.(selectedItems);
 
-                  onSelect?.(selectedItems);
+                  } else {
 
-                } else {
+                    onSelect?.(selectedItems[0]);
 
-                  onSelect?.(selectedItems[0]);
+                  }
 
-                }
+                  handleClose();
 
-                handleClose();
+                }}
+                className={`
+                  px-6
+                  py-2.5
+                  rounded-lg
+                  text-white
+                  transition-colors
 
-              }}
-              className={`
-                px-6
-                py-2.5
-                rounded-lg
-                text-white
-                transition-colors
+                  ${
+                    selectedItems.length === 0 || uploading
+                      ? "bg-gray-400 cursor-not-allowed"
+                      : "bg-blue-600 hover:bg-blue-700"
+                  }
+                `}
+              >
 
-                ${
-                  selectedItems.length === 0
-                    ? "bg-gray-400 cursor-not-allowed"
-                    : "bg-blue-600 hover:bg-blue-700"
-                }
-              `}
-            >
+                Select
 
-              Select
+              </button>
 
-            </button>
+            </div>
 
           </div>
 
         </div>
 
       </div>
-
-    </div>
-
+    </>
   );
 
 };

@@ -70,31 +70,39 @@ const fileFilter = (
 
   const allowedTypes = [
 
+    // Images
     "image/",
 
+    // Videos
     "video/",
 
+    // Audio
     "audio/",
 
+    // PDF
     "application/pdf",
 
+    // Word
     "application/msword",
-
     "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
 
+    // Excel
     "application/vnd.ms-excel",
-
     "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
 
+    // PowerPoint
     "application/vnd.ms-powerpoint",
-
     "application/vnd.openxmlformats-officedocument.presentationml.presentation",
 
-    "application/zip",
-
-    "application/x-rar-compressed",
-
+    // Text files
     "text/plain",
+    "text/csv",
+    "application/csv",
+
+    // Archives
+    "application/zip",
+    "application/x-zip-compressed",
+    "application/x-rar-compressed",
 
   ];
 

@@ -1,6 +1,5 @@
-import { useState } from "react";
 import SectionCard from "../components/SectionCard";
-import MediaModal from "../media/pages/MediaModal";
+import MediaPicker from "../media/components/MediaPicker";
 
 const HeroEditor = ({
   section,
@@ -13,30 +12,18 @@ const HeroEditor = ({
   isLast,
 }) => {
 
-  const [isMediaModalOpen, setIsMediaModalOpen] = useState(false);
+  /* ==========================================
+      UPDATE FIELD
+  ========================================== */
 
   const updateField = (field, value) => {
+
     onChange({
       ...section,
       [field]: value,
     });
-  };
 
-  const handleSelectMedia = (media) => {
-    updateField("background", {
-      id: media._id,
-      url: media.url,
-      filename: media.originalName,
-      alt: media.alt,
-    });
-    setIsMediaModalOpen(false);
   };
-
-  const handleRemoveMedia = () => {
-    updateField("background", null);
-  };
-
-  const background = section.background;
 
   return (
 
@@ -51,20 +38,24 @@ const HeroEditor = ({
       isLast={isLast}
     >
 
-      {/* Heading */}
+      {/* ======================================
+          HEADING
+      ====================================== */}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
         <div>
 
           <label className="block mb-1.5 text-xs font-semibold uppercase tracking-wider text-gray-500">
+
             Heading
+
           </label>
 
           <input
             type="text"
             value={section.heading || ""}
-            onChange={(e)=>
+            onChange={(e) =>
               updateField(
                 "heading",
                 e.target.value
@@ -79,12 +70,14 @@ const HeroEditor = ({
         <div>
 
           <label className="block mb-1.5 text-xs font-semibold uppercase tracking-wider text-gray-500">
+
             Hero Height
+
           </label>
 
           <select
             value={section.height || "medium"}
-            onChange={(e)=>
+            onChange={(e) =>
               updateField(
                 "height",
                 e.target.value
@@ -115,18 +108,22 @@ const HeroEditor = ({
 
       </div>
 
-      {/* Sub Heading */}
+      {/* ======================================
+          SUB HEADING
+      ====================================== */}
 
       <div className="mt-6">
 
         <label className="block mb-1.5 text-xs font-semibold uppercase tracking-wider text-gray-500">
+
           Sub Heading
+
         </label>
 
         <textarea
           rows={4}
           value={section.subheading || ""}
-          onChange={(e)=>
+          onChange={(e) =>
             updateField(
               "subheading",
               e.target.value
@@ -138,210 +135,226 @@ const HeroEditor = ({
 
       </div>
 
-      {/* Alignment */}
+      {/* ======================================
+          LAYOUT
+      ====================================== */}
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+      <div className="mt-6">
 
-        <div>
+        <label className="block mb-1.5 text-xs font-semibold uppercase tracking-wider text-gray-500">
 
-          <label className="block mb-1.5 text-xs font-semibold uppercase tracking-wider text-gray-500">
-            Text Alignment
-          </label>
+          Text Alignment
 
-          <select
-            value={section.alignment || "center"}
-            onChange={(e)=>
-              updateField(
-                "alignment",
-                e.target.value
-              )
-            }
-            className="w-full border border-gray-300 rounded-lg px-3.5 py-2.5 text-sm outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900 transition-colors bg-white"
-          >
-
-            <option value="left">
-              Left
-            </option>
-
-            <option value="center">
-              Center
-            </option>
-
-            <option value="right">
-              Right
-            </option>
-
-          </select>
-
-        </div>
-
-        <div>
-
-          <label className="block mb-1.5 text-xs font-semibold uppercase tracking-wider text-gray-500">
-            Overlay Opacity
-          </label>
-
-          <input
-            type="range"
-            min="0"
-            max="100"
-            value={section.overlay || 40}
-            onChange={(e)=>
-              updateField(
-                "overlay",
-                Number(e.target.value)
-              )
-            }
-            className="w-full accent-gray-900"
-          />
-
-          <div className="text-sm text-gray-500 mt-2">
-
-            {section.overlay || 40}%
-
-          </div>
-
-        </div>
-
-      </div>
-
-      {/* CTA */}
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
-
-        <div>
-
-          <label className="block mb-1.5 text-xs font-semibold uppercase tracking-wider text-gray-500">
-            Button Text
-          </label>
-
-          <input
-            value={section.buttonText || ""}
-            onChange={(e)=>
-              updateField(
-                "buttonText",
-                e.target.value
-              )
-            }
-            className="w-full border border-gray-300 rounded-lg px-3.5 py-2.5 text-sm outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900 transition-colors"
-            placeholder="Learn More"
-          />
-
-        </div>
-
-        <div>
-
-          <label className="block mb-1.5 text-xs font-semibold uppercase tracking-wider text-gray-500">
-            Button Link
-          </label>
-
-          <input
-            value={section.buttonLink || ""}
-            onChange={(e)=>
-              updateField(
-                "buttonLink",
-                e.target.value
-              )
-            }
-            className="w-full border border-gray-300 rounded-lg px-3.5 py-2.5 text-sm outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900 transition-colors"
-            placeholder="/about"
-          />
-
-        </div>
-
-      </div>
-
-      {/* Background */}
-
-      <div className="mt-8">
-
-        <label className="block mb-2 text-xs font-semibold uppercase tracking-wider text-gray-500">
-          Background Image
         </label>
 
-        {background ? (
+        <select
+          value={section.alignment || "center"}
+          onChange={(e) =>
+            updateField(
+              "alignment",
+              e.target.value
+            )
+          }
+          className="w-full border border-gray-300 rounded-lg px-3.5 py-2.5 text-sm outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900 transition-colors bg-white"
+        >
 
-          <div className="border border-gray-200 rounded-xl overflow-hidden">
+          <option value="left">
+            Left
+          </option>
 
-            <div className="relative h-52 bg-gray-50">
+          <option value="center">
+            Center
+          </option>
 
-              <img
-                src={background.url}
-                alt={background.alt || background.filename || "Background"}
-                className="w-full h-full object-cover"
+          <option value="right">
+            Right
+          </option>
+
+        </select>
+
+      </div>
+
+      {/* ======================================
+          OVERLAY
+      ====================================== */}
+
+      <div className="mt-6">
+
+        <label className="block mb-1.5 text-xs font-semibold uppercase tracking-wider text-gray-500">
+
+          Overlay Opacity
+
+        </label>
+
+        <input
+          type="range"
+          min="0"
+          max="100"
+          value={section.overlay ?? 40}
+          onChange={(e) =>
+            updateField(
+              "overlay",
+              Number(e.target.value)
+            )
+          }
+          className="w-full accent-gray-900"
+        />
+
+        <div className="text-sm text-gray-500 mt-2">
+
+          {section.overlay ?? 40}%
+
+        </div>
+
+      </div>
+
+      {/* ======================================
+          BUTTONS
+      ====================================== */}
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+
+        {/* Primary Button */}
+        <div className="border border-gray-200 rounded-xl p-5 bg-white">
+
+          <h4 className="text-sm font-semibold mb-4">
+            Primary Button
+          </h4>
+
+          <div className="space-y-4">
+
+            <div>
+
+              <label className="block mb-1.5 text-xs font-semibold uppercase tracking-wider text-gray-500">
+
+                Button Text
+
+              </label>
+
+              <input
+                value={section.primaryButtonText || ""}
+                onChange={(e) =>
+                  updateField(
+                    "primaryButtonText",
+                    e.target.value
+                  )
+                }
+                placeholder="Learn More"
+                className="w-full border border-gray-300 rounded-lg px-3.5 py-2.5 text-sm outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900 transition-colors"
               />
 
             </div>
 
-            <div className="flex items-center justify-between gap-3 px-4 py-3 border-t border-gray-200 bg-white">
+            <div>
 
-              <span className="text-xs text-gray-500 truncate">
-                {background.filename}
-              </span>
+              <label className="block mb-1.5 text-xs font-semibold uppercase tracking-wider text-gray-500">
 
-              <div className="flex items-center gap-2 shrink-0">
+                Button Link
 
-                <button
-                  type="button"
-                  onClick={() => setIsMediaModalOpen(true)}
-                  className="text-sm font-medium px-3.5 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors"
-                >
-                  Replace Image
-                </button>
+              </label>
 
-                <button
-                  type="button"
-                  onClick={handleRemoveMedia}
-                  className="text-sm font-medium px-3.5 py-2 rounded-lg border border-gray-300 text-red-600 hover:bg-red-50 transition-colors"
-                >
-                  Remove
-                </button>
-
-              </div>
+              <input
+                value={section.primaryButtonLink || ""}
+                onChange={(e) =>
+                  updateField(
+                    "primaryButtonLink",
+                    e.target.value
+                  )
+                }
+                placeholder="/about"
+                className="w-full border border-gray-300 rounded-lg px-3.5 py-2.5 text-sm outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900 transition-colors"
+              />
 
             </div>
 
           </div>
 
-        ) : (
+        </div>
 
-          <button
-            type="button"
-            onClick={() => setIsMediaModalOpen(true)}
-            className="w-full border-2 border-dashed border-gray-300 rounded-xl h-52 flex flex-col items-center justify-center text-gray-500 hover:border-gray-400 hover:bg-gray-50 transition-colors"
-          >
+        {/* Secondary Button */}
+        <div className="border border-gray-200 rounded-xl p-5 bg-white">
 
-            <div className="text-4xl mb-3">
+          <h4 className="text-sm font-semibold mb-4">
+            Secondary Button
+          </h4>
 
-              🖼️
+          <div className="space-y-4">
+
+            <div>
+
+              <label className="block mb-1.5 text-xs font-semibold uppercase tracking-wider text-gray-500">
+
+                Button Text
+
+              </label>
+
+              <input
+                value={section.secondaryButtonText || ""}
+                onChange={(e) =>
+                  updateField(
+                    "secondaryButtonText",
+                    e.target.value
+                  )
+                }
+                placeholder="Contact Us"
+                className="w-full border border-gray-300 rounded-lg px-3.5 py-2.5 text-sm outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900 transition-colors"
+              />
 
             </div>
 
-            <div className="text-sm font-medium text-gray-700">
+            <div>
 
-              No background image selected
+              <label className="block mb-1.5 text-xs font-semibold uppercase tracking-wider text-gray-500">
+
+                Button Link
+
+              </label>
+
+              <input
+                value={section.secondaryButtonLink || ""}
+                onChange={(e) =>
+                  updateField(
+                    "secondaryButtonLink",
+                    e.target.value
+                  )
+                }
+                placeholder="/contact"
+                className="w-full border border-gray-300 rounded-lg px-3.5 py-2.5 text-sm outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900 transition-colors"
+              />
 
             </div>
 
-            <div className="mt-3 text-sm font-medium px-4 py-2 rounded-lg bg-gray-900 text-white">
+          </div>
 
-              Choose Image
-
-            </div>
-
-          </button>
-
-        )}
+        </div>
 
       </div>
 
-      <MediaModal
-        isOpen={isMediaModalOpen}
-        onClose={() => setIsMediaModalOpen(false)}
-        type="image"
-        multiple={false}
-        onSelect={handleSelectMedia}
-      />
+      {/* ======================================
+          BACKGROUND IMAGE
+      ====================================== */}
+
+      <div className="mt-8">
+
+        <label className="block mb-3 text-xs font-semibold uppercase tracking-wider text-gray-500">
+
+          Background Image
+
+        </label>
+
+        <MediaPicker
+          type="image"
+          multiple={false}
+          value={section.background || null}
+          onChange={(media) =>
+            updateField(
+              "background",
+              media
+            )
+          }
+        />
+
+      </div>
 
     </SectionCard>
 

@@ -3,6 +3,7 @@ export const collectionConfigs = {
     title: "List",
     icon: "📋",
     collectionKey: "items",
+    addButtonLabel: "Item",
 
     fields: [
       {
@@ -17,8 +18,14 @@ export const collectionConfigs = {
     title: "Timeline",
     icon: "🕒",
     collectionKey: "events",
+    addButtonLabel: "Timeline Item",
 
     fields: [
+      {
+        key: "image",
+        label: "Image",
+        type: "image",
+      },
       {
         key: "year",
         label: "Year",
@@ -41,6 +48,7 @@ export const collectionConfigs = {
     title: "Documents",
     icon: "📑",
     collectionKey: "documents",
+    addButtonLabel: "Document",
 
     fields: [
       {
@@ -49,18 +57,27 @@ export const collectionConfigs = {
         type: "text",
       },
       {
-        key: "category",
-        label: "Category",
-        type: "text",
-      },
-      {
         key: "description",
         label: "Description",
         type: "textarea",
       },
       {
+        key: "category",
+        label: "Category",
+        type: "select",
+        options: [
+          "Academic",
+          "Admissions",
+          "Examinations",
+          "Circulars",
+          "Forms",
+          "Notices",
+          "Others",
+        ],
+      },
+      {
         key: "file",
-        label: "PDF",
+        label: "Document",
         type: "file",
       },
     ],
@@ -68,10 +85,16 @@ export const collectionConfigs = {
 
   eventList: {
     title: "Events",
-    icon: "🎉",
+    icon: "📅",
     collectionKey: "events",
+    addButtonLabel: "Event",
 
     fields: [
+      {
+        key: "images",
+        label: "Event Gallery",
+        type: "images",
+      },
       {
         key: "title",
         label: "Title",
@@ -88,8 +111,18 @@ export const collectionConfigs = {
         type: "text",
       },
       {
+        key: "category",
+        label: "Category",
+        type: "text",
+      },
+      {
         key: "description",
-        label: "Description",
+        label: "Short Description",
+        type: "textarea",
+      },
+      {
+        key: "fullDescription",
+        label: "Full Description",
         type: "textarea",
       },
       {
@@ -104,4 +137,76 @@ export const collectionConfigs = {
       },
     ],
   },
+
+  gallery: {
+    title: "Gallery",
+    icon: "🖼️",
+    collectionKey: "images",
+    addButtonLabel: "Image",
+
+    fields: [
+      {
+        key: "images",
+        label: "Gallery Images",
+        type: "images",
+      },
+      {
+        key: "layout",
+        label: "Layout",
+        type: "select",
+        options: [
+          "grid",
+          "slider",
+          "masonry",
+        ],
+      },
+      {
+        key: "title",
+        label: "Title",
+        type: "text",
+      },
+      {
+        key: "description",
+        label: "Description",
+        type: "textarea",
+      },
+    ],
+  },
+
+  // You can add more collection types here
+  // For example:
+  // team: {
+  //   title: "Team Members",
+  //   icon: "👥",
+  //   collectionKey: "members",
+  //   addButtonLabel: "Member",
+  //   
+  //   fields: [
+  //     {
+  //       key: "image",
+  //       label: "Photo",
+  //       type: "image",
+  //     },
+  //     {
+  //       key: "name",
+  //       label: "Name",
+  //       type: "text",
+  //     },
+  //     {
+  //       key: "position",
+  //       label: "Position",
+  //       type: "text",
+  //     },
+  //     {
+  //       key: "bio",
+  //       label: "Bio",
+  //       type: "textarea",
+  //     },
+  //     {
+  //       key: "email",
+  //       label: "Email",
+  //       type: "text",
+  //     },
+  //   ],
+  // },
 };

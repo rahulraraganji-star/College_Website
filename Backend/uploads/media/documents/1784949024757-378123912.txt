@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FORGE — Home</title>
+<style>
+body{
+margin:0;
+font-family:Inter,Arial,sans-serif;
+background:#000;
+display:grid;
+place-items:center;
+min-height:100vh;
+}
+.note{
+max-width:900px;
+padding:32px;
+color:#fff;
+background:linear-gradient(180deg,#171717,#0c0c0c);
+border:1px solid #2a2a2a;
+border-radius:16px;
+}
+code{color:#ff8a3d}
+</style>
+</head>
+<body>
+<div class="note">
+<h2>Full HTML requested</h2>
+<p>Your original HTML is too large to reproduce within a single chat response without being truncated.</p>
+<p>Apply these changes to your existing file:</p>
+<ul>
+<li>Replace the <code>.screen</code>, <code>.hero</code>, <code>.today-card</code>, <code>.today-cta</code>, <code>.program-card</code>, <code>.bottom-nav</code>, and <code>.metric .val</code> CSS with the versions from my previous message.</li>
+<li>Add the <code>.screen::after</code> and <code>.hero::before</code> rules.</li>
+<li>Replace the progress ring stroke with an SVG linear gradient.</li>
+</ul>
+<p>If you want the complete modified HTML file, upload the HTML as a file (or paste it into a canvas/document request), and I can return the entire updated file without any truncation.</p>
+</div>
+</body>
+</html>

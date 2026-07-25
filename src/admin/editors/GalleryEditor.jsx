@@ -1,4 +1,5 @@
 import SectionCard from "../components/SectionCard";
+import MediaPicker from "../media/components/MediaPicker";
 
 const GalleryEditor = ({
   section,
@@ -34,7 +35,7 @@ const GalleryEditor = ({
     updateImages([
       ...(section.images || []),
       {
-        image: "",
+        media: null,
         caption: "",
         alt: "",
       },
@@ -51,6 +52,21 @@ const GalleryEditor = ({
     const images = [...section.images];
 
     images[index][key] = value;
+
+    updateImages(images);
+
+  };
+
+  const updateImageWithMedia = (index, media) => {
+
+    const images = [...section.images];
+
+    images[index].media = media;
+
+    // Auto-fill alt text if not already set
+    if (!images[index].alt && media?.alt) {
+      images[index].alt = media.alt;
+    }
 
     updateImages(images);
 
@@ -207,7 +223,7 @@ const GalleryEditor = ({
                   onClick={() =>
                     deleteImage(index)
                   }
-                  className="text-red-500"
+                  className="text-red-500 hover:text-red-700 transition-colors"
                 >
 
                   Delete
@@ -216,21 +232,18 @@ const GalleryEditor = ({
 
               </div>
 
-                            {/* Upload Placeholder */}
+              {/* Media Picker */}
 
-              <div className="border-2 border-dashed border-gray-300 rounded-2xl h-52 flex flex-col items-center justify-center text-center mb-6">
+              <div className="mb-6">
 
-                <div className="text-5xl mb-3">
-                  🖼️
-                </div>
-
-                <p className="font-medium text-gray-700">
-                  Upload Image
-                </p>
-
-                <p className="text-sm text-gray-500 mt-2">
-                  Media Library integration will be added later
-                </p>
+                <MediaPicker
+                  type="image"
+                  multiple={false}
+                  value={image.media}
+                  onChange={(media) =>
+                    updateImageWithMedia(index, media)
+                  }
+                />
 
               </div>
 
@@ -253,6 +266,7 @@ const GalleryEditor = ({
                     )
                   }
                   className="w-full border rounded-xl px-4 py-3"
+                  placeholder="Enter caption..."
                 />
 
               </div>
@@ -276,6 +290,7 @@ const GalleryEditor = ({
                     )
                   }
                   className="w-full border rounded-xl px-4 py-3"
+                  placeholder="Enter alt text..."
                 />
 
               </div>

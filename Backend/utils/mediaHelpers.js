@@ -11,8 +11,8 @@ export const getMediaType = (mimeType) => {
   }
 
   if (mimeType === "application/pdf") {
-    return "pdf";
-  }
+  return "document";
+}
 
   if (
     mimeType.includes("word") ||

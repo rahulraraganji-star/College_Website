@@ -124,15 +124,27 @@ export const createSection = (type) => {
 
     case "embed":
 
-      return {
-        type: "embed",
+  return {
+    type: "embed",
 
-        title: "",
+    title: "",
 
-        url: "",
+    embedType: "iframe",
 
-        height: 500,
-      };
+    url: "",
+
+    media: null,
+
+    height: 500,
+
+    width: "100%",
+
+    allowFullscreen: true,
+
+    lazyLoad: true,
+
+    responsive: true,
+  };
 
     default:
 
