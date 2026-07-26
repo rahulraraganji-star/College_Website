@@ -125,3 +125,24 @@ export const updatePage = async (req, res) => {
     });
   }
 };
+
+export const deletePage = async (req, res) => {
+  try {
+    const page = await Page.findByIdAndDelete(req.params.id);
+
+    if (!page) {
+      return res.status(404).json({
+        message: "Page not found",
+      });
+    }
+
+    res.json({
+      success: true,
+      message: "Page deleted successfully",
+    });
+  } catch (err) {
+    res.status(500).json({
+      message: err.message,
+    });
+  }
+};

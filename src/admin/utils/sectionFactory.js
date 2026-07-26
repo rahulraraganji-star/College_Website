@@ -66,20 +66,14 @@ export const createSection = (type) => {
 
   };
 
-    case "gallery":
+   case "gallery":
+  return {
+    type: "gallery",
 
-      return {
-        type: "gallery",
+    title: "",
 
-        title: "",
-
-        layout: "grid",
-
-        columns: 3,
-
-        images: [],
-      };
-
+    galleries: [],
+  };
     case "documentList":
 
       return {

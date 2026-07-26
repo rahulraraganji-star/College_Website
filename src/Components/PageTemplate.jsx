@@ -20,7 +20,13 @@ const hasData = (section) => {
     case "list": return Array.isArray(section.items) && section.items.length > 0;
     case "timeline": return Array.isArray(section.events) && section.events.length > 0;
     case "faculty-grid": return Array.isArray(section.departments) && section.departments.length > 0;
-    case "gallery": return Array.isArray(section.images) && section.images.length > 0;
+  case "gallery":
+  return (
+    Array.isArray(section.galleries) &&
+    section.galleries.some(
+      (gallery) => Array.isArray(gallery.images) && gallery.images.length > 0
+    )
+  );
     case "table": return Array.isArray(section.rows) && section.rows.length > 0;
     case "documentList": return Array.isArray(section.documents) && section.documents.length > 0;
     case "eventList": return Array.isArray(section.events) && section.events.length > 0;

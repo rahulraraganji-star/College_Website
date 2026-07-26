@@ -5,7 +5,8 @@ import {
   getPageBySlug,
   createPage,
   updatePage,
-  getPagesByParent
+  getPagesByParent,
+  deletePage
 } from "../controllers/pages.controller.js";
 
 const router = express.Router();
@@ -28,6 +29,8 @@ router.post("/", createPage);
 
 /*Update Pages */
 router.put("/:id", updatePage);
+
+router.delete("/:id", deletePage);
 
 /* GET SINGLE PAGE BY SLUG */
 router.get("/:slug", getPageBySlug);

@@ -1,7 +1,10 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import PageActionsMenu from "../components/PageActionsMenu";
 
 const Pages = () => {
+  const navigate = useNavigate();
+
   const [pages, setPages] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -99,12 +102,13 @@ const Pages = () => {
                           : "Draft"}
                       </span>
 
-                      <Link
-                        to={`/admin/pages/${page._id}`}
-                        className="text-blue-600 font-medium"
-                      >
-                        Edit
-                      </Link>
+                      <PageActionsMenu
+                        isPublished={page.isPublished}
+                        onEdit={() => navigate(`/admin/pages/${page._id}`)}
+                        onDuplicate={() => console.log("Duplicate", page)}
+                        onTogglePublish={() => console.log("Publish", page)}
+                        onDelete={() => console.log("Delete", page)}
+                      />
                     </div>
                   </div>
                 ))}

@@ -138,40 +138,6 @@ export const collectionConfigs = {
     ],
   },
 
-  gallery: {
-    title: "Gallery",
-    icon: "🖼️",
-    collectionKey: "images",
-    addButtonLabel: "Image",
-
-    fields: [
-      {
-        key: "images",
-        label: "Gallery Images",
-        type: "images",
-      },
-      {
-        key: "layout",
-        label: "Layout",
-        type: "select",
-        options: [
-          "grid",
-          "slider",
-          "masonry",
-        ],
-      },
-      {
-        key: "title",
-        label: "Title",
-        type: "text",
-      },
-      {
-        key: "description",
-        label: "Description",
-        type: "textarea",
-      },
-    ],
-  },
 
   // You can add more collection types here
   // For example:
