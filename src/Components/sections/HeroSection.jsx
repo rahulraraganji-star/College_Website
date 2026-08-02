@@ -11,6 +11,8 @@ const HERO_HEIGHT_CLASSES = {
 const HeroSection = ({ section, pageTitle }) => {
   const [loaded, setLoaded] = useState(false);
 
+  console.log("HeroSection props:", section);
+
   useEffect(() => {
     const frame = requestAnimationFrame(() => setLoaded(true));
     return () => cancelAnimationFrame(frame);

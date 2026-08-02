@@ -24,6 +24,7 @@ import DynamicLayout from "./Layouts/DynamicLayout";
 
 /* REUSABLE LAYOUT */
 import SectionLayout from "./Layouts/SectionLayout";
+import SectionRedirect from "./Layouts/SectionRedirect";
 
 /* PREMIUM CUSTOM LAYOUTS */
 import AboutLayout from "./Layouts/AboutLayout";
@@ -157,8 +158,12 @@ function App() {
 
         </Route>
 
+        {/* ============================================== */}
+        {/* OLD SECTION ROUTES - COMMENTED OUT FOR TESTING */}
+        {/* ============================================== */}
+
         {/* STUDENT LIFE */}
-        <Route
+        {/* <Route
           path="student-life"
           element={
             <SectionLayout
@@ -183,10 +188,10 @@ function App() {
             element={<DynamicPage />}
           />
 
-        </Route>
+        </Route> */}
 
         {/* ACADEMICS */}
-        <Route
+        {/* <Route
           path="academics"
           element={
             <SectionLayout
@@ -211,10 +216,10 @@ function App() {
             element={<DynamicPage />}
           />
 
-        </Route>
+        </Route> */}
 
         {/* STAFF */}
-        <Route
+        {/* <Route
           path="staff"
           element={
             <SectionLayout
@@ -239,10 +244,10 @@ function App() {
             element={<DynamicPage />}
           />
 
-        </Route>
+        </Route> */}
 
         {/* ADMISSIONS */}
-        <Route
+        {/* <Route
           path="admissions"
           element={
             <SectionLayout
@@ -267,10 +272,10 @@ function App() {
             element={<DynamicPage />}
           />
 
-        </Route>
+        </Route> */}
 
         {/* EXAMINATION */}
-        <Route
+        {/* <Route
           path="examination"
           element={
             <SectionLayout
@@ -295,10 +300,10 @@ function App() {
             element={<DynamicPage />}
           />
 
-        </Route>
+        </Route> */}
 
         {/* ACCREDITATION */}
-        <Route
+        {/* <Route
           path="accreditation"
           element={
             <SectionLayout
@@ -323,10 +328,10 @@ function App() {
             element={<DynamicPage />}
           />
 
-        </Route>
+        </Route> */}
 
         {/* RTI */}
-        <Route
+        {/* <Route
           path="rti"
           element={
             <SectionLayout
@@ -351,10 +356,10 @@ function App() {
             element={<DynamicPage />}
           />
 
-        </Route>
+        </Route> */}
 
         {/* ALUMNI */}
-        <Route
+        {/* <Route
           path="alumni"
           element={
             <SectionLayout
@@ -379,10 +384,10 @@ function App() {
             element={<DynamicPage />}
           />
 
-        </Route>
+        </Route> */}
 
         {/* INFRASTRUCTURE */}
-        <Route
+        {/* <Route
           path="infrastructure"
           element={
             <SectionLayout
@@ -407,10 +412,10 @@ function App() {
             element={<DynamicPage />}
           />
 
-        </Route>
+        </Route> */}
 
         {/* IQAC */}
-        <Route
+        {/* <Route
           path="iqac"
           element={
             <SectionLayout
@@ -435,6 +440,24 @@ function App() {
             element={<DynamicPage />}
           />
 
+        </Route> */}
+
+        {/* ============================================== */}
+        {/* NEW DYNAMIC SECTION ROUTE */}
+        {/* ============================================== */}
+        <Route
+          path=":parentSlug"
+          element={<SectionLayout />}
+        >
+          <Route
+            index
+            element={<SectionRedirect />}
+          />
+
+          <Route
+            path=":slug"
+            element={<DynamicPage />}
+          />
         </Route>
 
         {/* 404 */}

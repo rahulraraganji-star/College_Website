@@ -1,36 +1,91 @@
 import express from "express";
-import NavigationMenu from "../models/NavigationMenu.js";
-import NavigationItem from "../models/NavigationItem.js";
+
+import {
+  getNavigation,
+  getAdminNavigation,
+  deleteChild,
+  reorderChild,
+  createMenu,
+  updateMenu,
+  deleteMenu,
+  reorderMenu,
+  toggleChildVisibility,
+  updateChild,
+} from "../controllers/navigation.controller.js";
 
 const router = express.Router();
 
-/**
- * GET /api/navigation
- * Returns menus with their items attached
+/* 
+   GET NAVIGATION
  */
-router.get("/", async (req, res) => {
-  try {
-    // Get active menus
-    const menus = await NavigationMenu.find({ isActive: true })
-      .sort({ order: 1 })
-      .lean();
 
-    // Get active items
-    const items = await NavigationItem.find({ isActive: true })
-      .sort({ order: 1 })
-      .lean();
+router.get("/", getNavigation);
 
-    // Attach items to their menus
-    const menusWithItems = menus.map((menu) => ({
-      ...menu,
-      items: items.filter((item) => item.menuKey === menu.key),
-    }));
+/* 
+   admin 
+ */
+router.get(
+  "/admin",
+  getAdminNavigation
+);
 
-    res.json(menusWithItems);
-  } catch (error) {
-    console.error("Navigation API error:", error);
-    res.status(500).json({ message: "Server error" });
-  }
-});
+/**create menu */
+router.post(
+  "/menu",
+  createMenu
+);
+
+router.patch(
+  "/menu/:id",
+  updateMenu
+);
+
+
+/* 
+   DELETE menu
+ */
+router.delete(
+  "/menu/:id",
+  deleteMenu
+);
+
+/* 
+   DELETE CHILD
+ */
+
+router.delete(
+  "/child/:id",
+  deleteChild
+);
+
+/* 
+   Reorder menu
+ */
+
+router.patch(
+  "/menu/:id/reorder",
+  reorderMenu
+);
+
+/**update child */
+router.patch(
+  "/child/:id",
+  updateChild
+);
+
+
+/* 
+   Reorder items
+ */
+
+router.patch(
+  "/child/:id/reorder",
+  reorderChild
+);
+
+router.patch(
+  "/child/:id/toggle",
+  toggleChildVisibility
+);
 
 export default router;

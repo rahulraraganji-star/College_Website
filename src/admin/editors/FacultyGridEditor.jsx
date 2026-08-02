@@ -1,15 +1,8 @@
-import SectionCard from "../components/SectionCard";
 import MediaPicker from "../media/components/MediaPicker";
 
 const FacultyGridEditor = ({
   section,
   onChange,
-  onDelete,
-  onDuplicate,
-  onMoveUp,
-  onMoveDown,
-  isFirst,
-  isLast,
 }) => {
 
   /* ----------------------------------
@@ -115,16 +108,7 @@ const FacultyGridEditor = ({
   };
 
   return (
-    <SectionCard
-      title="Faculty Grid"
-      icon="👨‍🏫"
-      onDelete={onDelete}
-      onDuplicate={onDuplicate}
-      onMoveUp={onMoveUp}
-      onMoveDown={onMoveDown}
-      isFirst={isFirst}
-      isLast={isLast}
-    >
+    <>
       {/* SECTION TITLE */}
       <div className="mb-8">
         <label className="block text-sm font-medium mb-2">
@@ -447,7 +431,7 @@ const FacultyGridEditor = ({
           + Add Department
         </button>
       </div>
-    </SectionCard>
+    </>
   );
 };
 

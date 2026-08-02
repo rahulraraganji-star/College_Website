@@ -14,7 +14,6 @@ const HomePageTemplate = () => {
     fetch("http://localhost:5000/api/home")
       .then((res) => res.json())
       .then((resData) => {
-
         console.log("HOME:", resData);
 
         // FIX ARRAY RESPONSE
@@ -40,34 +39,35 @@ const HomePageTemplate = () => {
     return <div>No data</div>;
   }
 
+  // Extract sections from the data object
+  const sections = data.sections || {};
+
   return (
     <div>
-
       {/* HERO */}
-      {data.hero && (
-        <Hero_Section data={data.hero} />
+      {sections.hero && (
+        <Hero_Section data={sections.hero} />
       )}
 
       {/* SCROLLING TEXT */}
-      {data.eventsMarquee && (
-        <ScrollingText data={data.eventsMarquee} />
+      {sections.eventsMarquee && (
+        <ScrollingText data={sections.eventsMarquee} />
       )}
 
       {/* LEARNING SPACES */}
-      {data.heroSection2 && (
-        <LearningSpacesCarousel data={data.heroSection2} />
+      {sections.heroSection2 && (
+        <LearningSpacesCarousel data={sections.heroSection2} />
       )}
 
       {/* EVENTS */}
-      {data.eventsSection && (
-        <Events_Section data={data.eventsSection} />
+      {sections.eventsSection && (
+        <Events_Section data={sections.eventsSection} />
       )}
 
       {/* CORE STRENGTHS */}
-      {data.coreStrengths && (
-        <CoreStrengths data={data.coreStrengths} />
+      {sections.coreStrengths && (
+        <CoreStrengths data={sections.coreStrengths} />
       )}
-
     </div>
   );
 };

@@ -1,45 +1,61 @@
-import SectionCard from "../components/SectionCard";
 import MediaPicker from "../media/components/MediaPicker";
 
 const HeroEditor = ({
   section,
   onChange,
-  onDelete,
-  onDuplicate,
-  onMoveUp,
-  onMoveDown,
-  isFirst,
-  isLast,
+  mode = "page", // "page" | "home"
 }) => {
+  const isHome = mode === "home";
 
   /* ==========================================
       UPDATE FIELD
   ========================================== */
 
   const updateField = (field, value) => {
-
     onChange({
       ...section,
       [field]: value,
     });
+  };
 
+  /* ==========================================
+      SLIDE FUNCTIONS (for carousel mode)
+  ========================================== */
+
+  const slides = section.slides || [];
+
+  const updateSlide = (index, key, value) => {
+    const updated = [...slides];
+    updated[index][key] = value;
+
+    updateField("slides", updated);
+  };
+
+  const addSlide = () => {
+    updateField("slides", [
+      ...slides,
+      {
+        image: "",
+        caption: "",
+        description: "",
+      },
+    ]);
+  };
+
+  const deleteSlide = (index) => {
+    if (!window.confirm("Delete this slide?")) return;
+
+    updateField(
+      "slides",
+      slides.filter((_, i) => i !== index)
+    );
   };
 
   return (
-
-    <SectionCard
-      title="Hero Section"
-      icon="⭐"
-      onDelete={onDelete}
-      onDuplicate={onDuplicate}
-      onMoveUp={onMoveUp}
-      onMoveDown={onMoveDown}
-      isFirst={isFirst}
-      isLast={isLast}
-    >
+    <>
 
       {/* ======================================
-          HEADING
+          TITLE (was HEADING)
       ====================================== */}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -47,9 +63,7 @@ const HeroEditor = ({
         <div>
 
           <label className="block mb-1.5 text-xs font-semibold uppercase tracking-wider text-gray-500">
-
-            Heading
-
+            Title
           </label>
 
           <input
@@ -61,152 +75,152 @@ const HeroEditor = ({
                 e.target.value
               )
             }
-            placeholder="Enter heading"
+            placeholder="Enter title"
             className="w-full border border-gray-300 rounded-lg px-3.5 py-2.5 text-sm outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900 transition-colors"
           />
 
         </div>
 
-        <div>
+        {/* ======================================
+            PAGE-ONLY OPTIONS: Height
+        ====================================== */}
+
+        {!isHome && (
+          <div>
+
+            <label className="block mb-1.5 text-xs font-semibold uppercase tracking-wider text-gray-500">
+              Hero Height
+            </label>
+
+            <select
+              value={section.height || "medium"}
+              onChange={(e) =>
+                updateField(
+                  "height",
+                  e.target.value
+                )
+              }
+              className="w-full border border-gray-300 rounded-lg px-3.5 py-2.5 text-sm outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900 transition-colors bg-white"
+            >
+
+              <option value="small">
+                Small
+              </option>
+
+              <option value="medium">
+                Medium
+              </option>
+
+              <option value="large">
+                Large
+              </option>
+
+              <option value="fullscreen">
+                Full Screen
+              </option>
+
+            </select>
+
+          </div>
+        )}
+
+      </div>
+
+      {/* ======================================
+          SUBTITLE (was SUB HEADING) - PAGE ONLY
+      ====================================== */}
+
+      {!isHome && (
+        <div className="mt-6">
 
           <label className="block mb-1.5 text-xs font-semibold uppercase tracking-wider text-gray-500">
-
-            Hero Height
-
+            Subtitle
           </label>
 
-          <select
-            value={section.height || "medium"}
+          <textarea
+            rows={4}
+            value={section.subheading || ""}
             onChange={(e) =>
               updateField(
-                "height",
+                "subheading",
                 e.target.value
               )
             }
-            className="w-full border border-gray-300 rounded-lg px-3.5 py-2.5 text-sm outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900 transition-colors bg-white"
-          >
-
-            <option value="small">
-              Small
-            </option>
-
-            <option value="medium">
-              Medium
-            </option>
-
-            <option value="large">
-              Large
-            </option>
-
-            <option value="fullscreen">
-              Full Screen
-            </option>
-
-          </select>
+            placeholder="Enter subtitle"
+            className="w-full border border-gray-300 rounded-lg px-3.5 py-2.5 text-sm outline-none resize-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900 transition-colors"
+          />
 
         </div>
-
-      </div>
-
-      {/* ======================================
-          SUB HEADING
-      ====================================== */}
-
-      <div className="mt-6">
-
-        <label className="block mb-1.5 text-xs font-semibold uppercase tracking-wider text-gray-500">
-
-          Sub Heading
-
-        </label>
-
-        <textarea
-          rows={4}
-          value={section.subheading || ""}
-          onChange={(e) =>
-            updateField(
-              "subheading",
-              e.target.value
-            )
-          }
-          placeholder="Enter sub heading"
-          className="w-full border border-gray-300 rounded-lg px-3.5 py-2.5 text-sm outline-none resize-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900 transition-colors"
-        />
-
-      </div>
+      )}
 
       {/* ======================================
-          LAYOUT
+          PAGE-ONLY OPTIONS: Layout & Overlay
       ====================================== */}
 
-      <div className="mt-6">
+      {!isHome && (
+        <>
+          {/* Layout */}
+          <div className="mt-6">
 
-        <label className="block mb-1.5 text-xs font-semibold uppercase tracking-wider text-gray-500">
+            <label className="block mb-1.5 text-xs font-semibold uppercase tracking-wider text-gray-500">
+              Text Alignment
+            </label>
 
-          Text Alignment
+            <select
+              value={section.alignment || "center"}
+              onChange={(e) =>
+                updateField(
+                  "alignment",
+                  e.target.value
+                )
+              }
+              className="w-full border border-gray-300 rounded-lg px-3.5 py-2.5 text-sm outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900 transition-colors bg-white"
+            >
 
-        </label>
+              <option value="left">
+                Left
+              </option>
 
-        <select
-          value={section.alignment || "center"}
-          onChange={(e) =>
-            updateField(
-              "alignment",
-              e.target.value
-            )
-          }
-          className="w-full border border-gray-300 rounded-lg px-3.5 py-2.5 text-sm outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900 transition-colors bg-white"
-        >
+              <option value="center">
+                Center
+              </option>
 
-          <option value="left">
-            Left
-          </option>
+              <option value="right">
+                Right
+              </option>
 
-          <option value="center">
-            Center
-          </option>
+            </select>
 
-          <option value="right">
-            Right
-          </option>
+          </div>
 
-        </select>
+          {/* Overlay */}
+          <div className="mt-6">
 
-      </div>
+            <label className="block mb-1.5 text-xs font-semibold uppercase tracking-wider text-gray-500">
+              Overlay Opacity
+            </label>
 
-      {/* ======================================
-          OVERLAY
-      ====================================== */}
+            <input
+              type="range"
+              min="0"
+              max="100"
+              value={section.overlay ?? 40}
+              onChange={(e) =>
+                updateField(
+                  "overlay",
+                  Number(e.target.value)
+                )
+              }
+              className="w-full accent-gray-900"
+            />
 
-      <div className="mt-6">
+            <div className="text-sm text-gray-500 mt-2">
+              {section.overlay ?? 40}%
+            </div>
 
-        <label className="block mb-1.5 text-xs font-semibold uppercase tracking-wider text-gray-500">
-
-          Overlay Opacity
-
-        </label>
-
-        <input
-          type="range"
-          min="0"
-          max="100"
-          value={section.overlay ?? 40}
-          onChange={(e) =>
-            updateField(
-              "overlay",
-              Number(e.target.value)
-            )
-          }
-          className="w-full accent-gray-900"
-        />
-
-        <div className="text-sm text-gray-500 mt-2">
-
-          {section.overlay ?? 40}%
-
-        </div>
-
-      </div>
+          </div>
+        </>
+      )}
 
       {/* ======================================
           BUTTONS
@@ -226,9 +240,7 @@ const HeroEditor = ({
             <div>
 
               <label className="block mb-1.5 text-xs font-semibold uppercase tracking-wider text-gray-500">
-
                 Button Text
-
               </label>
 
               <input
@@ -248,9 +260,7 @@ const HeroEditor = ({
             <div>
 
               <label className="block mb-1.5 text-xs font-semibold uppercase tracking-wider text-gray-500">
-
                 Button Link
-
               </label>
 
               <input
@@ -283,9 +293,7 @@ const HeroEditor = ({
             <div>
 
               <label className="block mb-1.5 text-xs font-semibold uppercase tracking-wider text-gray-500">
-
                 Button Text
-
               </label>
 
               <input
@@ -305,9 +313,7 @@ const HeroEditor = ({
             <div>
 
               <label className="block mb-1.5 text-xs font-semibold uppercase tracking-wider text-gray-500">
-
                 Button Link
-
               </label>
 
               <input
@@ -331,35 +337,119 @@ const HeroEditor = ({
       </div>
 
       {/* ======================================
-          BACKGROUND IMAGE
+          BACKGROUND / CAROUSEL SECTION
       ====================================== */}
 
-      <div className="mt-8">
+      {isHome ? (
+        // Home mode - Carousel Slides
+        <div className="mt-8 space-y-6">
 
-        <label className="block mb-3 text-xs font-semibold uppercase tracking-wider text-gray-500">
+          <label className="block mb-3 text-xs font-semibold uppercase tracking-wider text-gray-500">
+            Slides
+          </label>
 
-          Background Image
+          {slides.map((slide, index) => (
 
-        </label>
+            <div
+              key={index}
+              className="border rounded-2xl p-6 bg-white"
+            >
 
-        <MediaPicker
-          type="image"
-          multiple={false}
-          value={section.background || null}
-          onChange={(media) =>
-            updateField(
-              "background",
-              media
-            )
-          }
-        />
+              <div className="flex justify-between items-center mb-5">
 
-      </div>
+                <h3 className="font-semibold">
+                  Slide {index + 1}
+                </h3>
 
-    </SectionCard>
+                <button
+                  type="button"
+                  onClick={() => deleteSlide(index)}
+                  className="text-red-500 hover:text-red-700 transition-colors"
+                >
+                  Delete
+                </button>
 
+              </div>
+
+              <MediaPicker
+                type="image"
+                value={slide.image || null}
+                onChange={(media) =>
+                  updateSlide(index, "image", media)
+                }
+              />
+
+              <div className="mt-5">
+
+                <label className="block text-sm font-semibold mb-2">
+                  Caption
+                </label>
+
+                <input
+                  value={slide.caption || ""}
+                  onChange={(e) =>
+                    updateSlide(index, "caption", e.target.value)
+                  }
+                  className="w-full border rounded-xl px-4 py-3"
+                />
+
+              </div>
+
+              <div className="mt-5">
+
+                <label className="block text-sm font-semibold mb-2">
+                  Description
+                </label>
+
+                <textarea
+                  rows={4}
+                  value={slide.description || ""}
+                  onChange={(e) =>
+                    updateSlide(index, "description", e.target.value)
+                  }
+                  className="w-full border rounded-xl px-4 py-3"
+                />
+
+              </div>
+
+            </div>
+
+          ))}
+
+          <button
+            type="button"
+            onClick={addSlide}
+            className="px-5 py-3 bg-black text-white rounded-xl hover:bg-gray-800 transition-colors"
+          >
+            + Add Slide
+          </button>
+
+        </div>
+      ) : (
+        // Page mode - Background Image
+        <div className="mt-8">
+
+          <label className="block mb-3 text-xs font-semibold uppercase tracking-wider text-gray-500">
+            Background Image
+          </label>
+
+          <MediaPicker
+            type="image"
+            multiple={false}
+            value={section.background || null}
+            onChange={(media) =>
+              updateField(
+                "background",
+                media
+              )
+            }
+          />
+
+        </div>
+      )}
+
+    </>
   );
-
 };
 
 export default HeroEditor;

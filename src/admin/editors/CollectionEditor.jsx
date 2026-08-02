@@ -1,22 +1,26 @@
-import SectionCard from "../components/SectionCard";
 import MediaPicker from "../media/components/MediaPicker";
 import { collectionConfigs } from "../config/collectionConfigs";
 
 const CollectionEditor = ({
   section,
   onChange,
-  onDelete,
-  onDuplicate,
-  onMoveUp,
-  onMoveDown,
-  isFirst,
-  isLast,
+  context = "page", // Step 1: Added context prop with default "page"
 }) => {
   const config = collectionConfigs[section.type];
 
   if (!config) {
     return null;
   }
+
+  // Step 1: Add showSectionInfo condition
+  const showSectionInfo =
+    !(context === "homepage" && section.type === "list");
+
+  // Step 3: Filter fields based on context
+  const visibleFields = config.fields.filter((field) => {
+    if (!field.showIn) return true;
+    return field.showIn.includes(context);
+  });
 
   const collectionKey = config.collectionKey;
   const items = section[collectionKey] || [];
@@ -30,7 +34,8 @@ const CollectionEditor = ({
 
   const addItem = () => {
     const newItem = {};
-    config.fields.forEach((field) => {
+    // Step 4: Use visibleFields instead of config.fields
+    visibleFields.forEach((field) => {
       newItem[field.key] = "";
     });
     updateSection([...items, newItem]);
@@ -74,41 +79,56 @@ const CollectionEditor = ({
     };
   };
 
+  // Use visibleFields for field groups
+  const { imageField, imagesField, regularFields, textareaFields } =
+    getFieldGroups(visibleFields);
+
   return (
-    <SectionCard
-      title={config.title}
-      icon={config.icon}
-      onDelete={onDelete}
-      onDuplicate={onDuplicate}
-      onMoveUp={onMoveUp}
-      onMoveDown={onMoveDown}
-      isFirst={isFirst}
-      isLast={isLast}
-    >
-      {/* Section Title */}
-      <div className="mb-6">
-        <label className="block text-sm font-semibold text-gray-700 mb-2">
-          Section Title
-        </label>
-        <input
-          type="text"
-          value={section.title || ""}
-          onChange={(e) =>
-            onChange({
-              ...section,
-              title: e.target.value,
-            })
-          }
-          className="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition"
-        />
-      </div>
+    <>
+      {/* Step 2: Replace Section Title and Subtitle with conditional wrapper */}
+      {showSectionInfo && (
+        <>
+          {/* Section Title */}
+          <div className="mb-6">
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Section Title
+            </label>
+            <input
+              type="text"
+              value={section.title || ""}
+              onChange={(e) =>
+                onChange({
+                  ...section,
+                  title: e.target.value,
+                })
+              }
+              className="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition"
+            />
+          </div>
+
+          {/* Subtitle */}
+          <div className="mb-6">
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Subtitle
+            </label>
+            <textarea
+              rows={3}
+              value={section.subtitle || ""}
+              onChange={(e) =>
+                onChange({
+                  ...section,
+                  subtitle: e.target.value,
+                })
+              }
+              className="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition"
+            />
+          </div>
+        </>
+      )}
 
       {/* Items */}
       <div className="space-y-6">
         {items.map((item, index) => {
-          const { imageField, imagesField, regularFields, textareaFields } = getFieldGroups(config.fields);
-          
-
           return (
             <div
               key={index}
@@ -282,7 +302,7 @@ const CollectionEditor = ({
           + Add {config.addButtonLabel || config.title}
         </button>
       </div>
-    </SectionCard>
+    </>
   );
 };
 

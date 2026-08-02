@@ -124,6 +124,8 @@ const Hero = ({ data }) => {
 
   if (!slides.length) return null;
 
+  const currentSlide = slides[activeIndex];
+
   const title = data.title || "Empowering Minds. Building Futures";
 
   const dotIndex = title.indexOf(".");
@@ -154,8 +156,8 @@ const Hero = ({ data }) => {
           }}
         >
           <img
-            src={slide.image}
-            alt={slide.caption || ""}
+            src={slide.image?.url || slide.image}
+            alt={slide.image?.alt || slide.caption || ""}
             className="w-full h-full object-cover"
             draggable={false}
           />
@@ -206,7 +208,7 @@ const Hero = ({ data }) => {
                 fontWeight: 500,
               }}
             >
-              {slides[activeIndex]?.caption}
+              {currentSlide?.caption}
             </p>
           </div>
 
@@ -282,14 +284,57 @@ const Hero = ({ data }) => {
                 fontWeight: 300,
               }}
             >
-              {slides[activeIndex]?.description}
+              {currentSlide?.description}
             </p>
           </div>
 
-          {/* BUTTON — static, does not move or fade on slide change */}
-          <div>
-            <Button label={data.buttonText || "Browse"} />
-          </div>
+          {/* BUTTONS */}
+
+<div className="flex flex-wrap items-center gap-5">
+
+  {data.primaryButtonText && (
+    <Button
+  label={data.primaryButtonText}
+  href={data.primaryButtonLink}
+  bgColor="#C79A3B"
+  textColor="#fff"
+  rounded="rounded-lg"
+  padding="px-8 py-3"
+  fontWeight="font-semibold"
+  className="
+    shadow-lg
+    hover:-translate-y-1
+    hover:shadow-[0_12px_30px_rgba(199,154,59,0.45)]
+  "
+/>
+  )}
+
+  {data.secondaryButtonText && (
+    <Button
+  label={data.secondaryButtonText}
+  href={data.secondaryButtonLink}
+  bgColor="rgba(255,255,255,0.05)"
+  textColor="#fff"
+  rounded="rounded-lg"
+  padding="px-8 py-3"
+  fontWeight="font-semibold"
+  className="
+  border
+  border-white/30
+  bg-white/5
+  backdrop-blur-sm
+  hover:bg-white
+  hover:text-[#1A1A1A]
+  hover:border-white
+  hover:shadow-[0_10px_30px_rgba(255,255,255,0.18)]
+  hover:-translate-y-1
+  transition-all
+  duration-300
+"
+/>
+  )}
+
+</div>
 
           {/* INDICATORS — changes with image */}
           <div

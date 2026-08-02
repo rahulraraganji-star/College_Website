@@ -10,111 +10,38 @@ const Navbar = () => {
 
   const dropdownRefs = useRef({});
 
-  // FETCH NAVIGATION + PAGES
+  // FETCH NAVIGATION ONLY
   useEffect(() => {
 
     const fetchNavbarData = () => {
 
-      Promise.all([
-        fetch("http://localhost:5000/api/navigation")
-          .then((res) => res.json()),
-
-        fetch("http://localhost:5000/api/pages")
-          .then((res) => res.json()),
-      ])
-
-        .then(([navData, pagesData]) => {
+      fetch("http://localhost:5000/api/navigation")
+        .then((res) => res.json())
+        .then((navData) => {
 
           const safeMenus = Array.isArray(navData)
             ? navData
             : [];
 
-          const safePages = Array.isArray(pagesData)
-            ? pagesData
-            : [];
-
-          // MERGE DYNAMIC PAGES
+          // Convert children to items for the UI
           const updatedMenus = safeMenus.map((menu) => {
-
-            const parentKey =
-              (
-                menu.key ||
-                menu.slug ||
-                ""
-              )
-                .replace(/^\/+/, "")
-                .toLowerCase();
-
-            // MATCH PAGES
-            const relatedPages = safePages.filter(
-              (page) =>
-                page.parentSlug?.toLowerCase() ===
-                parentKey
-            );
-
-            // CONVERT TO NAV ITEMS
-            const dynamicItems = relatedPages.map(
-              (page) => ({
-                _id: page._id,
-                label: page.title,
-
-                // IMPORTANT FIX
-                slug: `/${parentKey}/${page.slug}`,
-
-                icon: "ChevronRight",
-              })
-            );
-
-            // MERGE + DEDUPE
-            const mergedItems = [
-              ...(menu.items || []),
-              ...dynamicItems,
-            ];
-
-            const seen = new Set();
-
-            const uniqueItems = mergedItems.filter(
-              (item) => {
-
-                // NORMALIZE SLUG SO FORMAT DIFFERENCES
-                // (leading slash, casing) DON'T SLIP
-                // PAST THE DEDUPE CHECK
-                const normalizedSlug = (item.slug || "")
-                  .replace(/^\/+/, "")
-                  .toLowerCase();
-
-                const key =
-                  normalizedSlug ||
-                  (item.label || "").toLowerCase();
-
-                if (seen.has(key)) return false;
-
-                seen.add(key);
-
-                return true;
-
-              }
-            );
-
             return {
               ...menu,
-
-              items: uniqueItems,
+              items: menu.children || [],
             };
           });
 
           setMenus(updatedMenus);
+          console.log(updatedMenus);
 
           setLoading(false);
 
         })
-
         .catch((err) => {
 
           console.error("NAV FETCH ERROR:", err);
 
           setMenus([]);
-
           setLoading(false);
 
         });
@@ -230,7 +157,7 @@ const Navbar = () => {
 
         <div className="max-w-[1300px] mx-auto w-full px-6">
 
-         <ul className="flex items-center justify-center gap-10 whitespace-nowrap">
+          <ul className="flex items-center justify-center gap-10 whitespace-nowrap">
 
             {menus.map((menu, index) => {
 
@@ -273,7 +200,7 @@ const Navbar = () => {
                       to={buildPath(
                         menu.slug || menu.key
                       )}
-                      className="relative px-3 py-2 text-[16px] font-medium font-['Inter'] text-gray-800"
+                      className="relative px-3 py-2 text-[18px] font-medium font-['Inter'] text-gray-800"
                     >
 
                       {menu.title}

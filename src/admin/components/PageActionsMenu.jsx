@@ -1,5 +1,12 @@
 import { useState, useRef, useEffect } from "react";
-import { MoreVertical } from "lucide-react";
+import {
+  MoreVertical,
+  Pencil,
+  Copy,
+  Eye,
+  EyeOff,
+  Trash2,
+} from "lucide-react";
 
 const PageActionsMenu = ({
   onEdit,
@@ -34,33 +41,44 @@ const PageActionsMenu = ({
       </button>
 
       {open && (
-        <div className="absolute right-0 mt-2 w-52 rounded-xl border bg-white shadow-lg z-50">
+        <div className="absolute right-0 top-full mt-2 z-[9999] w-56 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-xl">
           <button
             onClick={onEdit}
-            className="w-full text-left px-4 py-3 hover:bg-gray-50"
+            className="flex w-full items-center gap-3 px-4 py-3 text-sm text-gray-700 transition hover:bg-gray-50"
           >
-            ✏️ Edit
+            <Pencil size={16} strokeWidth={2} />
+            Edit
           </button>
 
           <button
             onClick={onDuplicate}
-            className="w-full text-left px-4 py-3 hover:bg-gray-50"
+            className="flex w-full items-center gap-3 px-4 py-3 text-sm text-gray-700 transition hover:bg-gray-50"
           >
-            📄 Duplicate
+            <Copy size={16} strokeWidth={2} />
+            Duplicate
           </button>
 
           <button
             onClick={onTogglePublish}
-            className="w-full text-left px-4 py-3 hover:bg-gray-50"
+            className="flex w-full items-center gap-3 px-4 py-3 text-sm text-gray-700 transition hover:bg-gray-50"
           >
-            {isPublished ? "🙈 Unpublish" : "👁 Publish"}
+            {isPublished ? (
+              <EyeOff size={16} strokeWidth={2} />
+            ) : (
+              <Eye size={16} strokeWidth={2} />
+            )}
+
+            {isPublished ? "Unpublish" : "Publish"}
           </button>
+
+          <div className="mx-3 border-t border-gray-100" />
 
           <button
             onClick={onDelete}
-            className="w-full text-left px-4 py-3 text-red-600 hover:bg-red-50"
+            className="flex w-full items-center gap-3 px-4 py-3 text-sm text-red-600 transition hover:bg-red-50"
           >
-            🗑 Delete
+            <Trash2 size={16} strokeWidth={2} />
+            Delete
           </button>
         </div>
       )}

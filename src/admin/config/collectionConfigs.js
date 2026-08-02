@@ -1,19 +1,27 @@
 export const collectionConfigs = {
+  // ✅ Scrolling Text/Marquee
   list: {
-    title: "List",
-    icon: "📋",
-    collectionKey: "items",
-    addButtonLabel: "Item",
+  title: "Scrolling Text",
+  icon: "📢",
+  collectionKey: "items",
+  addButtonLabel: "Message",
 
-    fields: [
-      {
-        key: "text",
-        label: "Item",
-        type: "text",
-      },
-    ],
-  },
+  fields: [
+    {
+      key: "text",
+      label: "Text",
+      type: "text",
+    },
+    {
+      key: "font",
+      label: "Font",
+      type: "text",
+      showIn: ["homepage"],
+    },
+  ],
+},
 
+  // ✅ Timeline
   timeline: {
     title: "Timeline",
     icon: "🕒",
@@ -44,6 +52,7 @@ export const collectionConfigs = {
     ],
   },
 
+  // ✅ Documents
   documentList: {
     title: "Documents",
     icon: "📑",
@@ -83,6 +92,7 @@ export const collectionConfigs = {
     ],
   },
 
+  // ✅ Event List (for events page)
   eventList: {
     title: "Events",
     icon: "📅",
@@ -138,6 +148,98 @@ export const collectionConfigs = {
     ],
   },
 
+  // ✅ Learning Spaces
+  learningSpaces: {
+    title: "Learning Spaces",
+    icon: "🏫",
+    collectionKey: "slides",
+    addButtonLabel: "Slide",
+
+    fields: [
+      {
+        key: "image",
+        label: "Image",
+        type: "image",
+      },
+      {
+        key: "title",
+        label: "Title",
+        type: "text",
+      },
+      {
+        key: "desc",
+        label: "Description",
+        type: "textarea",
+      },
+    ],
+  },
+
+  // ✅ Homepage Events (matches MongoDB eventsSection)
+  eventsSection: {
+    title: "Home Events",
+    icon: "📅",
+    collectionKey: "events",
+    addButtonLabel: "Event",
+
+    fields: [
+      {
+        key: "image",
+        label: "Image",
+        type: "image",
+      },
+      {
+        key: "title",
+        label: "Title",
+        type: "text",
+      },
+      {
+        key: "description",
+        label: "Description",
+        type: "textarea",
+      },
+      {
+        key: "department",
+        label: "Department",
+        type: "text",
+      },
+      {
+        key: "location",
+        label: "Location",
+        type: "text",
+      },
+      {
+        key: "updated",
+        label: "Updated",
+        type: "text",
+      },
+    ],
+  },
+
+  // ✅ Core Strengths (matches MongoDB stats)
+  coreStrengths: {
+    title: "Core Strengths",
+    icon: "⭐",
+    collectionKey: "stats",
+    addButtonLabel: "Stat",
+
+    fields: [
+      {
+        key: "icon",
+        label: "Icon Name",
+        type: "text",
+      },
+      {
+        key: "value",
+        label: "Value",
+        type: "text",
+      },
+      {
+        key: "label",
+        label: "Label",
+        type: "text",
+      },
+    ],
+  },
 
   // You can add more collection types here
   // For example:

@@ -3,27 +3,26 @@ export const createSection = (type) => {
   switch (type) {
 
     case "hero":
-
       return {
         type: "hero",
 
         heading: "",
         subheading: "",
 
-        backgroundImage: "",
+        background: null,
 
         height: "medium",
-
         alignment: "center",
-
         overlay: 40,
 
-        buttonText: "",
-        buttonLink: "",
+        primaryButtonText: "",
+        primaryButtonLink: "",
+
+        secondaryButtonText: "",
+        secondaryButtonLink: "",
       };
 
     case "heading":
-
       return {
         type: "heading",
 
@@ -35,7 +34,6 @@ export const createSection = (type) => {
       };
 
     case "richText":
-
       return {
         type: "richText",
 
@@ -45,7 +43,6 @@ export const createSection = (type) => {
       };
 
     case "list":
-
       return {
         type: "list",
 
@@ -55,27 +52,24 @@ export const createSection = (type) => {
       };
 
     case "faculty-grid":
+      return {
+        type: "faculty-grid",
 
-  return {
+        title: "",
 
-    type: "faculty-grid",
+        departments: []
+      };
 
-    title: "",
+    case "gallery":
+      return {
+        type: "gallery",
 
-    departments: []
+        title: "",
 
-  };
+        galleries: [],
+      };
 
-   case "gallery":
-  return {
-    type: "gallery",
-
-    title: "",
-
-    galleries: [],
-  };
     case "documentList":
-
       return {
         type: "documentList",
 
@@ -85,7 +79,6 @@ export const createSection = (type) => {
       };
 
     case "table":
-
       return {
         type: "table",
 
@@ -97,7 +90,6 @@ export const createSection = (type) => {
       };
 
     case "timeline":
-
       return {
         type: "timeline",
 
@@ -107,7 +99,6 @@ export const createSection = (type) => {
       };
 
     case "eventList":
-
       return {
         type: "eventList",
 
@@ -117,33 +108,29 @@ export const createSection = (type) => {
       };
 
     case "embed":
+      return {
+        type: "embed",
 
-  return {
-    type: "embed",
+        title: "",
 
-    title: "",
+        embedType: "iframe",
 
-    embedType: "iframe",
+        url: "",
 
-    url: "",
+        media: null,
 
-    media: null,
+        height: 500,
 
-    height: 500,
+        width: "100%",
 
-    width: "100%",
+        allowFullscreen: true,
 
-    allowFullscreen: true,
+        lazyLoad: true,
 
-    lazyLoad: true,
-
-    responsive: true,
-  };
+        responsive: true,
+      };
 
     default:
-
       return null;
-
   }
-
 };

@@ -4,8 +4,15 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 gsap.registerPlugin(ScrollTrigger);
 
-const getEventImage = (event) =>
-  event?.image || event?.imageUrl || event?.photo || event?.thumbnail || "";
+const getEventImage = (event) => {
+  const image =
+    event?.image ||
+    event?.imageUrl ||
+    event?.photo ||
+    event?.thumbnail;
+
+  return image?.url || image || "";
+};
 
 const getEventTitle = (event) => event?.title || event?.name || "";
 const getEventDescription = (event) => event?.description || event?.desc || "";
@@ -28,8 +35,11 @@ const Events_Section = ({ data }) => {
   const events = data?.events || data?.items || data?.cards || [];
   const visibleEvents = events.slice(0, 3);
   const frontImage =
+    data?.frontImage?.url ||
     data?.frontImage ||
+    data?.coverImage?.url ||
     data?.coverImage ||
+    data?.image?.url ||
     data?.image ||
     getEventImage(visibleEvents[0]);
 
@@ -124,12 +134,32 @@ const Events_Section = ({ data }) => {
           <p ref={subTextRef} className="text-lg text-gray-600 mb-6">
             {data?.subtitle || data?.description}
           </p>
-          <button
+          <a
             ref={buttonRef}
-            className="bg-[#FFC107] px-8 py-3 rounded-xl font-semibold"
+            href={data?.buttonLink || "#"}
+            className="
+              group relative inline-block px-8 py-3.5 rounded-xl font-semibold text-white overflow-hidden
+              bg-gradient-to-r from-amber-400 via-yellow-500 to-amber-400 bg-[length:200%_100%]
+              shadow-[0_8px_30px_rgba(245,158,11,0.3)]
+              hover:shadow-[0_12px_40px_rgba(245,158,11,0.4)]
+              hover:bg-[position:100%_0]
+              transition-all duration-500 ease-out
+              before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-white/20 before:to-transparent before:-translate-x-full
+              hover:before:translate-x-full before:transition-transform before:duration-700 before:ease-out
+            "
           >
-            {data?.buttonText}
-          </button>
+            <span className="relative z-10 flex items-center gap-2">
+              {data?.buttonText}
+              <svg 
+                className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1"
+                fill="none" 
+                stroke="currentColor" 
+                viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M9 5l7 7-7 7" />
+              </svg>
+            </span>
+          </a>
         </div>
 
         <div

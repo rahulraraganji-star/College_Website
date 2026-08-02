@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
+import Button from "./Button";
 
 export default function HeroSection({ data }) {
   const DURATION = 4.5;
@@ -12,7 +13,10 @@ export default function HeroSection({ data }) {
 
   const slides = data?.slides || [];
 
-  const getImage = () => slides[index]?.image || "";
+  const getImage = () => {
+    const image = slides[index]?.image;
+    return image?.url || image || "";
+  };
 
   const startProgress = () => {
     progressTweenRef.current?.kill();
@@ -130,9 +134,32 @@ export default function HeroSection({ data }) {
             </div>
 
             <div className="mt-8 flex flex-wrap gap-3">
-              <button className="rounded-xl bg-yellow-500 px-6 py-3 font-semibold text-gray-900">
-                {data.primaryButton}
-              </button>
+              <Button
+                label={data.primaryButton}
+                href={data.primaryButtonLink}
+                bgColor="#D4A13D"
+                textColor="#fff"
+                rounded="rounded-xl"
+                padding="px-7 py-3.5"
+                fontWeight="font-semibold"
+              />
+              {data.secondaryButton && (
+                <Button
+                  label={data.secondaryButton}
+                  href={data.secondaryButtonLink}
+                  bgColor="transparent"
+                  textColor="#111"
+                  rounded="rounded-xl"
+                  padding="px-7 py-3.5"
+                  fontWeight="font-semibold"
+                  className="
+                    border border-gray-300
+                    hover:bg-black
+                    hover:text-white
+                    hover:border-black
+                  "
+                />
+              )}
             </div>
           </div>
         </div>

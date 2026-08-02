@@ -1,14 +1,6 @@
-import SectionCard from "../components/SectionCard";
-
 const TextEditor = ({
   section,
   onChange,
-  onDelete,
-  onDuplicate,
-  onMoveUp,
-  onMoveDown,
-  isFirst,
-  isLast,
 }) => {
 
   const updateField = (field, value) => {
@@ -20,24 +12,7 @@ const TextEditor = ({
 
   return (
 
-    <SectionCard
-      title={
-        section.type === "heading"
-          ? "Heading"
-          : "Rich Text"
-      }
-      icon={
-        section.type === "heading"
-          ? "📝"
-          : "📄"
-      }
-      onDelete={onDelete}
-      onDuplicate={onDuplicate}
-      onMoveUp={onMoveUp}
-      onMoveDown={onMoveDown}
-      isFirst={isFirst}
-      isLast={isLast}
-    >
+    <>
 
       {/* HEADING */}
 
@@ -95,7 +70,7 @@ const TextEditor = ({
 
       )}
 
-    </SectionCard>
+    </>
 
   );
 

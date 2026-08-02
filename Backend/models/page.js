@@ -7,21 +7,21 @@ const PageSchema = new mongoose.Schema(
       required: true,
       unique: true,
     },
+
     title: {
       type: String,
       required: true,
     },
 
     parentSlug: {
-  type: String,
-  default: null,
-},
+      type: String,
+      default: null,
+    },
 
-    
-   sections: {
-  type: Array,
-  default: [],
-},
+    sections: {
+      type: mongoose.Schema.Types.Mixed,
+      default: {},
+    },
 
     content: {
       type: Array,
@@ -36,4 +36,4 @@ const PageSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-export default mongoose.model("Page", PageSchema);
+export default mongoose.models.Page || mongoose.model("Page", PageSchema);

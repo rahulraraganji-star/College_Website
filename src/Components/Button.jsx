@@ -1,5 +1,6 @@
 const Button = ({
   label = "Button",
+  href,
   onClick,
   bgColor = "#FFC107",
   textColor = "#000000",
@@ -12,6 +13,34 @@ const Button = ({
   className = "",
   type = "button",
 }) => {
+  if (href) {
+    return (
+      <a
+        href={href}
+        className={`
+          inline-flex
+          items-center
+          justify-center
+          ${marginTop}
+          ${padding}
+          ${rounded}
+          ${fontSize}
+          ${fontWeight}
+          transition-all duration-200
+          hover:opacity-90
+          active:scale-[0.97]
+          ${className}
+        `}
+        style={{
+          backgroundColor: bgColor,
+          color: textColor,
+        }}
+      >
+        {label}
+      </a>
+    );
+  }
+
   return (
     <button
       type={type}

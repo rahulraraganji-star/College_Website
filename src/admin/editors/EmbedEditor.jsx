@@ -1,15 +1,8 @@
 import { useState, useEffect } from "react";
-import SectionCard from "../components/SectionCard";
 
 const EmbedEditor = ({
   section,
   onChange,
-  onDelete,
-  onDuplicate,
-  onMoveUp,
-  onMoveDown,
-  isFirst,
-  isLast,
 }) => {
   const [urlError, setUrlError] = useState("");
   const [previewUrl, setPreviewUrl] = useState("");
@@ -190,16 +183,7 @@ const EmbedEditor = ({
   const currentType = selectedType || "iframe";
 
   return (
-    <SectionCard
-      title="External Embed"
-      icon="🔗"
-      onDelete={onDelete}
-      onDuplicate={onDuplicate}
-      onMoveUp={onMoveUp}
-      onMoveDown={onMoveDown}
-      isFirst={isFirst}
-      isLast={isLast}
-    >
+    <>
       {/* TITLE */}
       <div className="mb-6">
         <label className="block text-sm font-medium mb-2">
@@ -401,7 +385,7 @@ const EmbedEditor = ({
           <li>Generic iframe URLs</li>
         </ul>
       </div>
-    </SectionCard>
+    </>
   );
 };
 

@@ -95,6 +95,8 @@ const PageTemplate = ({
 
   const safeSections = Array.isArray(data.sections) ? data.sections : [];
   const heroSection = safeSections.find((section) => section.type === "hero");
+  console.log("Sections:", safeSections);
+console.log("Hero:", heroSection);
   const remainingSections = safeSections.filter(
     (section) => section.type !== "hero" && hasData(section)
   );
@@ -102,6 +104,8 @@ const PageTemplate = ({
   const isEmpty = !heroSection && groups.length === 0;
 
   const renderSidebar = () => {
+
+    console.log("Hero Section:", heroSection);
   
 
     return (

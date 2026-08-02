@@ -1,15 +1,8 @@
-import SectionCard from "../components/SectionCard";
 import MediaPicker from "../media/components/MediaPicker";
 
 const GalleryEditor = ({
   section,
   onChange,
-  onDelete,
-  onDuplicate,
-  onMoveUp,
-  onMoveDown,
-  isFirst,
-  isLast,
 }) => {
   // Helper to update section state
   const updateField = (field, value) => {
@@ -133,16 +126,7 @@ const GalleryEditor = ({
   };
 
   return (
-    <SectionCard
-      title="Gallery"
-      icon="🖼️"
-      onDelete={onDelete}
-      onDuplicate={onDuplicate}
-      onMoveUp={onMoveUp}
-      onMoveDown={onMoveDown}
-      isFirst={isFirst}
-      isLast={isLast}
-    >
+    <>
       {/* Gallery Section Title */}
       <div className="mb-6">
         <label className="block text-sm font-medium mb-2">
@@ -333,7 +317,7 @@ const GalleryEditor = ({
           </button>
         </div>
       )}
-    </SectionCard>
+    </>
   );
 };
 
