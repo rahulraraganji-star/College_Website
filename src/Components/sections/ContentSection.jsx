@@ -13,7 +13,7 @@ const ContentSection = ({
   return (
     <Reveal>
       <section className="relative px-6 md:px-0 pb-16 md:pb-20">
-        <div className="mx-auto w-full max-w-3xl">
+        <div className="w-full max-w-3xl">
           {/* Kicker */}
           {(number || kicker) && (
             <div

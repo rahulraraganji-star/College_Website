@@ -1,7 +1,6 @@
 import "./FacultyCard.css";
 
 const FacultyCard = ({ member }) => {
-  console.log(member);
   const {
     media,
     name,
@@ -16,39 +15,81 @@ const FacultyCard = ({ member }) => {
   } = member;
 
   return (
-    <article className="faculty-card" tabIndex={0}>
+    <article className="faculty-card">
+
+      {/* IMAGE */}
       <div className="faculty-media">
         {media?.url ? (
-          <img src={media.url} alt={media.alt || name} className="faculty-image" />
+          <img
+            src={media.url}
+            alt={media.alt || name}
+            className="faculty-image"
+          />
         ) : (
-          <div className="faculty-placeholder">No Photo</div>
+          <div className="faculty-placeholder">
+            No Photo
+          </div>
         )}
+
         <div className="faculty-media-veil" />
       </div>
 
+      {/* FRONT CONTENT */}
       <div className="faculty-face">
-        {designation && <p className="faculty-eyebrow">{designation}</p>}
+        {designation && (
+          <p className="faculty-eyebrow">
+            {designation}
+          </p>
+        )}
+
         <h2 className="faculty-name">
           {name}
           <span className="faculty-chalk" />
         </h2>
-        {department && <p className="faculty-dept">{department}</p>}
+
+        {department && (
+          <p className="faculty-dept">
+            {department}
+          </p>
+        )}
       </div>
 
+      {/* HOVER PANEL */}
       <div className="faculty-panel">
-        {bio && <p className="faculty-bio">{bio}</p>}
+
+        {bio && (
+          <p className="faculty-bio">
+            {bio}
+          </p>
+        )}
 
         <ul className="faculty-stats">
-          <li><span className="num">{experience || "-"}</span></li>
-          <li><span className="num">{qualification || "-"}</span></li>
-          <li><span className="num">{specialization || "-"}</span></li>
+          <li>
+            <span className="num">
+              {experience || "-"}
+            </span>
+          </li>
+
+          <li>
+            <span className="num">
+              {qualification || "-"}
+            </span>
+          </li>
+
+          <li>
+            <span className="num">
+              {specialization || "-"}
+            </span>
+          </li>
         </ul>
 
         <div className="faculty-contact">
           {email && <p>{email}</p>}
           {phone && <p>{phone}</p>}
         </div>
+
       </div>
+
     </article>
   );
 };

@@ -67,8 +67,132 @@ export default function HeroSection({ data }) {
 
   return (
     <section className="relative overflow-hidden bg-[#FBFAF7]">
-      <div className="relative mx-auto max-w-[1200px] px-6 py-20 sm:py-24">
-        <div className="grid items-start gap-12 lg:grid-cols-2 lg:gap-20">
+      <div className="relative mx-auto max-w-[1200px] px-5 py-20 sm:px-6 sm:py-24">
+        
+        {/* ================= MOBILE LAYOUT ================= */}
+        <div className="lg:hidden">
+          {/* IMAGE */}
+          <div>
+            <img
+              ref={imageRef}
+              src={getImage()}
+              alt={slides[index]?.title || ""}
+              className="w-full h-[230px] rounded-3xl object-cover shadow-[0_30px_80px_rgba(0,0,0,0.20)]"
+            />
+          </div>
+
+          {/* INDICATORS */}
+          <div className="mt-5 flex items-center gap-2">
+            {slides.map((_, i) => {
+              const isActive = i === index;
+
+              return (
+                <div
+                  key={i}
+                  className="relative h-[3px] flex-1 overflow-hidden rounded-full bg-black/10"
+                >
+                  {i < index && (
+                    <div className="h-full w-full bg-gradient-to-r from-yellow-400 to-amber-500" />
+                  )}
+
+                  {isActive && (
+                    <div className="absolute inset-0">
+                      <div
+                        ref={barFillRef}
+                        className="h-full w-full rounded-full bg-gradient-to-r from-yellow-400 to-amber-500"
+                      />
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
+          {/* TITLE */}
+          <div className="mt-8">
+            <div className="h-[2px] w-10 bg-[#D4A13D]" />
+
+            <h1 className="mt-5 font-serif text-[42px] leading-[1.05] tracking-tight text-gray-900">
+              {data.title}
+            </h1>
+
+            <p className="mt-5 text-[16px] leading-relaxed text-gray-600">
+              {data.subtitle}
+            </p>
+          </div>
+
+          {/* CARD */}
+          <div
+            ref={textRef}
+            className="
+              mt-8
+              relative
+              overflow-hidden
+              rounded-[18px]
+              bg-white
+              px-6
+              py-7
+              shadow-[0_18px_45px_rgba(0,0,0,0.08)]
+              border
+              border-[#EFE9DE]
+            "
+          >
+            <div className="absolute left-0 top-0 h-full w-[3px] bg-[#D4A13D]" />
+            
+            <h3 className="font-serif text-[1.75rem] leading-[1.1] text-[#171717]">
+              {slides[index]?.title}
+            </h3>
+
+            <p className="mt-2 text-[14px] leading-6 text-[#6B6B6B]">
+              {slides[index]?.desc}
+            </p>
+          </div>
+
+          {/* BUTTONS - MOBILE */}
+          <div className="mt-8 flex items-center gap-10">
+            <Button
+              label={data.primaryButton}
+              href={data.primaryButtonLink}
+              bgColor="#e5b03e"
+              textColor="#020202"
+              rounded="rounded-[3px]"
+              padding="px-11 py-3"
+              fontWeight="font-semibold"
+              className="min-w-[128px] text-center"
+            />
+
+            {data.secondaryButton && (
+              <div className="flex h-[50px] items-center">
+                <a
+                  href={data.secondaryButtonLink}
+                  className="
+                    inline-flex
+                    items-center
+                    uppercase
+                    font-semibold
+                    text-[15px]
+                    tracking-[0.04em]
+                    text-[#171717]
+                    border-b
+                    border-[#171717]
+                    pb-[3px]
+                    leading-none
+                    transition-all
+                    duration-300
+                    hover:text-[#D4A13D]
+                    hover:border-[#D4A13D]
+                  "
+                >
+                  {data.secondaryButton}
+                  <span className="ml-2">→</span>
+                </a>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* ================= DESKTOP LAYOUT ================= */}
+        <div className="hidden lg:grid items-start gap-12 lg:grid-cols-2 lg:gap-20">
           <div className="order-2 lg:order-1">
             <div className="relative mt-16 sm:mt-20 lg:mt-40">
               <img
@@ -120,49 +244,76 @@ export default function HeroSection({ data }) {
               {data.subtitle}
             </p>
 
+            {/* CARD */}
             <div
               ref={textRef}
-              className="mt-10 rounded-2xl bg-white/55 p-6 backdrop-blur shadow-[0_10px_30px_rgba(0,0,0,0.08)]"
+              className="
+                mt-10
+                relative
+                overflow-hidden
+                rounded-[18px]
+                bg-white
+                px-7
+                py-7
+                shadow-[0_18px_45px_rgba(0,0,0,0.08)]
+                border
+                border-[#EFE9DE]
+              "
             >
-              <h3 className="font-serif text-xl text-gray-900 sm:text-2xl">
+              <div className="absolute left-0 top-0 h-full w-[3px] bg-[#D4A13D]" />
+              
+              <h3 className="font-serif text-[1.3rem] leading-[1.1] text-[#171717] sm:text-2xl">
                 {slides[index]?.title}
               </h3>
 
-              <p className="mt-3 text-[15px] text-gray-600">
+              <p className="mt-2 text-[14px] leading-6 text-[#6B6B6B]">
                 {slides[index]?.desc}
               </p>
             </div>
 
-            <div className="mt-8 flex flex-wrap gap-3">
+            {/* BUTTONS - DESKTOP */}
+            <div className="mt-8 flex items-center gap-10">
               <Button
                 label={data.primaryButton}
                 href={data.primaryButtonLink}
-                bgColor="#D4A13D"
-                textColor="#fff"
-                rounded="rounded-xl"
-                padding="px-7 py-3.5"
+                bgColor="#e5b03e"
+                textColor="#000000"
+                rounded="rounded-[3px]"
+                padding="px-11 py-3"
                 fontWeight="font-semibold"
+                className="min-w-[128px] text-center"
               />
               {data.secondaryButton && (
-                <Button
-                  label={data.secondaryButton}
-                  href={data.secondaryButtonLink}
-                  bgColor="transparent"
-                  textColor="#111"
-                  rounded="rounded-xl"
-                  padding="px-7 py-3.5"
-                  fontWeight="font-semibold"
-                  className="
-                    border border-gray-300
-                    hover:bg-black
-                    hover:text-white
-                    hover:border-black
-                  "
-                />
+                <div className="flex h-[50px] items-center">
+                  <a
+                    href={data.secondaryButtonLink}
+                    className="
+                      inline-flex
+                      items-center
+                      uppercase
+                      font-semibold
+                      text-[15px]
+                      tracking-[0.04em]
+                      text-[#171717]
+                      border-b
+                      border-[#171717]
+                      pb-[3px]
+                      leading-none
+                      transition-all
+                      duration-300
+                      hover:text-[#D4A13D]
+                      hover:border-[#D4A13D]
+                    "
+                  >
+                    {data.secondaryButton}
+                    <span className="ml-2">→</span>
+                  </a>
+                </div>
               )}
             </div>
           </div>
         </div>
+
       </div>
     </section>
   );

@@ -138,11 +138,15 @@ const Hero = ({ data }) => {
 
   return (
     <section
-      className="relative w-full overflow-hidden bg-black"
-      style={{
-        height: "100svh",
-        minHeight: "720px",
-      }}
+      className="
+        relative
+        w-full
+        overflow-hidden
+        bg-black
+        h-[65svh]
+        sm:h-[75svh]
+        md:h-[100svh]
+      "
     >
       {/* IMAGES */}
       {slides.map((slide, i) => (
@@ -158,19 +162,26 @@ const Hero = ({ data }) => {
           <img
             src={slide.image?.url || slide.image}
             alt={slide.image?.alt || slide.caption || ""}
-            className="w-full h-full object-cover"
+            className="
+              w-full
+              h-[110%]
+              md:h-full
+              object-cover
+              object-center
+              md:object-[center_40%]
+            "
             draggable={false}
           />
         </div>
       ))}
 
-      {/* OVERLAY */}
+      {/* OVERLAY - Improved for mobile readability */}
       <div
         className="absolute inset-0"
         style={{
           zIndex: 5,
           background:
-            "linear-gradient(105deg, rgba(0,0,0,0.82) 0%, rgba(0,0,0,0.58) 40%, rgba(0,0,0,0.18) 74%, rgba(0,0,0,0.08) 100%)",
+            "linear-gradient(105deg, rgba(0,0,0,0.84) 0%, rgba(0,0,0,0.70) 42%, rgba(0,0,0,0.28) 72%, rgba(0,0,0,0.12) 100%)",
         }}
       />
 
@@ -186,187 +197,286 @@ const Hero = ({ data }) => {
 
       {/* CONTENT */}
       <div
-        className="absolute inset-0 flex items-center"
+        className="
+          absolute
+          inset-0
+          flex
+          items-end
+          md:items-center
+          pb-6
+          md:pb-0
+        "
         style={{ zIndex: 10 }}
       >
         <div
           ref={contentRef}
-          className="w-full px-8 sm:px-12 md:px-16 lg:px-24"
-          style={{
-            maxWidth: "980px",
-          }}
+          className="
+            w-full
+            px-6
+            sm:px-8
+            md:px-12
+            lg:px-20
+            xl:px-24
+          "
         >
-          {/* CAPTION — changes with image */}
-          <div className="hero-item">
-            <p
-              className="uppercase"
-              style={{
-                letterSpacing: "0.32em",
-                color: "rgba(255,255,255,0.58)",
-                fontSize: "0.76rem",
-                marginBottom: "1.5rem",
-                fontWeight: 500,
-              }}
-            >
-              {currentSlide?.caption}
-            </p>
-          </div>
-
-          {/* TITLE — static, does not move or fade on slide change */}
-          <div>
-            <h1
-              className="font-serif"
-              style={{
-                fontSize: "clamp(3.5rem, 6.5vw, 7rem)",
-                lineHeight: 0.92,
-                letterSpacing: "-0.055em",
-                marginBottom: "2rem",
-                maxWidth: "860px",
-              }}
-            >
-              {/* LINE 1 */}
-              <span
+          {/* SINGLE UNIFIED WRAPPER - everything inside stays narrow on mobile */}
+          <div
+            className="
+              w-full
+              max-w-[340px]
+              mx-0
+              md:mx-0
+              md:max-w-[760px]
+            "
+          >
+            {/* CAPTION — changes with image */}
+            <div className="hero-item">
+              <p
+                className="uppercase"
                 style={{
-                  display: "block",
-                  background:
-                    "linear-gradient(180deg, #ffffff 0%, #d7d7d7 100%)",
-                  WebkitBackgroundClip: "text",
-                  WebkitTextFillColor: "transparent",
-                  backgroundClip: "text",
+                  letterSpacing: "0.32em",
+                  color: "rgba(255,255,255,0.58)",
+                  fontSize: "clamp(0.68rem, 2vw, 0.8rem)",
+                  marginBottom: "0.5rem",
+                  fontWeight: 500,
                 }}
               >
-                {titleLine1}
-              </span>
+                {currentSlide?.caption}
+              </p>
+            </div>
 
-              {/* LINE 2 */}
-              {titleLine2 && (
+            {/* TITLE - Desktop and Mobile separate layouts */}
+            {/* Desktop */}
+            <div className="hidden md:block">
+              <h1
+                className="font-serif"
+                style={{
+                  fontSize: "clamp(2.4rem, 9vw, 7rem)",
+                  lineHeight: 0.95,
+                  letterSpacing: "-0.055em",
+                  marginBottom: "clamp(0.6rem, 2vw, 1.4rem)",
+                  wordBreak: "break-word",
+                }}
+              >
+                {/* LINE 1 */}
                 <span
                   style={{
                     display: "block",
-                    marginTop: "0.08em",
                     background:
-                      "linear-gradient(90deg, #FFE7A3 0%, #D4A13D 35%, #FFF4D2 100%)",
+                      "linear-gradient(180deg, #ffffff 0%, #d7d7d7 100%)",
                     WebkitBackgroundClip: "text",
                     WebkitTextFillColor: "transparent",
                     backgroundClip: "text",
-                    filter:
-                      "drop-shadow(0 0 24px rgba(212,161,61,0.32))",
                   }}
                 >
-                  {titleLine2}
+                  {titleLine1}
                 </span>
-              )}
-            </h1>
-          </div>
 
-          {/* LINE — changes with image */}
-          <div className="hero-item">
-            <div
-              style={{
-                width: "82px",
-                height: "1px",
-                marginBottom: "2rem",
-                background:
-                  "linear-gradient(90deg, #FFE7A3 0%, transparent 100%)",
-              }}
-            />
-          </div>
+                {/* LINE 2 */}
+                {titleLine2 && (
+                  <span
+                    style={{
+                      display: "block",
+                      marginTop: "0.08em",
+                      background:
+                        "linear-gradient(90deg, #FFE7A3 0%, #D4A13D 35%, #FFF4D2 100%)",
+                      WebkitBackgroundClip: "text",
+                      WebkitTextFillColor: "transparent",
+                      backgroundClip: "text",
+                      filter:
+                        "drop-shadow(0 0 24px rgba(212,161,61,0.32))",
+                    }}
+                  >
+                    {titleLine2}
+                  </span>
+                )}
+              </h1>
+            </div>
 
-          {/* DESCRIPTION — changes with image */}
-          <div className="hero-item">
-            <p
-              style={{
-                fontSize: "clamp(1rem, 1.4vw, 1.12rem)",
-                lineHeight: 1.9,
-                maxWidth: "540px",
-                marginBottom: "2.8rem",
-                color: "rgba(255,255,255,0.72)",
-                fontWeight: 300,
-              }}
-            >
-              {currentSlide?.description}
-            </p>
-          </div>
+          
+            {/* Mobile - custom line breaks */}
+<div className="block md:hidden">
+  <h1
+    className="font-serif"
+    style={{
+      fontSize: "clamp(2.4rem, 9vw, 7rem)",
+      lineHeight: 0.95,
+      letterSpacing: "-0.055em",
+      marginBottom: "clamp(0.6rem, 2vw, 1.4rem)",
+      wordBreak: "break-word",
+    }}
+  >
+    {/* LINE 1 - White */}
+    <span
+      style={{
+        display: "block",
+        background:
+          "linear-gradient(180deg, #ffffff 0%, #d7d7d7 100%)",
+        WebkitBackgroundClip: "text",
+        WebkitTextFillColor: "transparent",
+        backgroundClip: "text",
+      }}
+    >
+      Success
+    </span>
 
-          {/* BUTTONS */}
+    {/* LINE 2 - White */}
+    <span
+      style={{
+        display: "block",
+        marginTop: "0.08em",
+        background:
+          "linear-gradient(180deg, #ffffff 0%, #d7d7d7 100%)",
+        WebkitBackgroundClip: "text",
+        WebkitTextFillColor: "transparent",
+        backgroundClip: "text",
+      }}
+    >
+      lies in
+    </span>
 
-<div className="flex flex-wrap items-center gap-5">
-
-  {data.primaryButtonText && (
-    <Button
-  label={data.primaryButtonText}
-  href={data.primaryButtonLink}
-  bgColor="#C79A3B"
-  textColor="#fff"
-  rounded="rounded-lg"
-  padding="px-8 py-3"
-  fontWeight="font-semibold"
-  className="
-    shadow-lg
-    hover:-translate-y-1
-    hover:shadow-[0_12px_30px_rgba(199,154,59,0.45)]
-  "
-/>
-  )}
-
-  {data.secondaryButtonText && (
-    <Button
-  label={data.secondaryButtonText}
-  href={data.secondaryButtonLink}
-  bgColor="rgba(255,255,255,0.05)"
-  textColor="#fff"
-  rounded="rounded-lg"
-  padding="px-8 py-3"
-  fontWeight="font-semibold"
-  className="
-  border
-  border-white/30
-  bg-white/5
-  backdrop-blur-sm
-  hover:bg-white
-  hover:text-[#1A1A1A]
-  hover:border-white
-  hover:shadow-[0_10px_30px_rgba(255,255,255,0.18)]
-  hover:-translate-y-1
-  transition-all
-  duration-300
-"
-/>
-  )}
-
+    {/* LINE 3 - Gold */}
+    <span
+      style={{
+        display: "block",
+        marginTop: "0.08em",
+        background:
+          "linear-gradient(90deg, #FFE7A3 0%, #D4A13D 35%, #FFF4D2 100%)",
+        WebkitBackgroundClip: "text",
+        WebkitTextFillColor: "transparent",
+        backgroundClip: "text",
+        filter:
+          "drop-shadow(0 0 24px rgba(212,161,61,0.32))",
+      }}
+    >
+      Honesty
+    </span>
+  </h1>
 </div>
 
-          {/* INDICATORS — changes with image */}
-          <div
-            className="hero-item flex items-center"
-            style={{
-              gap: "12px",
-              marginTop: "3.5rem",
-            }}
-          >
-            {slides.map((_, i) => (
-              <button
-                key={i}
-                onClick={() => changeSlide(i)}
-                aria-label={`Slide ${i + 1}`}
+            {/* LINE — changes with image */}
+            <div className="hero-item">
+              <div
                 style={{
-                  width: i === activeIndex ? "58px" : "18px",
-                  height: "2px",
-                  border: "none",
-                  borderRadius: "999px",
-                  cursor: "pointer",
-                  transition: "all 0.55s ease",
+                  width: "60px",
+                  height: "1px",
+                  marginBottom: "clamp(0.6rem, 2vw, 1.5rem)",
                   background:
-                    i === activeIndex
-                      ? "linear-gradient(90deg, #FFF1C8 0%, #D4A13D 100%)"
-                      : "rgba(255,255,255,0.24)",
-                  boxShadow:
-                    i === activeIndex
-                      ? "0 0 18px rgba(212,161,61,0.35)"
-                      : "none",
+                    "linear-gradient(90deg, #FFE7A3 0%, transparent 100%)",
                 }}
               />
-            ))}
+            </div>
+
+            {/* DESCRIPTION — changes with image */}
+            <div className="hero-item">
+              <p
+                style={{
+                  fontSize: "clamp(0.85rem, 3vw, 1.1rem)",
+                  lineHeight: 1.6,
+                  maxWidth: "500px",
+                  marginBottom: "clamp(1rem, 3vw, 2rem)",
+                  color: "rgba(255,255,255,0.72)",
+                  fontWeight: 300,
+                }}
+              >
+                {currentSlide?.description}
+              </p>
+            </div>
+
+            {/* BUTTONS - Stacked on mobile, left-aligned on desktop */}
+            <div
+              className="
+                flex
+                flex-col
+                gap-3
+                md:flex-row
+              "
+            >
+              {data.primaryButtonText && (
+                <Button
+                  label={data.primaryButtonText}
+                  href={data.primaryButtonLink}
+                  bgColor="#C79A3B"
+                  textColor="#fff"
+                  rounded="rounded-lg"
+                  padding="px-6 py-2.5 sm:px-7 sm:py-3"
+                  fontWeight="font-semibold"
+                  className="
+                    w-full
+                    md:w-auto
+                    shadow-lg
+                    hover:-translate-y-1
+                    hover:shadow-[0_12px_30px_rgba(199,154,59,0.45)]
+                  "
+                />
+              )}
+
+              {data.secondaryButtonText && (
+                <Button
+                  label={data.secondaryButtonText}
+                  href={data.secondaryButtonLink}
+                  bgColor="rgba(255,255,255,0.05)"
+                  textColor="#fff"
+                  rounded="rounded-lg"
+                  padding="px-6 py-2.5 sm:px-7 sm:py-3"
+                  fontWeight="font-semibold"
+                  className="
+                    w-full
+                    md:w-auto
+                    border
+                    border-white/30
+                    bg-white/5
+                    backdrop-blur-sm
+                    hover:bg-white
+                    hover:text-[#1A1A1A]
+                    hover:border-white
+                    hover:shadow-[0_10px_30px_rgba(255,255,255,0.18)]
+                    hover:-translate-y-1
+                    transition-all
+                    duration-300
+                  "
+                />
+              )}
+            </div>
+
+            {/* INDICATORS - Centered on mobile, left-aligned on desktop */}
+            <div
+              className="
+                hero-item
+                flex
+                items-center
+                justify-center
+                md:justify-start
+              "
+              style={{
+                gap: "10px",
+                marginTop: "clamp(1rem, 3vw, 2.5rem)",
+              }}
+            >
+              {slides.map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => changeSlide(i)}
+                  aria-label={`Slide ${i + 1}`}
+                  style={{
+                    width: i === activeIndex ? "50px" : "16px",
+                    height: "2px",
+                    border: "none",
+                    borderRadius: "999px",
+                    cursor: "pointer",
+                    transition: "all 0.55s ease",
+                    background:
+                      i === activeIndex
+                        ? "linear-gradient(90deg, #FFF1C8 0%, #D4A13D 100%)"
+                        : "rgba(255,255,255,0.24)",
+                    boxShadow:
+                      i === activeIndex
+                        ? "0 0 18px rgba(212,161,61,0.35)"
+                        : "none",
+                  }}
+                />
+              ))}
+            </div>
           </div>
         </div>
       </div>
