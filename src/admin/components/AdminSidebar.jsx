@@ -13,19 +13,57 @@ import { NavLink } from "react-router-dom";
 const navGroups = [
   {
     label: "Overview",
-    items: [{ to: "/admin", label: "Dashboard", end: true }],
+    items: [
+      {
+        to: "/admin",
+        label: "Dashboard",
+        end: true,
+      },
+    ],
   },
+
   {
     label: "Content",
     items: [
-      { to: "/admin/home", label: "Home Page" },
-      { to: "/admin/pages", label: "Pages", count: 24 },
-      { to: "/admin/media", label: "Media", count: 312 },
+      {
+        to: "/admin/home",
+        label: "Home Page",
+      },
+      {
+        to: "/admin/pages",
+        label: "Pages",
+        count: 24,
+      },
+      {
+        to: "/admin/media",
+        label: "Media",
+        count: 312,
+      },
     ],
   },
+
   {
     label: "Structure",
-    items: [{ to: "/admin/navigation", label: "Navigation" }],
+    items: [
+      {
+        to: "/admin/navigation",
+        label: "Navigation",
+      },
+    ],
+  },
+
+  {
+    label: "Administration",
+    items: [
+      {
+        to: "/admin/users",
+        label: "Users",
+      },
+      {
+        to: "/admin/roles",
+        label: "Roles",
+      },
+    ],
   },
 ];
 

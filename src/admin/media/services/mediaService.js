@@ -20,15 +20,15 @@ const request = async (
   const controller =
     new AbortController();
 
-  const config = {
+const config = {
+  signal:
+    options.signal ||
+    controller.signal,
 
-    signal:
-      options.signal ||
-      controller.signal,
+  credentials: "include",
 
-    ...options,
-
-  };
+  ...options,
+};
 
   const response =
     await fetch(url, config);
@@ -178,6 +178,24 @@ const mediaService = {
     );
 
   },
+
+
+  async deleteMediaBulk(ids) {
+  return request(
+    `${MEDIA_API}/bulk`,
+    {
+      method: "DELETE",
+
+      headers: {
+        "Content-Type": "application/json",
+      },
+
+      body: JSON.stringify({
+        ids,
+      }),
+    }
+  );
+},
 
   /* -----------------------------
       FOLDERS

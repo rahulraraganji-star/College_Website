@@ -73,20 +73,14 @@ const folderSchema = new mongoose.Schema(
     AUTO GENERATE SLUG
 ----------------------------- */
 
-folderSchema.pre("validate", function (next) {
-
+folderSchema.pre("validate", function () {
   if (this.name) {
-
     this.slug = this.name
       .toLowerCase()
       .trim()
       .replace(/\s+/g, "-")
       .replace(/[^a-z0-9-]/g, "");
-
   }
-
-  next();
-
 });
 
 /* -----------------------------

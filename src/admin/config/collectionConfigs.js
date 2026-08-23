@@ -241,6 +241,70 @@ export const collectionConfigs = {
     ],
   },
 
+
+
+
+  notices: {
+  title: "Notices",
+  icon: "📢",
+  collectionKey: "notices",
+  addButtonLabel: "Notice",
+
+  fields: [
+    {
+      key: "category",
+      label: "Category",
+      type: "select",
+      options: [
+        "Circulars & Notifications",
+        "Admission News",
+        "Vacancies",
+      ],
+    },
+    {
+      key: "status",
+      label: "Status / Tag",
+      type: "select",
+      options: [
+        "NONE",
+        "NEW",
+        "URGENT",
+        "CLOSING SOON",
+        "OPEN",
+        "RESULT",
+        "SHORTLIST",
+        "REFERENCE",
+        "EXTENDED",
+      ],
+    },
+    {
+      key: "title",
+      label: "Title",
+      type: "text",
+    },
+    {
+      key: "description",
+      label: "Description",
+      type: "textarea",
+    },
+    {
+      key: "file",
+      label: "PDF / Document",
+      type: "file",
+    },
+    {
+      key: "linkText",
+      label: "Link Text",
+      type: "text",
+    },
+    {
+      key: "linkUrl",
+      label: "Link URL",
+      type: "text",
+    },
+  ],
+},
+
   // You can add more collection types here
   // For example:
   // team: {

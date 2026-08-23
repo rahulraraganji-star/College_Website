@@ -135,46 +135,76 @@ const Navbar = () => {
 
   };
 
-  // DROPDOWN POSITIONING
+  // DROPDOWN POSITIONING - COMPLETELY FIXED
   const positionDropdown = (index, isAbout) => {
-
     const el = dropdownRefs.current[index];
 
     if (!el) return;
 
     const vw = window.innerWidth;
 
-    el.style.left = "0";
-    el.style.right = "auto";
-    el.style.transform = "translateX(0)";
+    // Reset all positioning
+    el.style.left = "";
+    el.style.right = "";
+    el.style.marginLeft = "";
+    el.style.transform = "";
+    el.style.position = "absolute";
 
+    // Get the parent li element
+    const parentLi = el.closest('li');
+    if (!parentLi) return;
+
+    const parentRect = parentLi.getBoundingClientRect();
+
+    // For About Us, center it
     if (isAbout) {
+      // Get the actual width of the dropdown content
+      const dropdownContent = el.querySelector('.mt-4');
+      if (!dropdownContent) return;
+      
+      // Force a reflow to get accurate width
+      const contentWidth = dropdownContent.offsetWidth || 820;
+      
+      // Position centered under the parent
+      const centerOffset = (parentRect.width / 2) - (contentWidth / 2);
+      
+      el.style.left = `${centerOffset}px`;
+      el.style.right = "auto";
+      el.style.marginLeft = "0";
+      el.style.transform = "none";
 
-      el.style.left = "50%";
-      el.style.transform = "translateX(-50%)";
-
-    }
-
-    let rect = el.getBoundingClientRect();
-
-    if (rect.right > vw - 16) {
-
-      el.style.left = "auto";
-      el.style.right = "0";
-      el.style.transform = "translateX(0)";
-
-    }
-
-    rect = el.getBoundingClientRect();
-
-    if (rect.left < 16) {
-
+      // Check if it goes off screen
+      const rect = el.getBoundingClientRect();
+      
+      if (rect.right > vw - 16) {
+        // Too far right - align to right edge
+        el.style.left = "auto";
+        el.style.right = "0";
+        el.style.marginLeft = "0";
+      } else if (rect.left < 16) {
+        // Too far left - align to left edge
+        el.style.left = "0";
+        el.style.right = "auto";
+        el.style.marginLeft = "0";
+      }
+    } else {
+      // Regular dropdown - align to left of parent
       el.style.left = "0";
       el.style.right = "auto";
-      el.style.transform = "translateX(0)";
+      el.style.marginLeft = "0";
+      el.style.transform = "none";
 
+      // Check if it goes off screen
+      const rect = el.getBoundingClientRect();
+      
+      if (rect.right > vw - 16) {
+        el.style.left = "auto";
+        el.style.right = "0";
+      } else if (rect.left < 16) {
+        el.style.left = "0";
+        el.style.right = "auto";
+      }
     }
-
   };
 
   // TOGGLE MOBILE ACCORDION (new)
@@ -272,7 +302,7 @@ const Navbar = () => {
                         group-hover:opacity-100
                         group-hover:translate-y-0
                         group-hover:pointer-events-auto
-                        transition-all duration-300
+                        transition-all duration-200
                       "
                     >
 
@@ -280,70 +310,43 @@ const Navbar = () => {
 
                         {isAbout ? (
 
-                          <div className="flex gap-10 items-start">
+                          <div className="grid grid-cols-3 gap-6">
 
-                            <Link
-                              to="/about/history"
-                              className="w-[190px] border border-[#C89B2F] rounded-xl p-6 bg-[#FFF8E6] flex flex-col justify-between min-h-[220px]"
-                            >
+                            {menu.items.map((item) => {
 
-                              <div>
+                              const Icon =
+                                Icons[item.icon] || null;
 
-                                <h3 className="text-[15px] font-semibold mb-6">
-                                  About Our Institution
-                                </h3>
+                              return (
+                                <Link
+                                  key={item._id}
+                                  to={buildPath(item.slug)}
+                                  className="flex gap-3"
+                                >
 
-                                <p className="text-sm text-gray-600">
-                                  Learn about our legacy and values.
-                                </p>
+                                  <div className="w-8 h-8 bg-[#FFF4D6] rounded-full flex items-center justify-center text-[#C89B2F]">
 
-                              </div>
+                                    {Icon && (
+                                      <Icon size={16} />
+                                    )}
 
-                              <span className="text-sm font-semibold text-[#C89B2F] mt-8">
-                                Explore →
-                              </span>
+                                  </div>
 
-                            </Link>
+                                  <div>
 
-                            <div className="grid grid-cols-2 gap-x-12 gap-y-8">
+                                    <h4 className="text-sm font-medium">
+                                      {item.label}
+                                    </h4>
 
-                              {menu.items.map((item) => {
+                                    <p className="text-xs text-gray-500">
+                                      View details
+                                    </p>
 
-                                const Icon =
-                                  Icons[item.icon] || null;
+                                  </div>
 
-                                return (
-                                  <Link
-                                    key={item._id}
-                                    to={buildPath(item.slug)}
-                                    className="flex items-start gap-4 group"
-                                  >
-
-                                    <div className="w-10 h-10 rounded-full bg-[#FFF4D6] flex items-center justify-center text-[#C89B2F]">
-
-                                      {Icon && (
-                                        <Icon size={18} />
-                                      )}
-
-                                    </div>
-
-                                    <div>
-
-                                      <h4 className="text-[15px] font-medium group-hover:text-[#C89B2F]">
-                                        {item.label}
-                                      </h4>
-
-                                      <p className="text-sm text-gray-500">
-                                        View details
-                                      </p>
-
-                                    </div>
-
-                                  </Link>
-                                );
-                              })}
-
-                            </div>
+                                </Link>
+                              );
+                            })}
 
                           </div>
 
@@ -536,30 +539,6 @@ const Navbar = () => {
                       >
 
                         <div className="pb-4 pl-4 pr-2">
-
-                          {isAbout && (
-
-                            <Link
-                              to="/about/history"
-                              onClick={closeMobileMenu}
-                              className="block border border-[#C89B2F] rounded-xl p-4 bg-[#FFF8E6] mb-4"
-                            >
-
-                              <h3 className="text-[14px] font-semibold mb-1">
-                                About Our Institution
-                              </h3>
-
-                              <p className="text-xs text-gray-600">
-                                Learn about our legacy and values.
-                              </p>
-
-                              <span className="text-xs font-semibold text-[#C89B2F] mt-2 inline-block">
-                                Explore →
-                              </span>
-
-                            </Link>
-
-                          )}
 
                           <div className="flex flex-col gap-1">
 

@@ -5,6 +5,7 @@ import Events_Section from "./Events_Section";
 import CoreStrengths from "./CoreStrengths";
 import ScrollingText from "./ScrollingText";
 import LearningSpacesCarousel from "./LearningSpacesCarousel";
+import NoticesSection from "./NoticesSection";
 
 const HomePageTemplate = () => {
   const [data, setData] = useState(null);
@@ -41,6 +42,7 @@ const HomePageTemplate = () => {
 
   // Extract sections from the data object
   const sections = data.sections || {};
+  console.log("NOTICES SECTION:", sections.notices);
 
   return (
     <div>
@@ -52,6 +54,12 @@ const HomePageTemplate = () => {
       {/* SCROLLING TEXT */}
       {sections.eventsMarquee && (
         <ScrollingText data={sections.eventsMarquee} />
+      )}
+
+
+      {/* NOTICES */}
+      {sections.notices && (
+        <NoticesSection data={sections.notices} />
       )}
 
       {/* LEARNING SPACES */}

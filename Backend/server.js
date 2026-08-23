@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
+import cookieParser from "cookie-parser";
 import path from "path";
 import { fileURLToPath } from "url";
 
@@ -15,6 +16,15 @@ import settingsRoutes from "./routes/settings.routes.js";
 import mediaRoutes from "./routes/mediaRoutes.js";
 import folderRoutes from "./routes/folderRoutes.js";
 
+import authRoutes from "./routes/auth.routes.js";
+
+import roleRoutes from "./routes/role.routes.js";
+
+import userRoutes from "./routes/users.routes.js";
+
+import approvalRoutes from "./routes/approval.routes.js";
+import accessRoutes from "./routes/accessRoutes.js";
+
 dotenv.config();
 
 connectDB();
@@ -28,9 +38,16 @@ const __dirname = path.dirname(__filename);
     MIDDLEWARE
 ========================================== */
 
-app.use(cors());
+app.use(
+  cors({
+    origin: "http://localhost:5173",
+    credentials: true,
+  })
+);
 
 app.use(express.json());
+
+app.use(cookieParser());
 
 app.use(
   "/uploads",
@@ -71,6 +88,35 @@ app.use(
 app.use(
   "/api/folders",
   folderRoutes
+);
+
+/**Roles */
+app.use(
+  "/api/roles",
+  roleRoutes
+);
+
+/**user routes*/
+app.use(
+  "/api/users",
+  userRoutes
+);
+
+/**Auth */
+app.use(
+  "/api/auth",
+  authRoutes
+);
+
+
+app.use(
+  "/api/approvals",
+  approvalRoutes
+);
+
+app.use(
+  "/api/access",
+  accessRoutes
 );
 
 /* ==========================================

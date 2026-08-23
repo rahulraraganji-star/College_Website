@@ -6,6 +6,7 @@ import HeroEditor from "../editors/HeroEditor";
 import CollectionEditor from "../editors/CollectionEditor";
 import MediaPicker from "../media/components/MediaPicker";
 import SectionCard from "../components/SectionCard";
+import IconPicker from "../components/IconPicker"; // Import IconPicker
 
 const inputClass =
   "w-full border border-gray-300 rounded-lg px-3.5 py-2.5 text-sm outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900 transition-colors";
@@ -26,7 +27,48 @@ const HomePageEditor = () => {
   const fetchHome = async () => {
     try {
       const res = await axios.get("/api/home");
-      setHome(res.data);
+
+      const homeData = res.data;
+
+      const updatedHome = {
+        ...homeData,
+        sections: {
+          ...homeData.sections,
+
+          notices: homeData.sections?.notices || {
+            tag: "STAY INFORMED",
+            title: "Quick Notices",
+            description:
+              "The latest circulars, admissions updates and openings from across the college, in one place.",
+            cards: [
+              {
+                id: "circulars",
+                title: "Circulars & Notifications",
+                icon: "List",
+                viewAllText: "VIEW ALL",
+                viewAllUrl: "/notices/circulars"
+              },
+              {
+                id: "admissions",
+                title: "Admission News",
+                icon: "GraduationCap",
+                viewAllText: "VIEW ALL",
+                viewAllUrl: "/notices/admissions"
+              },
+              {
+                id: "vacancies",
+                title: "Vacancies",
+                icon: "BriefcaseBusiness",
+                viewAllText: "VIEW ALL",
+                viewAllUrl: "/notices/vacancies"
+              }
+            ],
+            notices: [],
+          },
+        },
+      };
+
+      setHome(updatedHome);
     } catch (err) {
       console.error(err);
     } finally {
@@ -45,24 +87,24 @@ const HomePageEditor = () => {
   };
 
   const handleSave = async () => {
-  console.log("========== HOME ==========");
-  console.log(home);
-  console.log("========== SECTIONS ==========");
-  console.log(home.sections);
-  console.log(JSON.stringify(home, null, 2));
+    console.log("========== HOME ==========");
+    console.log(home);
+    console.log("========== SECTIONS ==========");
+    console.log(home.sections);
+    console.log(JSON.stringify(home, null, 2));
 
-  setSaving(true);
+    setSaving(true);
 
-  try {
-    const res = await axios.put("/api/home", home);
-    console.log(res.data);
-    alert("Saved");
-  } catch (err) {
-    console.error(err);
-  } finally {
-    setSaving(false);
-  }
-};
+    try {
+      const res = await axios.put("/api/home", home);
+      console.log(res.data);
+      alert("Saved");
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setSaving(false);
+    }
+  };
 
   const toggleCollapse = (index) => {
     setCollapsedSections((prev) => ({
@@ -72,29 +114,28 @@ const HomePageEditor = () => {
   };
 
   const toggleAll = () => {
-    const allCollapsed = [0, 1, 2, 3, 4].every(
+    const allCollapsed = [0, 1, 2, 3, 4, 5].every(
       (index) => collapsedSections[index] === true
     );
 
     const newState = {};
 
-    [0, 1, 2, 3, 4].forEach((index) => {
+    [0, 1, 2, 3, 4, 5].forEach((index) => {
       newState[index] = !allCollapsed;
     });
 
     setCollapsedSections(newState);
   };
 
-  const allCollapsed =
-    [0, 1, 2, 3, 4].every(
-      (index) => collapsedSections[index] === true
-    );
+  const allCollapsed = [0, 1, 2, 3, 4, 5].every(
+    (index) => collapsedSections[index] === true
+  );
 
   // LOADING STATE
   if (loading) {
     console.log("HOME:", home);
-console.log("SECTIONS:", home?.sections);
-console.log("HERO2:", home?.sections?.heroSection2);
+    console.log("SECTIONS:", home?.sections);
+    console.log("HERO2:", home?.sections?.heroSection2);
 
     return (
       <div className="max-w-[1400px] mx-auto">
@@ -135,8 +176,6 @@ console.log("HERO2:", home?.sections?.heroSection2);
       </div>
     );
   }
-
-
 
   return (
     <div className="max-w-[1400px] mx-auto">
@@ -224,6 +263,197 @@ console.log("HERO2:", home?.sections?.heroSection2);
         </SectionCard>
 
         {/* ==========================================
+              NOTICES SECTION
+        ========================================== */}
+        <SectionCard
+          title="Notices"
+          editable={false}
+          showNumber={false}
+          index={5}
+          isCollapsed={collapsedSections[5] || false}
+          onToggleCollapse={toggleCollapse}
+        >
+          <div className="grid md:grid-cols-3 gap-5 mb-6">
+            <div>
+              <label className={labelClass}>Tag</label>
+              <input
+                type="text"
+                value={home.sections.notices?.tag || ""}
+                onChange={(e) =>
+                  updateSection("notices", {
+                    ...home.sections.notices,
+                    tag: e.target.value,
+                  })
+                }
+                className={inputClass}
+              />
+            </div>
+
+            <div>
+              <label className={labelClass}>Title</label>
+              <input
+                type="text"
+                value={home.sections.notices?.title || ""}
+                onChange={(e) =>
+                  updateSection("notices", {
+                    ...home.sections.notices,
+                    title: e.target.value,
+                  })
+                }
+                className={inputClass}
+              />
+            </div>
+
+            <div>
+              <label className={labelClass}>Description</label>
+              <textarea
+                rows={3}
+                value={home.sections.notices?.description || ""}
+                onChange={(e) =>
+                  updateSection("notices", {
+                    ...home.sections.notices,
+                    description: e.target.value,
+                  })
+                }
+                className={inputClass}
+              />
+            </div>
+          </div>
+
+          {/* NOTICE CARDS */}
+          <div className="mb-8">
+            <h3 className="text-base font-semibold text-gray-800 mb-4">
+              Notice Cards
+            </h3>
+
+            <div className="grid md:grid-cols-3 gap-5">
+              {(home.sections.notices?.cards || []).map((card, index) => (
+                <div
+                  key={card.id || index}
+                  className="rounded-xl border border-gray-200 bg-white p-5"
+                >
+                  <h4 className="mb-4 font-semibold text-gray-800">
+                    Card {index + 1}
+                  </h4>
+
+                  {/* CARD TITLE */}
+                  <div className="mb-4">
+                    <label className={labelClass}>
+                      Card Title
+                    </label>
+
+                    <input
+                      type="text"
+                      value={card.title || ""}
+                      onChange={(e) => {
+                        const cards = [...(home.sections.notices?.cards || [])];
+                        cards[index] = {
+                          ...cards[index],
+                          title: e.target.value,
+                        };
+
+                        updateSection("notices", {
+                          ...home.sections.notices,
+                          cards,
+                        });
+                      }}
+                      className={inputClass}
+                    />
+                  </div>
+
+                  {/* ICON - Using IconPicker */}
+                  <div className="mb-4">
+                    <label className={labelClass}>
+                      Icon
+                    </label>
+
+                    <IconPicker
+                      value={card.icon || ""}
+                      onChange={(icon) => {
+                        const cards = [...(home.sections.notices?.cards || [])];
+                        cards[index] = {
+                          ...cards[index],
+                          icon,
+                        };
+
+                        updateSection("notices", {
+                          ...home.sections.notices,
+                          cards,
+                        });
+                      }}
+                    />
+                  </div>
+
+                  {/* VIEW ALL TEXT */}
+                  <div className="mb-4">
+                    <label className={labelClass}>
+                      View All Text
+                    </label>
+
+                    <input
+                      type="text"
+                      value={card.viewAllText || ""}
+                      onChange={(e) => {
+                        const cards = [...(home.sections.notices?.cards || [])];
+                        cards[index] = {
+                          ...cards[index],
+                          viewAllText: e.target.value,
+                        };
+
+                        updateSection("notices", {
+                          ...home.sections.notices,
+                          cards,
+                        });
+                      }}
+                      className={inputClass}
+                    />
+                  </div>
+
+                  {/* VIEW ALL URL */}
+                  <div>
+                    <label className={labelClass}>
+                      View All URL
+                    </label>
+
+                    <input
+                      type="text"
+                      value={card.viewAllUrl || ""}
+                      onChange={(e) => {
+                        const cards = [...(home.sections.notices?.cards || [])];
+                        cards[index] = {
+                          ...cards[index],
+                          viewAllUrl: e.target.value,
+                        };
+
+                        updateSection("notices", {
+                          ...home.sections.notices,
+                          cards,
+                        });
+                      }}
+                      className={inputClass}
+                      placeholder="/notices/circulars"
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* NOTICES COLLECTION EDITOR - Only one instance */}
+          <CollectionEditor
+            section={{
+              ...home.sections.notices,
+              type: "notices",
+            }}
+            onChange={(updated) =>
+              updateSection("notices", updated)
+            }
+            context="homepage"
+            showSectionInfo={false}
+          />
+        </SectionCard>
+
+        {/* ==========================================
               LEARNING SPACES
         ========================================== */}
         <SectionCard
@@ -239,7 +469,7 @@ console.log("HERO2:", home?.sections?.heroSection2);
               <label className={labelClass}>Title</label>
               <input
                 type="text"
-                value={home.sections.heroSection2.title || ""}
+                value={home.sections.heroSection2?.title || ""}
                 onChange={(e) =>
                   updateSection("heroSection2", {
                     ...home.sections.heroSection2,
@@ -254,7 +484,7 @@ console.log("HERO2:", home?.sections?.heroSection2);
               <label className={labelClass}>Subtitle</label>
               <textarea
                 rows={3}
-                value={home.sections.heroSection2.subtitle || ""}
+                value={home.sections.heroSection2?.subtitle || ""}
                 onChange={(e) =>
                   updateSection("heroSection2", {
                     ...home.sections.heroSection2,
@@ -269,7 +499,7 @@ console.log("HERO2:", home?.sections?.heroSection2);
               <label className={labelClass}>Primary Button</label>
               <input
                 type="text"
-                value={home.sections.heroSection2.primaryButton || ""}
+                value={home.sections.heroSection2?.primaryButton || ""}
                 onChange={(e) =>
                   updateSection("heroSection2", {
                     ...home.sections.heroSection2,
@@ -284,7 +514,7 @@ console.log("HERO2:", home?.sections?.heroSection2);
               <label className={labelClass}>Primary Button Link</label>
               <input
                 type="text"
-                value={home.sections.heroSection2.primaryButtonLink || ""}
+                value={home.sections.heroSection2?.primaryButtonLink || ""}
                 onChange={(e) =>
                   updateSection("heroSection2", {
                     ...home.sections.heroSection2,
@@ -299,7 +529,7 @@ console.log("HERO2:", home?.sections?.heroSection2);
               <label className={labelClass}>Secondary Button</label>
               <input
                 type="text"
-                value={home.sections.heroSection2.secondaryButton || ""}
+                value={home.sections.heroSection2?.secondaryButton || ""}
                 onChange={(e) =>
                   updateSection("heroSection2", {
                     ...home.sections.heroSection2,
@@ -314,7 +544,7 @@ console.log("HERO2:", home?.sections?.heroSection2);
               <label className={labelClass}>Secondary Button Link</label>
               <input
                 type="text"
-                value={home.sections.heroSection2.secondaryButtonLink || ""}
+                value={home.sections.heroSection2?.secondaryButtonLink || ""}
                 onChange={(e) =>
                   updateSection("heroSection2", {
                     ...home.sections.heroSection2,
@@ -352,7 +582,7 @@ console.log("HERO2:", home?.sections?.heroSection2);
               <label className={labelClass}>Title</label>
               <input
                 type="text"
-                value={home.sections.eventsSection.title || ""}
+                value={home.sections.eventsSection?.title || ""}
                 onChange={(e) =>
                   updateSection("eventsSection", {
                     ...home.sections.eventsSection,
@@ -367,7 +597,7 @@ console.log("HERO2:", home?.sections?.heroSection2);
               <label className={labelClass}>Subtitle</label>
               <textarea
                 rows={3}
-                value={home.sections.eventsSection.subtitle || ""}
+                value={home.sections.eventsSection?.subtitle || ""}
                 onChange={(e) =>
                   updateSection("eventsSection", {
                     ...home.sections.eventsSection,
@@ -382,7 +612,7 @@ console.log("HERO2:", home?.sections?.heroSection2);
               <label className={labelClass}>Button Text</label>
               <input
                 type="text"
-                value={home.sections.eventsSection.buttonText || ""}
+                value={home.sections.eventsSection?.buttonText || ""}
                 onChange={(e) =>
                   updateSection("eventsSection", {
                     ...home.sections.eventsSection,
@@ -397,7 +627,7 @@ console.log("HERO2:", home?.sections?.heroSection2);
               <label className={labelClass}>Button Link</label>
               <input
                 type="text"
-                value={home.sections.eventsSection.buttonLink || ""}
+                value={home.sections.eventsSection?.buttonLink || ""}
                 onChange={(e) =>
                   updateSection("eventsSection", {
                     ...home.sections.eventsSection,
@@ -413,7 +643,7 @@ console.log("HERO2:", home?.sections?.heroSection2);
               <MediaPicker
                 type="image"
                 multiple={false}
-                value={home.sections.eventsSection.coverImage || null}
+                value={home.sections.eventsSection?.coverImage || null}
                 onChange={(media) =>
                   updateSection("eventsSection", {
                     ...home.sections.eventsSection,
@@ -450,7 +680,7 @@ console.log("HERO2:", home?.sections?.heroSection2);
               <label className={labelClass}>Tag</label>
               <input
                 type="text"
-                value={home.sections.coreStrengths.tag || ""}
+                value={home.sections.coreStrengths?.tag || ""}
                 onChange={(e) =>
                   updateSection("coreStrengths", {
                     ...home.sections.coreStrengths,
@@ -465,7 +695,7 @@ console.log("HERO2:", home?.sections?.heroSection2);
               <label className={labelClass}>Title</label>
               <input
                 type="text"
-                value={home.sections.coreStrengths.title || ""}
+                value={home.sections.coreStrengths?.title || ""}
                 onChange={(e) =>
                   updateSection("coreStrengths", {
                     ...home.sections.coreStrengths,
@@ -480,7 +710,7 @@ console.log("HERO2:", home?.sections?.heroSection2);
               <label className={labelClass}>Description</label>
               <textarea
                 rows={3}
-                value={home.sections.coreStrengths.description || ""}
+                value={home.sections.coreStrengths?.description || ""}
                 onChange={(e) =>
                   updateSection("coreStrengths", {
                     ...home.sections.coreStrengths,

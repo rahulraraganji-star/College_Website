@@ -1,0 +1,446 @@
+{
+  "_id": {
+    "$oid": "6a6c8743ef6fce5b49558d5e"
+  },
+  "slug": "home",
+  "title": "Home",
+  "sections": {
+    "hero": {
+      "title": "Success lies in Honest ",
+      "buttonText": "Browse Courses",
+      "slides": [
+        {
+          "image": {
+            "_id": "6a6ca05059dd7285f6361a55",
+            "filename": "1785503824800-588579084.jpg",
+            "originalName": "importthis.jpg",
+            "url": "http://localhost:5000/uploads/media/images/1785503824800-588579084.jpg",
+            "type": "image",
+            "mimeType": "image/jpeg",
+            "extension": "jpg",
+            "size": 341062,
+            "width": null,
+            "height": null,
+            "alt": "",
+            "folder": null,
+            "tags": [],
+            "isPublic": true,
+            "uploadedBy": null,
+            "createdAt": "2026-07-31T13:17:04.812Z",
+            "updatedAt": "2026-07-31T13:17:04.812Z",
+            "__v": 0
+          },
+          "caption": "A campus designed for modern Learning",
+          "description": "We rrrrr education is more than just classrooms"
+        },
+        {
+          "image": {
+            "_id": "6a6ca05059dd7285f6361a55",
+            "filename": "1785503824800-588579084.jpg",
+            "originalName": "importthis.jpg",
+            "url": "http://localhost:5000/uploads/media/images/1785503824800-588579084.jpg",
+            "type": "image",
+            "mimeType": "image/jpeg",
+            "extension": "jpg",
+            "size": 341062,
+            "width": null,
+            "height": null,
+            "alt": "",
+            "folder": null,
+            "tags": [],
+            "isPublic": true,
+            "uploadedBy": null,
+            "createdAt": "2026-07-31T13:17:04.812Z",
+            "updatedAt": "2026-07-31T13:17:04.812Z",
+            "__v": 0
+          },
+          "caption": "Where ideas grows",
+          "description": "Our institution nurtures creativity"
+        },
+        {
+          "image": {
+            "_id": "6a6312a11afb0779d6dffd26",
+            "filename": "1784877729062-616013130.png",
+            "originalName": "image.png",
+            "url": "http://localhost:5000/uploads/media/images/1784877729062-616013130.png",
+            "type": "image",
+            "mimeType": "image/png",
+            "extension": "png",
+            "size": 354489,
+            "width": null,
+            "height": null,
+            "alt": "",
+            "folder": null,
+            "tags": [],
+            "isPublic": true,
+            "uploadedBy": null,
+            "createdAt": "2026-07-24T07:22:09.072Z",
+            "updatedAt": "2026-07-24T07:22:09.072Z",
+            "__v": 0
+          },
+          "caption": "Where ideas grow into innovation",
+          "description": "Our institution nurtures creativity and collaboration."
+        }
+      ],
+      "alignment": "right",
+      "primaryButtonText": "Addmission",
+      "secondaryButtonText": "Contact Us",
+      "primaryButtonLink": "/administration/organogram",
+      "heading": "Success lies in Honest Toil",
+      "secondaryButtonLink": "/administration/organogram"
+    },
+    "heroSection2": {
+      "title": "Spaces That Inspire Success",
+      "subtitle": "Education is more than just classrooms — our campus is built for how students actually learn.",
+      "primaryButton": "Explore ",
+      "secondaryButton": "Contact",
+      "slides": [
+        {
+          "title": "Library & Resources",
+          "desc": "Our library is a central hub for learning.",
+          "image": {
+            "_id": "6a6375c4843c924f3a96fafa",
+            "filename": "1784903108713-716590920.jpg",
+            "originalName": "images.jpg",
+            "url": "http://localhost:5000/uploads/media/images/1784903108713-716590920.jpg",
+            "type": "image",
+            "mimeType": "image/jpeg",
+            "extension": "jpg",
+            "size": 24057,
+            "width": null,
+            "height": null,
+            "alt": "",
+            "folder": null,
+            "tags": [],
+            "isPublic": true,
+            "uploadedBy": null,
+            "createdAt": "2026-07-24T14:25:08.721Z",
+            "updatedAt": "2026-07-24T14:25:08.721Z",
+            "__v": 0
+          }
+        },
+        {
+          "title": "Modern Learning Spaces",
+          "desc": "Designed for collaboration and innovation.",
+          "image": {
+            "_id": "6a5b8da91431a7672c6ae20e",
+            "filename": "1784384937814-902490564.png",
+            "originalName": "Screenshot 2026-07-18 195824.png",
+            "url": "http://localhost:5000/uploads/media/images/1784384937814-902490564.png",
+            "type": "image",
+            "mimeType": "image/png",
+            "extension": "png",
+            "size": 1172912,
+            "width": null,
+            "height": null,
+            "alt": "",
+            "folder": null,
+            "tags": [],
+            "isPublic": true,
+            "uploadedBy": null,
+            "createdAt": "2026-07-18T14:28:57.861Z",
+            "updatedAt": "2026-07-18T14:28:57.861Z",
+            "__v": 0
+          }
+        },
+        {
+          "title": "Creative Zones",
+          "desc": "Encouraging hands-on learning.",
+          "image": {
+            "_id": "6a6ca05059dd7285f6361a55",
+            "filename": "1785503824800-588579084.jpg",
+            "originalName": "importthis.jpg",
+            "url": "http://localhost:5000/uploads/media/images/1785503824800-588579084.jpg",
+            "type": "image",
+            "mimeType": "image/jpeg",
+            "extension": "jpg",
+            "size": 341062,
+            "width": null,
+            "height": null,
+            "alt": "",
+            "folder": null,
+            "tags": [],
+            "isPublic": true,
+            "uploadedBy": null,
+            "createdAt": "2026-07-31T13:17:04.812Z",
+            "updatedAt": "2026-07-31T13:17:04.812Z",
+            "__v": 0
+          }
+        },
+        {
+          "image": {
+            "_id": "6a6428ae6ac5e86e98634ec3",
+            "filename": "1784948910042-368879039.png",
+            "originalName": "Screenshot 2025-10-08 161848.png",
+            "url": "http://localhost:5000/uploads/media/images/1784948910042-368879039.png",
+            "type": "image",
+            "mimeType": "image/png",
+            "extension": "png",
+            "size": 20933,
+            "width": null,
+            "height": null,
+            "alt": "",
+            "folder": null,
+            "tags": [],
+            "isPublic": true,
+            "uploadedBy": null,
+            "createdAt": "2026-07-25T03:08:30.045Z",
+            "updatedAt": "2026-07-25T03:08:30.045Z",
+            "__v": 0
+          },
+          "title": "",
+          "desc": ""
+        }
+      ],
+      "type": "learningSpaces",
+      "primaryButtonLink": "/administration/organogram",
+      "secondaryButtonLink": "/administration/organogram"
+    },
+    "eventsSection": {
+      "title": "What's Fr Agnel College",
+      "subtitle": "From academics to celebrations — catch every highlight here.",
+      "buttonText": "Explore ",
+      "coverImage": {
+        "_id": "6a5f02c25ea37a5b19343d25",
+        "filename": "1784611522777-248094581.png",
+        "originalName": "image.png",
+        "url": "http://localhost:5000/uploads/media/images/1784611522777-248094581.png",
+        "type": "image",
+        "mimeType": "image/png",
+        "extension": "png",
+        "size": 354489,
+        "width": null,
+        "height": null,
+        "alt": "",
+        "folder": null,
+        "tags": [],
+        "isPublic": true,
+        "uploadedBy": null,
+        "createdAt": "2026-07-21T05:25:22.786Z",
+        "updatedAt": "2026-07-21T05:25:22.786Z",
+        "__v": 0
+      },
+      "events": [
+        {
+          "title": "Dance ",
+          "description": "The Dance Competition lit up the stage.",
+          "image": {
+            "_id": "6a6ca05059dd7285f6361a55",
+            "filename": "1785503824800-588579084.jpg",
+            "originalName": "importthis.jpg",
+            "url": "http://localhost:5000/uploads/media/images/1785503824800-588579084.jpg",
+            "type": "image",
+            "mimeType": "image/jpeg",
+            "extension": "jpg",
+            "size": 341062,
+            "width": null,
+            "height": null,
+            "alt": "",
+            "folder": null,
+            "tags": [],
+            "isPublic": true,
+            "uploadedBy": null,
+            "createdAt": "2026-07-31T13:17:04.812Z",
+            "updatedAt": "2026-07-31T13:17:04.812Z",
+            "__v": 0
+          },
+          "department": "Cultural Committee",
+          "location": "Campus",
+          "updated": "Updated this week"
+        },
+        {
+          "title": "Bharatanatyam Performance",
+          "description": "A mesmerizing performance.",
+          "image": {
+            "_id": "6a6429276ac5e86e98634ed4",
+            "filename": "1784949031899-221334115.svg",
+            "originalName": "College_Logo.svg",
+            "url": "http://localhost:5000/uploads/media/images/1784949031899-221334115.svg",
+            "type": "image",
+            "mimeType": "image/svg+xml",
+            "extension": "svg",
+            "size": 128937,
+            "width": null,
+            "height": null,
+            "alt": "",
+            "folder": null,
+            "tags": [],
+            "isPublic": true,
+            "uploadedBy": null,
+            "createdAt": "2026-07-25T03:10:31.902Z",
+            "updatedAt": "2026-07-25T03:10:31.902Z",
+            "__v": 0
+          },
+          "department": "Arts Club",
+          "location": "Auditorium",
+          "updated": "Updated today"
+        },
+        {
+          "title": "Student Creativity",
+          "description": "Students celebrating innovation.",
+          "image": {
+            "_id": "6a6375c4843c924f3a96fafa",
+            "filename": "1784903108713-716590920.jpg",
+            "originalName": "images.jpg",
+            "url": "http://localhost:5000/uploads/media/images/1784903108713-716590920.jpg",
+            "type": "image",
+            "mimeType": "image/jpeg",
+            "extension": "jpg",
+            "size": 24057,
+            "width": null,
+            "height": null,
+            "alt": "",
+            "folder": null,
+            "tags": [],
+            "isPublic": true,
+            "uploadedBy": null,
+            "createdAt": "2026-07-24T14:25:08.721Z",
+            "updatedAt": "2026-07-24T14:25:08.721Z",
+            "__v": 0
+          },
+          "department": "Student Council",
+          "location": "Innovation ",
+          "updated": "Re"
+        }
+      ],
+      "type": "eventsSection",
+      "buttonLink": "/administration/organogram"
+    },
+    "coreStrengths": {
+      "tag": "OUR CORE STRENGTHS",
+      "title": "Trusted outcomes, proven at scale",
+      "description": "Driven by trust, excellence, and consistency.",
+      "stats": [
+        {
+          "icon": "Users",
+          "value": "400+",
+          "label": "Active Students"
+        },
+        {
+          "icon": "BadgeCheck",
+          "value": "NAAC",
+          "label": "Accredited"
+        },
+        {
+          "icon": "UserCheck",
+          "value": "150+",
+          "label": "Faculty Experts"
+        },
+        {
+          "icon": "Layers",
+          "value": "20+",
+          "label": "Programs Offered"
+        },
+        {
+          "icon": "GraduationCap",
+          "value": "Alumni",
+          "label": "Across Industries"
+        },
+        {
+          "icon": "CheckCircle2",
+          "value": "95%",
+          "label": "Completion Rate"
+        }
+      ],
+      "type": "coreStrengths"
+    },
+    "eventsMarquee": {
+      "items": [
+        {
+          "text": "HA",
+          "font": "Oswald"
+        },
+        {
+          "text": "TE",
+          "font": "Playfair Display"
+        },
+        {
+          "text": "CULTURAL NIGHT",
+          "font": "Londrina Solid"
+        },
+        {
+          "text": "WORKSHOP",
+          "font": "Fjalla One"
+        },
+        {
+          "text": "WORKSHOP",
+          "font": "Fjalla One"
+        }
+      ],
+      "type": "list",
+      "title": ""
+    },
+    "notices": {
+      "tag": "STAY INFORMED",
+      "title": "Quick Notices",
+      "description": "The latest circulars, admissions updates and openings from across the college, in one place.",
+      "cards": [
+        {
+          "id": "circulars",
+          "title": "Circulars & Notifications",
+          "icon": "GraduationCap",
+          "viewAllText": "VIEW ALL",
+          "viewAllUrl": "/notices/circulars"
+        },
+        {
+          "id": "admissions",
+          "title": "Admission News",
+          "icon": "Calendar",
+          "viewAllText": "VIEW ALL",
+          "viewAllUrl": "/notices/admissions"
+        },
+        {
+          "id": "vacancies",
+          "title": "Vacancies",
+          "icon": "FlaskConical",
+          "viewAllText": "VIEW ALL",
+          "viewAllUrl": "/notices/vacancies"
+        }
+      ],
+      "notices": [
+        {
+          "category": "Circulars & Notifications",
+          "status": "URGENT",
+          "title": "What is Lorem Ipsum",
+          "description": "essentially unchanged. It was popularised thanks to these sheets and more recently with desktop publishing software like of Lorem Ipsum.",
+          "file": {
+            "_id": "6a64ce392cf6d4caf8784a3a",
+            "filename": "1784991289799-621235451.pdf",
+            "originalName": "CreatePage_Code.pdf",
+            "url": "http://localhost:5000/uploads/media/documents/1784991289799-621235451.pdf",
+            "type": "document",
+            "mimeType": "application/pdf",
+            "extension": "pdf",
+            "size": 36212,
+            "width": null,
+            "height": null,
+            "alt": "",
+            "folder": null,
+            "tags": [],
+            "isPublic": true,
+            "uploadedBy": null,
+            "createdAt": "2026-07-25T14:54:49.801Z",
+            "updatedAt": "2026-07-25T14:54:49.801Z",
+            "__v": 0
+          },
+          "linkText": "Visit ",
+          "linkUrl": "https://www.lipsum.com/"
+        },
+        {
+          "category": "Circulars & Notifications",
+          "status": "EXTENDED",
+          "title": "Where can I get some",
+          "description": "essentially unchanged. It was popularisedlike Aldus PageMaker and Microsoft Word including versions of Lorem Ipsum.",
+          "file": "",
+          "linkText": "visit",
+          "linkUrl": ""
+        }
+      ],
+      "type": "notices"
+    }
+  },
+  "pageType": "home",
+  "updatedAt": {
+    "$date": "2026-08-14T14:53:26.629Z"
+  }
+}

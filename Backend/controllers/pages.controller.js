@@ -1,5 +1,6 @@
 import Page from "../models/page.js";
 import NavigationItem from "../models/NavigationItem.js";
+import { createApprovalRequest } from "../services/approvalService.js";
 
 export const getPageBySlug = async (req, res) => {
   try {
@@ -24,12 +25,41 @@ export const getPageBySlug = async (req, res) => {
 
 export const getAllPages = async (req, res) => {
   try {
-    const pages = await Page.find({
+
+    const role = req.authRole;
+
+    let query = {
       isPublished: true,
-    }).sort({ createdAt: -1 });
+    };
+
+
+    /* ------------------------------------------
+       RESTRICT BY PAGE SCOPE
+    ------------------------------------------ */
+
+    if (
+      role &&
+      !role.allowedPages.includes("*")
+    ) {
+
+      query.parentSlug = {
+        $in: role.allowedPages,
+      };
+
+    }
+
+
+    const pages = await Page.find(
+      query
+    ).sort({
+      createdAt: -1,
+    });
+
 
     res.json(pages);
+
   } catch (error) {
+
     console.error(error);
 
     res.status(500).json({
@@ -109,33 +139,124 @@ export const createPage = async (req, res) => {
 
 export const updatePage = async (req, res) => {
   try {
-    const updatedPage = await Page.findByIdAndUpdate(
-      req.params.id,
-      req.body,
-      { new: true }
-    );
+    /* ==========================================
+       FIND EXISTING PAGE
+    ========================================== */
 
-    if (!updatedPage) {
+    const page = await Page.findById(req.params.id);
+
+    if (!page) {
       return res.status(404).json({
+        success: false,
         message: "Page not found",
       });
     }
 
-    // Update corresponding navigation item
+
+    /* ==========================================
+       DEPARTMENT EDITOR
+       → APPROVAL REQUIRED
+    ========================================== */
+
+    if (req.authUser.role === "department_editor") {
+
+      const before = page.toObject();
+
+      const after = {
+        ...before,
+        ...req.body,
+      };
+
+
+      const { approvalRequest } =
+        await createApprovalRequest({
+          req,
+          actor: req.authUser,
+
+          resourceType: "page",
+
+          resourceId: page._id,
+
+          resourceName: page.title,
+
+          action: "update",
+
+          before,
+
+          after,
+        });
+
+
+      return res.status(202).json({
+        success: true,
+
+        message:
+          "Page update submitted for approval.",
+
+        approvalRequired: true,
+
+        approvalRequestId:
+          approvalRequest._id,
+      });
+    }
+
+
+    /* ==========================================
+       ADMIN / SUPER ADMIN
+       → DIRECT UPDATE
+    ========================================== */
+
+    const updatedPage =
+      await Page.findByIdAndUpdate(
+        req.params.id,
+        req.body,
+        {
+          new: true,
+        }
+      );
+
+    if (!updatedPage) {
+      return res.status(404).json({
+        success: false,
+        message: "Page not found",
+      });
+    }
+
+
+    /* ==========================================
+       UPDATE NAVIGATION ITEM
+    ========================================== */
+
     await NavigationItem.findOneAndUpdate(
-      { pageId: updatedPage._id },
+      {
+        pageId: updatedPage._id,
+      },
       {
         label: updatedPage.title,
-        slug: `/${updatedPage.parentSlug}/${updatedPage.slug}`,
+
+        slug:
+          `/${updatedPage.parentSlug}/${updatedPage.slug}`,
       }
     );
 
-    res.json(updatedPage);
+
+    return res.json({
+      success: true,
+      message: "Page updated successfully.",
+      page: updatedPage,
+      approvalRequired: false,
+    });
+
 
   } catch (error) {
-    console.error(error);
 
-    res.status(500).json({
+    console.error(
+      "UPDATE PAGE ERROR:",
+      error
+    );
+
+    return res.status(500).json({
+      success: false,
       message: "Failed to update page",
     });
   }

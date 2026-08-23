@@ -14,7 +14,7 @@ export const navigationIcons = [
   "Newspaper",
   "Award",
   "BadgeCheck",
-  "Briefcase",
+  "Briefcas",
   "Laptop",
   "Monitor",
   "Globe",

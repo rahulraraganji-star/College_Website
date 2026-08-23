@@ -5,9 +5,9 @@ import {
   Video,
   Music,
   Archive,
-  MoreVertical,
   Check,
 } from "lucide-react";
+import DeleteActionsMenu from "../../components/DeleteActionsMenu";
 
 const formatFileSize = (bytes) => {
   if (bytes === null || bytes === undefined || isNaN(bytes)) return "";
@@ -30,6 +30,7 @@ const MediaCard = ({
   media,
   selected = false,
   onSelect,
+  onDelete,
 }) => {
 
   const displayName = media.originalName || media.filename;
@@ -64,7 +65,7 @@ const MediaCard = ({
         group
         cursor-pointer
         rounded-xl
-        overflow-hidden
+        overflow-visible
         border
         bg-white
         transition-all
@@ -132,11 +133,7 @@ const MediaCard = ({
         )}
 
         {/* Menu */}
-        <button
-          type="button"
-          onClick={(e) =>
-            e.stopPropagation()
-          }
+        <div
           className="
             absolute
             top-3
@@ -144,14 +141,13 @@ const MediaCard = ({
             opacity-0
             group-hover:opacity-100
             transition
-            bg-white
-            rounded-full
-            p-1
-            shadow
           "
         >
-          <MoreVertical size={18} />
-        </button>
+          <DeleteActionsMenu
+  align="left"
+  onDelete={() => onDelete?.(media)}
+/>
+        </div>
       </div>
 
       {/* Info */}

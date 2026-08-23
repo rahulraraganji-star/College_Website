@@ -143,7 +143,7 @@ const MediaModal = ({
   ========================================================== */
 const handleUpload = async (files) => {
 
-   console.log("🔥🔥🔥 NEW HANDLEUPLOAD", files);
+   console.log(" NEW HANDLEUPLOAD", files);
 
     if (!files.length) return;
 

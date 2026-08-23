@@ -4,7 +4,8 @@ import { collectionConfigs } from "../config/collectionConfigs";
 const CollectionEditor = ({
   section,
   onChange,
-  context = "page", // Step 1: Added context prop with default "page"
+  context = "page",
+  showSectionInfo = true, // Step 1: Added showSectionInfo prop with default true
 }) => {
   const config = collectionConfigs[section.type];
 
@@ -12,8 +13,9 @@ const CollectionEditor = ({
     return null;
   }
 
-  // Step 1: Add showSectionInfo condition
-  const showSectionInfo =
+  // Step 1: Modified showSectionInfo condition
+  const shouldShowSectionInfo =
+    showSectionInfo &&
     !(context === "homepage" && section.type === "list");
 
   // Step 3: Filter fields based on context
@@ -86,7 +88,7 @@ const CollectionEditor = ({
   return (
     <>
       {/* Step 2: Replace Section Title and Subtitle with conditional wrapper */}
-      {showSectionInfo && (
+      {shouldShowSectionInfo && (
         <>
           {/* Section Title */}
           <div className="mb-6">
