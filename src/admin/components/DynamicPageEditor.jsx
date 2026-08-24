@@ -3,6 +3,14 @@ import { ChevronDown, ChevronUp } from 'lucide-react';
 import SectionCard from "./SectionCard";
 import SectionEditor from "./SectionEditor";
 
+// ==========================================
+// ID GENERATOR
+// ==========================================
+
+const generateSectionId = () => {
+  return `section_${crypto.randomUUID()}`;
+};
+
 const DynamicPageEditor = ({
   sections,
   setSections,
@@ -50,12 +58,22 @@ const DynamicPageEditor = ({
   };
 
   const duplicateSection = (index) => {
+    // Create a deep clone of the section
+    const duplicatedSection = structuredClone(
+      sections[index]
+    );
+
+    // Generate a new unique ID for the duplicated section
+    duplicatedSection.id = generateSectionId();
+
     const newSections = [...sections];
+
     newSections.splice(
       index + 1,
       0,
-      structuredClone(sections[index])
+      duplicatedSection
     );
+
     setSections(newSections);
   };
 
@@ -137,7 +155,7 @@ const DynamicPageEditor = ({
 
       {sections.map((section, index) => (
         <SectionCard
-          key={index}
+          key={section.id}
           title={section.type}
           index={index}
           onDelete={() => deleteSection(index)}

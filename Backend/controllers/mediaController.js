@@ -423,3 +423,74 @@ export const deleteMedia = async (
   }
 
 };
+
+/* ==========================================
+    Bulk Delete Media
+========================================== */
+
+export const deleteMediaBulk = async (req, res) => {
+  try {
+    const { ids } = req.body;
+
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Media IDs are required.",
+      });
+    }
+
+    const mediaItems = await Media.find({
+      _id: { $in: ids },
+    });
+
+    if (!mediaItems.length) {
+      return res.status(404).json({
+        success: false,
+        message: "No media items found.",
+      });
+    }
+
+    let deletedFiles = 0;
+
+    for (const media of mediaItems) {
+      const filePath = path.join(
+        process.cwd(),
+        media.url.replace(/^\//, "")
+      );
+
+      try {
+        await fs.promises.unlink(filePath);
+        deletedFiles++;
+      } catch (err) {
+        if (err.code !== "ENOENT") {
+          console.error(
+            `Failed to delete file: ${media.url}`,
+            err
+          );
+        }
+      }
+    }
+
+    const result = await Media.deleteMany({
+      _id: { $in: ids },
+    });
+
+    return res.json({
+      success: true,
+      message: "Media deleted successfully.",
+      deletedCount: result.deletedCount,
+      deletedFiles,
+    });
+  } catch (error) {
+    console.error("BULK MEDIA DELETE ERROR:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to delete media.",
+      error:
+        process.env.NODE_ENV === "development"
+          ? error.message
+          : undefined,
+    });
+  }
+};

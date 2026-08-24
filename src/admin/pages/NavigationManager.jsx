@@ -84,24 +84,47 @@ const NavigationManager = () => {
     message: "",
   });
 
+  // FIXED: Added credentials and proper error handling
   const loadNavigation = async () => {
     try {
       const res = await fetch(
-        "http://localhost:5000/api/navigation/admin"
+        "http://localhost:5000/api/navigation/admin",
+        {
+          credentials: "include", // ADDED
+        }
       );
 
       const data = await res.json();
-      console.log(data);
 
+      // FIXED: Proper error handling
+      if (!res.ok) {
+        throw new Error(data.message || "Failed to load navigation");
+      }
+
+      console.log(data);
       setNavigation(data);
 
     } catch (err) {
       console.error(err);
+      // FIXED: Set navigation to empty array on error
+      setNavigation([]);
+      setToast({
+        open: true,
+        type: "error",
+        message: err.message || "Failed to load navigation",
+      });
+      setTimeout(() => {
+        setToast((prev) => ({
+          ...prev,
+          open: false,
+        }));
+      }, 3000);
     } finally {
       setLoading(false);
     }
   };
 
+  // FIXED: Added credentials
   const confirmDelete = async () => {
     if (!deleteTarget) return;
 
@@ -110,6 +133,7 @@ const NavigationManager = () => {
         `http://localhost:5000/api/navigation/child/${deleteTarget._id}`,
         {
           method: "DELETE",
+          credentials: "include", // ADDED
         }
       );
 
@@ -121,6 +145,7 @@ const NavigationManager = () => {
     }
   };
 
+  // FIXED: Added credentials
   const deleteMenu = async () => {
     if (!selectedMenu) return;
 
@@ -131,6 +156,7 @@ const NavigationManager = () => {
         `http://localhost:5000/api/navigation/menu/${selectedMenu._id}`,
         {
           method: "DELETE",
+          credentials: "include", // ADDED
         }
       );
 
@@ -178,12 +204,14 @@ const NavigationManager = () => {
     }
   };
 
+  // FIXED: Added credentials
   const reorderMenu = async (id, direction) => {
     try {
       const res = await fetch(
         `http://localhost:5000/api/navigation/menu/${id}/reorder`,
         {
           method: "PATCH",
+          credentials: "include", // ADDED
           headers: {
             "Content-Type": "application/json",
           },
@@ -204,12 +232,14 @@ const NavigationManager = () => {
     }
   };
 
+  // FIXED: Added credentials
   const reorderChild = async (id, direction) => {
     try {
       await fetch(
         `http://localhost:5000/api/navigation/child/${id}/reorder`,
         {
           method: "PATCH",
+          credentials: "include", // ADDED
           headers: {
             "Content-Type": "application/json",
           },
@@ -230,12 +260,14 @@ const NavigationManager = () => {
     setShowEditModal(true);
   };
 
+  // FIXED: Added credentials
   const saveChild = async (form) => {
     try {
       const res = await fetch(
         `http://localhost:5000/api/navigation/child/${editingChild._id}`,
         {
           method: "PATCH",
+          credentials: "include", // ADDED
           headers: {
             "Content-Type": "application/json",
           },
@@ -285,6 +317,7 @@ const NavigationManager = () => {
     }
   };
 
+  // FIXED: Added credentials
   const saveMenu = async () => {
     if (!form.title.trim()) {
       setTitleError("Please enter a menu name");
@@ -302,6 +335,7 @@ const NavigationManager = () => {
 
       const res = await fetch(url, {
         method,
+        credentials: "include", // ADDED
         headers: {
           "Content-Type": "application/json",
         },
@@ -456,7 +490,7 @@ const NavigationManager = () => {
             onClick={toggleAll}
             className="text-xs text-white bg-gray-900 hover:bg-black px-3 py-2 rounded-lg transition flex items-center gap-1.5"
           >
-            {navigation.every((m) => collapsedMenus[m.key]) ? (
+            {navigation.length > 0 && navigation.every((m) => collapsedMenus[m.key]) ? (
               <>
                 <span>Expand All</span>
                 <ChevronDown size={14} />
@@ -472,189 +506,201 @@ const NavigationManager = () => {
 
         {/* MENUS */}
         <div className="space-y-5">
-          {navigation.map((menu, menuIndex) => {
-            const isFirst = menuIndex === 0;
-            const isLast = menuIndex === navigation.length - 1;
-            const isCollapsed = collapsedMenus[menu.key];
-            const MenuIcon = getMenuIcon(menu.title);
-
-            return (
-              <div
-                key={menu._id}
-                className="bg-white border border-neutral-200 rounded-2xl overflow-visible shadow-sm"
+          {navigation.length === 0 ? (
+            <div className="text-center py-12 text-neutral-500">
+              <p className="text-sm">No navigation menus found.</p>
+              <button
+                onClick={() => setShowCreateModal(true)}
+                className="mt-3 text-sm font-medium text-black hover:underline underline-offset-2"
               >
-                {/* MENU HEADER */}
-                <div className="px-5 py-4 flex items-center justify-between select-none rounded-2xl">
-                  <div
-                    onClick={() => toggleCollapse(menu.key)}
-                    className="flex items-center gap-4 cursor-pointer min-w-0"
-                  >
-                    <span className="w-9 h-9 rounded-lg bg-black text-white flex items-center justify-center shrink-0">
-                      <MenuIcon size={17} strokeWidth={2} />
-                    </span>
-                    <span className="w-px h-5 bg-neutral-200 shrink-0" />
-                    <h2 className="text-[13px] font-bold uppercase tracking-[0.1em] text-neutral-800 truncate">
-                      {menu.title}
-                    </h2>
-                  </div>
+                Create your first menu
+              </button>
+            </div>
+          ) : (
+            navigation.map((menu, menuIndex) => {
+              const isFirst = menuIndex === 0;
+              const isLast = menuIndex === navigation.length - 1;
+              const isCollapsed = collapsedMenus[menu.key];
+              const MenuIcon = getMenuIcon(menu.title);
 
-                  <div className="flex items-center gap-2 shrink-0">
-                    <span className="text-[11px] font-medium text-neutral-500 bg-neutral-100 rounded-full px-3 py-1">
-                      {menu.children?.length || 0}{" "}
-                      {menu.children?.length === 1 ? "page" : "pages"}
-                    </span>
-
-                    <button
-                      type="button"
-                      onClick={() => reorderMenu(menu._id, "up")}
-                      disabled={isFirst}
-                      title="Move up"
-                      className="p-1.5 rounded-lg text-neutral-400 hover:text-black hover:bg-neutral-100 disabled:opacity-30 disabled:hover:bg-transparent transition"
-                    >
-                      <ArrowUp size={15} />
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => reorderMenu(menu._id, "down")}
-                      disabled={isLast}
-                      title="Move down"
-                      className="p-1.5 rounded-lg text-neutral-400 hover:text-black hover:bg-neutral-100 disabled:opacity-30 disabled:hover:bg-transparent transition"
-                    >
-                      <ArrowDown size={15} />
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => editMenu(menu)}
-                      title="Edit menu"
-                      className="p-1.5 rounded-lg text-neutral-400 hover:text-black hover:bg-neutral-100 transition"
-                    >
-                      <Pencil size={15} />
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setSelectedMenu(menu);
-                        setShowDeleteMenuModal(true);
-                      }}
-                      title="Delete menu"
-                      className="p-1.5 rounded-lg text-neutral-400 hover:text-red-600 hover:bg-red-50 transition"
-                    >
-                      <Trash2 size={15} />
-                    </button>
-
-                    <span className="w-px h-5 bg-neutral-200" />
-
-                    <button
-                      type="button"
+              return (
+                <div
+                  key={menu._id}
+                  className="bg-white border border-neutral-200 rounded-2xl overflow-visible shadow-sm"
+                >
+                  {/* MENU HEADER */}
+                  <div className="px-5 py-4 flex items-center justify-between select-none rounded-2xl">
+                    <div
                       onClick={() => toggleCollapse(menu.key)}
-                      className="p-1.5 rounded-lg text-neutral-400 hover:text-black hover:bg-neutral-100 transition"
+                      className="flex items-center gap-4 cursor-pointer min-w-0"
                     >
-                      {isCollapsed ? (
-                        <ChevronDown size={16} />
-                      ) : (
-                        <ChevronUp size={16} />
-                      )}
-                    </button>
+                      <span className="w-9 h-9 rounded-lg bg-black text-white flex items-center justify-center shrink-0">
+                        <MenuIcon size={17} strokeWidth={2} />
+                      </span>
+                      <span className="w-px h-5 bg-neutral-200 shrink-0" />
+                      <h2 className="text-[13px] font-bold uppercase tracking-[0.1em] text-neutral-800 truncate">
+                        {menu.title}
+                      </h2>
+                    </div>
+
+                    <div className="flex items-center gap-2 shrink-0">
+                      <span className="text-[11px] font-medium text-neutral-500 bg-neutral-100 rounded-full px-3 py-1">
+                        {menu.children?.length || 0}{" "}
+                        {menu.children?.length === 1 ? "page" : "pages"}
+                      </span>
+
+                      <button
+                        type="button"
+                        onClick={() => reorderMenu(menu._id, "up")}
+                        disabled={isFirst}
+                        title="Move up"
+                        className="p-1.5 rounded-lg text-neutral-400 hover:text-black hover:bg-neutral-100 disabled:opacity-30 disabled:hover:bg-transparent transition"
+                      >
+                        <ArrowUp size={15} />
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => reorderMenu(menu._id, "down")}
+                        disabled={isLast}
+                        title="Move down"
+                        className="p-1.5 rounded-lg text-neutral-400 hover:text-black hover:bg-neutral-100 disabled:opacity-30 disabled:hover:bg-transparent transition"
+                      >
+                        <ArrowDown size={15} />
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => editMenu(menu)}
+                        title="Edit menu"
+                        className="p-1.5 rounded-lg text-neutral-400 hover:text-black hover:bg-neutral-100 transition"
+                      >
+                        <Pencil size={15} />
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSelectedMenu(menu);
+                          setShowDeleteMenuModal(true);
+                        }}
+                        title="Delete menu"
+                        className="p-1.5 rounded-lg text-neutral-400 hover:text-red-600 hover:bg-red-50 transition"
+                      >
+                        <Trash2 size={15} />
+                      </button>
+
+                      <span className="w-px h-5 bg-neutral-200" />
+
+                      <button
+                        type="button"
+                        onClick={() => toggleCollapse(menu.key)}
+                        className="p-1.5 rounded-lg text-neutral-400 hover:text-black hover:bg-neutral-100 transition"
+                      >
+                        {isCollapsed ? (
+                          <ChevronDown size={16} />
+                        ) : (
+                          <ChevronUp size={16} />
+                        )}
+                      </button>
+                    </div>
                   </div>
-                </div>
 
-                {/* CHILD PAGES */}
-                {!isCollapsed && (
-                  <div className="border-t border-neutral-100">
-                    {menu.children?.length ? (
-                      menu.children.map((child, index) => (
-                        <div
-                          key={child._id}
-                          className="flex items-center justify-between px-6 py-4 border-b border-neutral-100 last:border-b-0 hover:bg-neutral-50 transition-colors"
-                        >
-                          <div className="min-w-0">
-                            <h3 className="font-semibold text-black text-[15px]">
-                              {child.label}
-                            </h3>
+                  {/* CHILD PAGES */}
+                  {!isCollapsed && (
+                    <div className="border-t border-neutral-100">
+                      {menu.children?.length ? (
+                        menu.children.map((child, index) => (
+                          <div
+                            key={child._id}
+                            className="flex items-center justify-between px-6 py-4 border-b border-neutral-100 last:border-b-0 hover:bg-neutral-50 transition-colors"
+                          >
+                            <div className="min-w-0">
+                              <h3 className="font-semibold text-black text-[15px]">
+                                {child.label}
+                              </h3>
 
-                            <p
-                              className="text-[12.5px] text-neutral-400 mt-0.5"
-                              style={{ fontFamily: "'IBM Plex Mono', monospace" }}
-                            >
-                              {child.slug}
-                            </p>
-                          </div>
+                              <p
+                                className="text-[12.5px] text-neutral-400 mt-0.5"
+                                style={{ fontFamily: "'IBM Plex Mono', monospace" }}
+                              >
+                                {child.slug}
+                              </p>
+                            </div>
 
-                          <div className="flex items-center gap-3 shrink-0">
-                            <button
-                              type="button"
-                              onClick={() => reorderChild(child._id, "up")}
-                              disabled={index === 0}
-                              title="Move up"
-                              className="p-1.5 rounded-lg text-neutral-400 hover:text-black hover:bg-neutral-100 disabled:opacity-30 disabled:hover:bg-transparent transition"
-                            >
-                              <ArrowUp size={14} />
-                            </button>
+                            <div className="flex items-center gap-3 shrink-0">
+                              <button
+                                type="button"
+                                onClick={() => reorderChild(child._id, "up")}
+                                disabled={index === 0}
+                                title="Move up"
+                                className="p-1.5 rounded-lg text-neutral-400 hover:text-black hover:bg-neutral-100 disabled:opacity-30 disabled:hover:bg-transparent transition"
+                              >
+                                <ArrowUp size={14} />
+                              </button>
 
-                            <button
-                              type="button"
-                              onClick={() => reorderChild(child._id, "down")}
-                              disabled={index === menu.children.length - 1}
-                              title="Move down"
-                              className="p-1.5 rounded-lg text-neutral-400 hover:text-black hover:bg-neutral-100 disabled:opacity-30 disabled:hover:bg-transparent transition"
-                            >
-                              <ArrowDown size={14} />
-                            </button>
+                              <button
+                                type="button"
+                                onClick={() => reorderChild(child._id, "down")}
+                                disabled={index === menu.children.length - 1}
+                                title="Move down"
+                                className="p-1.5 rounded-lg text-neutral-400 hover:text-black hover:bg-neutral-100 disabled:opacity-30 disabled:hover:bg-transparent transition"
+                              >
+                                <ArrowDown size={14} />
+                              </button>
 
-                            <span
-                              className={`inline-flex items-center rounded-full border px-3 py-1.5 text-[11px] font-semibold tracking-wide transition ${
-                                child.isActive
-                                  ? "border-black bg-black text-white"
-                                  : "border-neutral-300 bg-white text-neutral-600"
-                              }`}
-                            >
                               <span
-                                className={`mr-2 h-1.5 w-1.5 rounded-full ${
+                                className={`inline-flex items-center rounded-full border px-3 py-1.5 text-[11px] font-semibold tracking-wide transition ${
                                   child.isActive
-                                    ? "bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.8)]"
-                                    : "bg-neutral-400"
+                                    ? "border-black bg-black text-white"
+                                    : "border-neutral-300 bg-white text-neutral-600"
                                 }`}
+                              >
+                                <span
+                                  className={`mr-2 h-1.5 w-1.5 rounded-full ${
+                                    child.isActive
+                                      ? "bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.8)]"
+                                      : "bg-neutral-400"
+                                  }`}
+                                />
+                                {child.isActive ? "Published" : "Draft"}
+                              </span>
+
+                              <NavigationActionsMenu
+                                isVisible={child.isActive}
+                                onEdit={() => editChild(child)}
+                                // REMOVED: onToggleVisibility prop
+                                onDelete={() => {
+                                  setDeleteTarget(child);
+                                  setShowDeleteModal(true);
+                                }}
                               />
-                              {child.isActive ? "Published" : "Draft"}
-                            </span>
 
-                            <NavigationActionsMenu
-                              isVisible={child.isActive}
-                              onEdit={() => editChild(child)}
-                              // REMOVED: onToggleVisibility prop
-                              onDelete={() => {
-                                setDeleteTarget(child);
-                                setShowDeleteModal(true);
-                              }}
-                            />
-
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setDeleteTarget(child);
-                                setShowDeleteModal(true);
-                              }}
-                              title="Delete page"
-                              className="p-1.5 rounded-lg text-neutral-400 hover:text-red-600 hover:bg-red-50 transition"
-                            >
-                              <Trash2 size={15} />
-                            </button>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setDeleteTarget(child);
+                                  setShowDeleteModal(true);
+                                }}
+                                title="Delete page"
+                                className="p-1.5 rounded-lg text-neutral-400 hover:text-red-600 hover:bg-red-50 transition"
+                              >
+                                <Trash2 size={15} />
+                              </button>
+                            </div>
                           </div>
-                        </div>
-                      ))
-                    ) : (
-                      <p className="text-neutral-400 text-sm py-4 px-6">
-                        No child pages
-                      </p>
-                    )}
-                  </div>
-                )}
-              </div>
-            );
-          })}
+                        ))
+                      ) : (
+                        <p className="text-neutral-400 text-sm py-4 px-6">
+                          No child pages
+                        </p>
+                      )}
+                    </div>
+                  )}
+                </div>
+              );
+            })
+          )}
         </div>
 
         {showCreateModal && (

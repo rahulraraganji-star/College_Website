@@ -235,6 +235,27 @@ const useMediaLibrary = () => {
     [loadLibrary]
   );
 
+/**bulk media delete */
+  const deleteMediaBulk = useCallback(
+  async (ids) => {
+    try {
+      const result = await mediaService.deleteMediaBulk(ids);
+
+      await loadLibrary();
+
+      return result;
+    } catch (error) {
+      dispatch({
+        type: ACTIONS.SET_ERROR,
+        payload: getErrorMessage(error),
+      });
+
+      throw error;
+    }
+  },
+  [loadLibrary]
+);
+
   /* -----------------------------
       Folder Actions
   ----------------------------- */
@@ -304,30 +325,32 @@ const useMediaLibrary = () => {
       Search / Filtering
   ----------------------------- */
 
-  const filteredMedia = useMemo(() => {
-    let items = [...state.media];
+ const filteredMedia = useMemo(() => {
+  let items = [...state.media];
 
-    if (state.currentFolder) {
-      items = items.filter(
-        (item) => getFolderId(item.folder) === state.currentFolder
-      );
-    }
+  if (state.currentFolder) {
+    items = items.filter(
+      (item) =>
+        getFolderId(item.folder) ===
+        state.currentFolder.toString()
+    );
+  }
 
-    if (state.search) {
-      const query = state.search.toLowerCase();
+  if (state.search) {
+    const query = state.search.toLowerCase();
 
-      items = items.filter(
-        (item) =>
-          item.originalName?.toLowerCase().includes(query) ||
-          item.alt?.toLowerCase().includes(query) ||
-          item.filename?.toLowerCase().includes(query) ||
-          item.mimeType?.toLowerCase().includes(query) ||
-          item.type?.toLowerCase().includes(query)
-      );
-    }
+    items = items.filter(
+      (item) =>
+        item.originalName?.toLowerCase().includes(query) ||
+        item.alt?.toLowerCase().includes(query) ||
+        item.filename?.toLowerCase().includes(query) ||
+        item.mimeType?.toLowerCase().includes(query) ||
+        item.type?.toLowerCase().includes(query)
+    );
+  }
 
-    return items;
-  }, [state.media, state.search, state.currentFolder]);
+  return items;
+}, [state.media, state.search, state.currentFolder]);
 
   /* -----------------------------
       Lookup Helpers
@@ -358,6 +381,7 @@ const useMediaLibrary = () => {
     loadLibrary,
     uploadMedia,
     deleteMedia,
+    deleteMediaBulk,
     createFolder,
     updateFolder,
     deleteFolder,

@@ -1,5 +1,7 @@
+import MediaLibrary from "../media/pages/MediaLibrary";
+
 const Media = () => {
-  return <h1>Media</h1>;
+  return <MediaLibrary />;
 };
 
 export default Media;

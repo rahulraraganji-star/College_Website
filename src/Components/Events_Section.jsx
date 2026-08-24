@@ -125,18 +125,40 @@ const Events_Section = ({ data }) => {
       {/* ================= MOBILE LAYOUT ================= */}
       <div className="lg:hidden px-5 py-16">
         {/* Title */}
-        <h2
-          className="
-            font-serif
-            max-w-[8ch]
-            text-[42px]
-            leading-[0.95]
-            tracking-[-0.03em]
-            text-[#171717]
-          "
-        >
-          {data?.title}
-        </h2>
+<h2
+  className="
+    font-serif
+    w-full
+    max-w-[340px]
+    text-[42px]
+    leading-[1.05]
+    tracking-[-0.02em]
+    font-normal
+    text-[#171717]
+  "
+>
+  {(() => {
+    const title = data?.title || "";
+
+    const splitIndex = title.indexOf(" Fr ");
+
+    if (splitIndex !== -1) {
+      return (
+        <>
+          <span className="block">
+            {title.slice(0, splitIndex)}
+          </span>
+
+          <span className="block">
+            {title.slice(splitIndex + 1)}
+          </span>
+        </>
+      );
+    }
+
+    return title;
+  })()}
+</h2>
 
         {/* Subtitle */}
         <p className="mt-4 max-w-[310px] text-[15px] leading-7 text-[#666]">

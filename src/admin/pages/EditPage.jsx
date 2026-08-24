@@ -84,8 +84,15 @@ const EditPage = () => {
     const fetchPage = async () => {
       try {
         const res = await fetch(
-          `http://localhost:5000/api/pages/id/${id}`
+          `http://localhost:5000/api/pages/id/${id}`,
+          {
+            credentials: "include", // ✅ FIXED: Send cookie
+          }
         );
+
+        if (!res.ok) {
+          throw new Error("Failed to fetch page");
+        }
 
         const data = await res.json();
 
@@ -152,6 +159,7 @@ const EditPage = () => {
         `http://localhost:5000/api/pages/${id}`,
         {
           method: "PUT",
+          credentials: "include", // ✅ FIXED: Send cookie
           headers: {
             "Content-Type": "application/json",
           },
@@ -190,6 +198,7 @@ const EditPage = () => {
         `http://localhost:5000/api/pages/${id}`,
         {
           method: "DELETE",
+          credentials: "include", // ✅ FIXED: Send cookie
         }
       );
 

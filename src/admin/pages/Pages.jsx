@@ -53,7 +53,9 @@ const Pages = () => {
   const [collapsedGroups, setCollapsedGroups] = useState({});
 
   useEffect(() => {
-    fetch("http://localhost:5000/api/pages")
+    fetch("http://localhost:5000/api/pages", {
+  credentials: "include",
+})
       .then((res) => res.json())
       .then((data) => {
         setPages(Array.isArray(data) ? data : []);
@@ -71,12 +73,13 @@ const Pages = () => {
     try {
       setIsDeleting(true);
 
-      const response = await fetch(
-        `http://localhost:5000/api/pages/${selectedPage._id}`,
-        {
-          method: "DELETE",
-        }
-      );
+     const response = await fetch(
+  `http://localhost:5000/api/pages/${selectedPage._id}`,
+  {
+    method: "DELETE",
+    credentials: "include",
+  }
+);
 
       const data = await response.json();
 
@@ -129,11 +132,12 @@ const Pages = () => {
 const handleTogglePublish = async (page) => {
   try {
     const response = await fetch(
-      `http://localhost:5000/api/pages/${page._id}/publish`,
-      {
-        method: "PATCH",
-      }
-    );
+  `http://localhost:5000/api/pages/${page._id}/publish`,
+  {
+    method: "PATCH",
+    credentials: "include",
+  }
+);
 
     const data = await response.json();
 

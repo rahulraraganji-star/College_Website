@@ -1,12 +1,10 @@
-import {
-  Folder,
-  MoreVertical,
-} from "lucide-react";
+import { Folder } from "lucide-react";
+import DeleteActionsMenu from "../../components/DeleteActionsMenu";
 
 const FolderCard = ({
   folder,
   onOpen,
-  onMenu,
+  onDelete,
 }) => {
 
   return (
@@ -24,7 +22,7 @@ const FolderCard = ({
         hover:-translate-y-1
         transition-all
         duration-200
-        overflow-hidden
+        overflow-visible
       "
     >
 
@@ -46,29 +44,20 @@ const FolderCard = ({
           className="text-amber-500"
         />
 
-        <button
-          type="button"
-          onClick={(e) => {
-            e.stopPropagation();
-            onMenu?.(folder);
-          }}
+        <div
           className="
-            absolute
-            top-3
-            right-3
-            opacity-0
-            group-hover:opacity-100
-            transition
-            bg-white
-            rounded-full
-            p-1
-            shadow
-          "
+    absolute
+    top-3
+    right-3
+    opacity-0
+    group-hover:opacity-100
+    transition
+  "
         >
-
-          <MoreVertical size={18} />
-
-        </button>
+          <DeleteActionsMenu
+            onDelete={() => onDelete?.(folder)}
+          />
+        </div>
 
       </div>
 

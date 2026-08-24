@@ -14,9 +14,11 @@ const CreatePage = () => {
     sections: [],
   });
 
-  // FETCH NAVIGATION MENUS
+  // FETCH NAVIGATION MENUS - FIXED with credentials
   useEffect(() => {
-    fetch("http://localhost:5000/api/navigation/admin")
+    fetch("http://localhost:5000/api/navigation/admin", {
+      credentials: "include",
+    })
       .then((res) => res.json())
       .then((data) => {
         setMenus(
@@ -67,7 +69,7 @@ const CreatePage = () => {
     }));
   };
 
-  // SAVE PAGE
+  // SAVE PAGE - FIXED with credentials
   const handleSubmit = async (e) => {
     e.preventDefault();
     // VALIDATION
@@ -84,6 +86,7 @@ const CreatePage = () => {
         "http://localhost:5000/api/pages",
         {
           method: "POST",
+          credentials: "include", // ADDED THIS LINE
           headers: {
             "Content-Type": "application/json",
           },

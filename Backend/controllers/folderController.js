@@ -128,50 +128,53 @@ export const createFolder = async (
     Get All Folders
 ========================================== */
 
-export const getAllFolders = async (
-  req,
-  res
-) => {
-
+export const getAllFolders = async (req, res) => {
   try {
-
-    const folders =
-      await Folder.find()
-
-        .sort({
+    const folders = await Folder.aggregate([
+      {
+        $lookup: {
+          from: "media",
+          localField: "_id",
+          foreignField: "folder",
+          as: "mediaItems",
+        },
+      },
+      {
+        $addFields: {
+          itemCount: {
+            $size: "$mediaItems",
+          },
+        },
+      },
+      {
+        $project: {
+          mediaItems: 0,
+        },
+      },
+      {
+        $sort: {
           name: 1,
-        });
+        },
+      },
+    ]);
 
     res.json({
-
       success: true,
-
       count: folders.length,
-
       folders,
-
     });
-
   } catch (error) {
-
-    console.error(error);
+    console.error("GET FOLDERS ERROR:", error);
 
     res.status(500).json({
-
       success: false,
-
-      message:
-        "Failed to fetch folders.",
-
+      message: "Failed to fetch folders.",
       error:
         process.env.NODE_ENV === "development"
           ? error.message
           : undefined,
-
     });
-
   }
-
 };
 
 /* ==========================================
