@@ -134,6 +134,15 @@ auditLogSchema.index({
 });
 
 auditLogSchema.index({
+  createdAt: -1,
+});
+
+auditLogSchema.index({
+  resourceType: 1,
+  createdAt: -1,
+});
+
+auditLogSchema.index({
   resourceType: 1,
   resourceId: 1,
   createdAt: -1,

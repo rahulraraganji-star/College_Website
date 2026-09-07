@@ -4,6 +4,8 @@ import {
   login,
   logout,
   getMe,
+  changePassword,
+  updateEmail,
 } from "../controllers/authController.js";
 
 import { requireAuth } from "../middleware/authMiddleware.js";
@@ -23,5 +25,9 @@ router.post("/login", login);
 router.post("/logout", requireAuth, logout);
 
 router.get("/me", requireAuth, getMe);
+
+router.post("/change-password", requireAuth, changePassword);
+
+router.post("/update-email", requireAuth, updateEmail);
 
 export default router;

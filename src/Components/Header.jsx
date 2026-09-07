@@ -14,8 +14,10 @@ const Header = ({ data }) => {
             {/* Logo */}
             <Link to="/" className="flex-shrink-0 flex items-center">
               <img
-                src={logo}
+                src={data.logo || logo}
                 alt="College Logo"
+                fetchPriority="high"
+                loading="eager"
                 className="h-16 w-16 rounded-full border-2 border-[#C8921B] bg-white p-2.5 object-contain"
               />
             </Link>
@@ -80,8 +82,10 @@ const Header = ({ data }) => {
             {/* Logo */}
             <Link to="/" className="flex-shrink-0 flex items-center">
               <img
-                src={logo}
+                src={data.logo || logo}
                 alt="College Logo"
+                fetchPriority="high"
+                loading="eager"
                 className="w-16 md:w-20 h-auto object-contain"
               />
             </Link>

@@ -7,6 +7,7 @@ import {
   updateUser,
   deleteUser,
   assignRoleToUser,
+  resetUserPassword,
 } from "../controllers/userController.js";
 
 import {
@@ -90,6 +91,18 @@ router.patch(
   requireAuth,
   requirePermission("users.edit"),
   assignRoleToUser
+);
+
+
+/* ==========================================
+   RESET USER PASSWORD (ADMIN / SUPER ADMIN)
+========================================== */
+
+router.post(
+  "/:userId/reset-password",
+  requireAuth,
+  requirePermission("users.edit"),
+  resetUserPassword
 );
 
 

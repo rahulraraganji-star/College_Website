@@ -36,7 +36,7 @@ export default function AdministrationLayout() {
   useEffect(() => {
 
     fetch(
-      "http://localhost:5000/api/pages/sidebar/administration"
+      "/api/pages/sidebar/administration"
     )
       .then((res) => res.json())
 

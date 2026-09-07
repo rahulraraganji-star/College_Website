@@ -1,10 +1,11 @@
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../auth/AuthContext";
 import DashboardCard from "./DashboardCard";
 
 const QuickActions = ({
-  onCreateUser = () => {},
-  onManageUsers = () => {},
+  onOpenCalendar = () => {},
 }) => {
+  const navigate = useNavigate();
   const { hasPermission } = useAuth();
 
   const actions = [
@@ -12,36 +13,49 @@ const QuickActions = ({
       label: "Create Page",
       permission: "pages.create",
       action: "create-page",
+      onClick: () => navigate("/admin/pages/create"),
+    },
+    {
+      label: "College Calendar",
+      permission: "pages.view",
+      action: "open-calendar",
+      onClick: onOpenCalendar,
     },
     {
       label: "Upload Media",
       permission: "media.upload",
       action: "upload-media",
+      onClick: () => navigate("/admin/media"),
     },
     {
-      label: "Add Event",
-      permission: "pages.create",
-      action: "add-event",
-    },
-    {
-      label: "Create Gallery",
-      permission: "media.upload",
-      action: "create-gallery",
-    },
-    {
-      label: "Create Menu",
+      label: "Edit Navigation",
       permission: "navigation.edit",
-      action: "create-menu",
+      action: "edit-navigation",
+      onClick: () => navigate("/admin/navigation"),
+    },
+    {
+      label: "Link Manager",
+      permission: "link_manager.view",
+      action: "link-manager",
+      onClick: () => navigate("/admin/link-manager"),
     },
     {
       label: "Create User",
       permission: "users.create",
       action: "create-user",
+      onClick: () => navigate("/admin/users/create"),
     },
     {
       label: "Manage Users",
-      permission: "users.manage",
+      permission: "users.view",
       action: "manage-users",
+      onClick: () => navigate("/admin/users"),
+    },
+    {
+      label: "Audit Logs",
+      permission: "audit.view",
+      action: "audit-logs",
+      onClick: () => navigate("/admin/audit-logs"),
     },
   ];
 
@@ -49,24 +63,10 @@ const QuickActions = ({
     hasPermission(action.permission)
   );
 
-  const handleAction = (action) => {
-    if (action === "create-user") {
-      onCreateUser();
-      return;
-    }
-
-    if (action === "manage-users") {
-      onManageUsers();
-      return;
-    }
-
-    console.log("Quick action:", action);
-  };
-
   return (
     <DashboardCard
       eyebrow="Quick Actions"
-      action={`${visibleActions.length} actions`}
+      action={`${visibleActions.length} available`}
       className="min-h-[300px]"
     >
       <div className="grid grid-cols-2 gap-2">
@@ -74,7 +74,7 @@ const QuickActions = ({
           <button
             key={action.action}
             type="button"
-            onClick={() => handleAction(action.action)}
+            onClick={action.onClick}
             className="
               flex
               items-center
@@ -89,15 +89,16 @@ const QuickActions = ({
               font-medium
               text-gray-700
               transition
-              hover:border-gray-300
+              hover:border-gray-400
               hover:bg-gray-50
+              active:scale-[0.98]
             "
           >
-            <span className="text-base text-gray-400">
+            <span className="text-base text-gray-400 font-light">
               +
             </span>
 
-            {action.label}
+            <span className="truncate">{action.label}</span>
           </button>
         ))}
       </div>

@@ -167,6 +167,9 @@ const Hero = ({ data }) => {
           <img
             src={slide.image?.url || slide.image}
             alt={slide.image?.alt || slide.caption || ""}
+            loading={i === 0 ? "eager" : "lazy"}
+            fetchPriority={i === 0 ? "high" : "low"}
+            decoding={i === 0 ? "sync" : "async"}
             className="
               w-full
               h-[110%]

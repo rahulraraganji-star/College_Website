@@ -147,10 +147,10 @@ const HomePageEditor = () => {
       <div className="max-w-[1400px] mx-auto">
         <div className="flex items-center justify-between mb-8 pb-6 border-b border-gray-200">
           <div>
-            <div className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1">
+            <p className="text-xs font-semibold uppercase tracking-[0.15em] text-neutral-400 mb-1">
               Pages
-            </div>
-            <h1 className="text-2xl font-semibold text-gray-900">
+            </p>
+            <h1 className="text-[28px] font-extrabold text-black tracking-tight">
               Edit Home Page
             </h1>
           </div>
@@ -168,10 +168,10 @@ const HomePageEditor = () => {
       <div className="max-w-[1400px] mx-auto">
         <div className="flex items-center justify-between mb-8 pb-6 border-b border-gray-200">
           <div>
-            <div className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1">
+            <p className="text-xs font-semibold uppercase tracking-[0.15em] text-neutral-400 mb-1">
               Pages
-            </div>
-            <h1 className="text-2xl font-semibold text-gray-900">
+            </p>
+            <h1 className="text-[28px] font-extrabold text-black tracking-tight">
               Edit Home Page
             </h1>
           </div>
@@ -188,12 +188,15 @@ const HomePageEditor = () => {
       {/* HEADER */}
       <div className="flex items-center justify-between mb-8 pb-6 border-b border-gray-200">
         <div>
-          <div className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1">
+          <p className="text-xs font-semibold uppercase tracking-[0.15em] text-neutral-400 mb-1">
             Pages
-          </div>
-          <h1 className="text-2xl font-semibold text-gray-900">
+          </p>
+          <h1 className="text-[28px] font-extrabold text-black tracking-tight">
             Edit Home Page
           </h1>
+          <p className="text-[14px] text-neutral-500 mt-1.5">
+            Manage live modular sections and layout ordering for the college home page.
+          </p>
         </div>
         <button
           type="button"

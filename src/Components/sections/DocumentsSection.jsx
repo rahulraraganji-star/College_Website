@@ -53,8 +53,8 @@ const DocumentsSection = ({ section }) => {
         {Object.entries(grouped).map(([category, docs]) => (
           <div key={category}>
             {/* Category Heading */}
-            <div className="px-2 pt-8 pb-3">
-              <h3 className="font-['IBM_Plex_Mono'] text-xs uppercase tracking-[0.25em] text-[#8A6B3F]">
+            <div className="px-2 pt-6 sm:pt-8 pb-3">
+              <h3 className="font-['IBM_Plex_Mono'] text-[11px] sm:text-xs uppercase tracking-[0.25em] text-[#8A6B3F]">
                 {category}
               </h3>
             </div>
@@ -63,39 +63,51 @@ const DocumentsSection = ({ section }) => {
               {docs.map((doc, i) => (
                 <a
                   key={i}
-                  href={doc.file?.url}
+                  href={doc.file?.url || doc.url || "#"}
                   target="_blank"
                   rel="noreferrer"
-                  className="group flex items-center gap-6 py-6 px-2 -mx-2 hover:bg-[#8A6B3F]/[0.04] transition-colors"
+                  className="group flex items-center justify-between gap-3 sm:gap-6 py-4 sm:py-6 px-2 -mx-2 hover:bg-[#8A6B3F]/[0.04] transition-colors rounded-sm"
                 >
-                  <FileText
-                    size={20}
-                    className="shrink-0 text-[#8A6B3F]"
-                  />
+                  <div className="flex items-start sm:items-center gap-3.5 sm:gap-5 min-w-0 flex-1">
+                    <FileText
+                      size={20}
+                      className="shrink-0 text-[#8A6B3F] mt-0.5 sm:mt-0"
+                    />
 
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-['Inter'] font-medium text-[#2A2623]">
-                      {doc.title}
-                    </h3>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-['Inter'] font-medium text-sm sm:text-base text-[#2A2623] break-words">
+                        {doc.title}
+                      </h3>
 
-                    <div className="mt-1 flex items-center gap-2 text-[11px] font-['IBM_Plex_Mono'] uppercase tracking-wide text-[#8A6B3F]/80">
-                      <span>
-                        {getFileType(doc.file?.mimeType)}
-                      </span>
-                      <span>•</span>
-                      <span>
-                        {formatFileSize(doc.file?.size)}
-                      </span>
+                      <div className="mt-1 flex flex-wrap items-center gap-2 text-[10px] sm:text-[11px] font-['IBM_Plex_Mono'] uppercase tracking-wide text-[#8A6B3F]/80">
+                        <span>
+                          {doc.type || getFileType(doc.file?.mimeType)}
+                        </span>
+                        {doc.date && (
+                          <>
+                            <span>•</span>
+                            <span>{doc.date}</span>
+                          </>
+                        )}
+                        {doc.file?.size && (
+                          <>
+                            <span>•</span>
+                            <span>
+                              {formatFileSize(doc.file?.size)}
+                            </span>
+                          </>
+                        )}
+                      </div>
+
+                      {doc.description && (
+                        <p className="text-xs sm:text-sm text-[#2A2623]/60 mt-1.5 line-clamp-2">
+                          {doc.description}
+                        </p>
+                      )}
                     </div>
-
-                    {doc.description && (
-                      <p className="text-sm text-[#2A2623]/50 mt-2">
-                        {doc.description}
-                      </p>
-                    )}
                   </div>
 
-                  <span className="flex items-center gap-1.5 text-sm uppercase tracking-wide text-[#8A6B3F] group-hover:text-[#C9A555] whitespace-nowrap transition-colors">
+                  <span className="shrink-0 flex items-center gap-1 sm:gap-1.5 text-xs sm:text-sm uppercase tracking-wide font-['IBM_Plex_Mono'] text-[#8A6B3F] group-hover:text-[#C9A555] whitespace-nowrap transition-colors pl-2">
                     Open
                     <ArrowUpRight
                       size={14}

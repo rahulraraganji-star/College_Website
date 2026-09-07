@@ -94,6 +94,26 @@ export const PERMISSIONS = {
 
 
   /* ==========================================
+     LINK MANAGER
+  ========================================== */
+
+  LINK_MANAGER_VIEW: "link_manager.view",
+  LINK_MANAGER_CREATE: "link_manager.create",
+  LINK_MANAGER_EDIT: "link_manager.edit",
+  LINK_MANAGER_DELETE: "link_manager.delete",
+
+
+  /* ==========================================
+     ORGANOGRAM
+  ========================================== */
+
+  ORGANOGRAM_VIEW: "organogram.view",
+  ORGANOGRAM_CREATE: "organogram.create",
+  ORGANOGRAM_EDIT: "organogram.edit",
+  ORGANOGRAM_DELETE: "organogram.delete",
+
+
+  /* ==========================================
      DASHBOARD
   ========================================== */
 
@@ -120,10 +140,6 @@ export const PERMISSION_GROUPS = [
       {
         key: PERMISSIONS.PAGES_DELETE,
         label: "Delete",
-      },
-      {
-        key: PERMISSIONS.PAGES_PUBLISH,
-        label: "Publish (bypass approval)",
       },
     ],
   },
@@ -303,6 +319,52 @@ export const PERMISSION_GROUPS = [
       {
         key: PERMISSIONS.SETTINGS_EDIT,
         label: "Edit",
+      },
+    ],
+  },
+
+  {
+    key: "link_manager",
+    label: "Link Manager",
+    permissions: [
+      {
+        key: PERMISSIONS.LINK_MANAGER_VIEW,
+        label: "View",
+      },
+      {
+        key: PERMISSIONS.LINK_MANAGER_CREATE,
+        label: "Create",
+      },
+      {
+        key: PERMISSIONS.LINK_MANAGER_EDIT,
+        label: "Edit",
+      },
+      {
+        key: PERMISSIONS.LINK_MANAGER_DELETE,
+        label: "Delete",
+      },
+    ],
+  },
+
+  {
+    key: "organogram",
+    label: "Organogram",
+    permissions: [
+      {
+        key: PERMISSIONS.ORGANOGRAM_VIEW,
+        label: "View",
+      },
+      {
+        key: PERMISSIONS.ORGANOGRAM_CREATE,
+        label: "Create",
+      },
+      {
+        key: PERMISSIONS.ORGANOGRAM_EDIT,
+        label: "Edit",
+      },
+      {
+        key: PERMISSIONS.ORGANOGRAM_DELETE,
+        label: "Delete",
       },
     ],
   },

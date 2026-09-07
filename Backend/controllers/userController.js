@@ -1,44 +1,14 @@
 import bcrypt from "bcryptjs";
+import crypto from "crypto";
 import User from "../models/User.js";
 import Role from "../models/Role.js";
 import { createAuditLog } from "../services/auditService.js";
-
-
-/* ==========================================
-   SYSTEM ROLE PROTECTION HELPER
-   Returns true if the user is a protected
-   system account (super_admin or admin with
-   isSystemRole flag). Only a super_admin
-   can act on another admin account.
-========================================== */
-
-const isProtectedSystemUser = (user) => {
-  return (
-    user.role === "super_admin" ||
-    (user.role === "admin" && user.isSystemRole)
-  );
-};
-
-const actorCanManageTarget = (actor, target) => {
-  // Super admin can manage anyone
-  if (actor.role === "super_admin") {
-    return true;
-  }
-
-  // Admin cannot touch super admin or other protected admins
-  if (isProtectedSystemUser(target)) {
-    return false;
-  }
-
-  // Department editors cannot manage other users at all
-  // (permission middleware already handles this, but belt+suspenders)
-  if (actor.role === "department_editor") {
-    return false;
-  }
-
-  return true;
-};
-
+import {
+  actorCanManageTarget,
+  actorCanAssignRole,
+  validateGrantedPermissions,
+  validateGrantedScopes,
+} from "../utils/authorization.js";
 
 /* ==========================================
    CREATE USER
@@ -53,13 +23,10 @@ export const createUser = async (req, res) => {
       department,
       status = "active",
       roleId,
-      // Legacy direct-permission support (kept for
-      // dashboard overlay which still uses direct access)
       permissions = [],
       allowedPages = [],
       contentAccess = [],
     } = req.body;
-
 
     /* ------------------------------------------
        BASIC VALIDATION
@@ -93,7 +60,6 @@ export const createUser = async (req, res) => {
       });
     }
 
-
     /* ------------------------------------------
        CHECK DUPLICATE EMAIL
     ------------------------------------------ */
@@ -111,23 +77,12 @@ export const createUser = async (req, res) => {
       });
     }
 
-
     /* ------------------------------------------
-       PASSWORD HASH
+       RESOLVE ROLE & VALIDATE DELEGATION BOUNDARY
     ------------------------------------------ */
 
-    const passwordHash = await bcrypt.hash(password, 12);
-
-
-    /* ------------------------------------------
-       RESOLVE ROLE PERMISSIONS
-       If a roleId is supplied, copy the role's
-       permissions and allowedPages to the user
-       so middleware can read them directly.
-    ------------------------------------------ */
-
-    let resolvedPermissions = permissions;
-    let resolvedAllowedPages = allowedPages;
+    let resolvedPermissions = [];
+    let resolvedAllowedPages = [];
     let resolvedRole = "department_editor";
 
     if (roleId) {
@@ -140,14 +95,63 @@ export const createUser = async (req, res) => {
         });
       }
 
+      // Verify the actor has authority to assign this role
+      if (!actorCanAssignRole(req.authUser, role)) {
+        return res.status(403).json({
+          success: false,
+          message: "You are not authorized to assign this role.",
+        });
+      }
+
       resolvedPermissions = role.permissions || [];
       resolvedAllowedPages = role.allowedPages || [];
 
       if (role.isSystemRole) {
         resolvedRole = role.systemRole;
       }
+    } else {
+      // Direct permissions validation if no roleId
+      if (permissions.length > 0) {
+        const permValidation = validateGrantedPermissions(req.authRole, permissions);
+        if (!permValidation.valid) {
+          return res.status(403).json({
+            success: false,
+            message: "You cannot grant one or more of these permissions.",
+            invalidPermissions: permValidation.invalidPermissions,
+          });
+        }
+        resolvedPermissions = permissions;
+      }
+
+      if (allowedPages.length > 0) {
+        const scopeValidation = validateGrantedScopes(req.authRole, allowedPages);
+        if (!scopeValidation.valid) {
+          return res.status(403).json({
+            success: false,
+            message: "You cannot grant one or more of these page scopes.",
+            invalidScopes: scopeValidation.invalidScopes,
+          });
+        }
+        resolvedAllowedPages = allowedPages;
+      }
     }
 
+    // Protection check: Non-super_admin cannot create super_admin or admin
+    if (
+      (resolvedRole === "super_admin" || resolvedRole === "admin") &&
+      req.authUser.role !== "super_admin"
+    ) {
+      return res.status(403).json({
+        success: false,
+        message: "You are not allowed to create system administrator accounts.",
+      });
+    }
+
+    /* ------------------------------------------
+       PASSWORD HASH
+    ------------------------------------------ */
+
+    const passwordHash = await bcrypt.hash(password, 12);
 
     /* ------------------------------------------
        CREATE USER
@@ -165,12 +169,12 @@ export const createUser = async (req, res) => {
       contentAccess,
       status,
       emailVerified: false,
+      tokenVersion: 0,
       createdBy: req.authUser?._id || null,
     });
 
-
     /* ------------------------------------------
-       AUDIT LOG
+       AUDIT LOG (never log plaintext passwords)
     ------------------------------------------ */
 
     await createAuditLog({
@@ -192,7 +196,6 @@ export const createUser = async (req, res) => {
       approvalStatus: "not_required",
     });
 
-
     /* ------------------------------------------
        RETURN SAFE USER
     ------------------------------------------ */
@@ -200,7 +203,6 @@ export const createUser = async (req, res) => {
     const createdUser = await User.findById(user._id)
       .select("-passwordHash")
       .populate("roleId", "name description isSystemRole systemRole");
-
 
     return res.status(201).json({
       success: true,
@@ -218,7 +220,6 @@ export const createUser = async (req, res) => {
   }
 };
 
-
 /* ==========================================
    GET ALL USERS
 ========================================== */
@@ -232,11 +233,6 @@ export const getUsers = async (req, res) => {
       role = "",
       status = "",
     } = req.query;
-
-
-    /* ------------------------------------------
-       BUILD FILTER QUERY
-    ------------------------------------------ */
 
     const filter = {};
 
@@ -255,11 +251,6 @@ export const getUsers = async (req, res) => {
       filter.status = status.trim();
     }
 
-
-    /* ------------------------------------------
-       PAGINATION
-    ------------------------------------------ */
-
     const pageNum = Math.max(1, parseInt(page));
     const limitNum = Math.min(100, Math.max(1, parseInt(limit)));
     const skip = (pageNum - 1) * limitNum;
@@ -274,7 +265,6 @@ export const getUsers = async (req, res) => {
 
       User.countDocuments(filter),
     ]);
-
 
     return res.status(200).json({
       success: true,
@@ -296,7 +286,6 @@ export const getUsers = async (req, res) => {
     });
   }
 };
-
 
 /* ==========================================
    GET SINGLE USER
@@ -332,7 +321,6 @@ export const getUserById = async (req, res) => {
   }
 };
 
-
 /* ==========================================
    UPDATE USER
 ========================================== */
@@ -348,11 +336,6 @@ export const updateUser = async (req, res) => {
       roleId,
     } = req.body;
 
-
-    /* ------------------------------------------
-       FIND TARGET USER
-    ------------------------------------------ */
-
     const user = await User.findById(userId);
 
     if (!user) {
@@ -362,22 +345,16 @@ export const updateUser = async (req, res) => {
       });
     }
 
-
     /* ------------------------------------------
-       PROTECTION CHECK
+       HIERARCHY & PROTECTION CHECK
     ------------------------------------------ */
 
     if (!actorCanManageTarget(req.authUser, user)) {
       return res.status(403).json({
         success: false,
-        message: "You are not allowed to edit this user.",
+        message: "You are not authorized to edit this user.",
       });
     }
-
-
-    /* ------------------------------------------
-       CAPTURE BEFORE STATE
-    ------------------------------------------ */
 
     const before = {
       name: user.name,
@@ -385,12 +362,8 @@ export const updateUser = async (req, res) => {
       department: user.department,
       status: user.status,
       roleId: user.roleId,
+      role: user.role,
     };
-
-
-    /* ------------------------------------------
-       UPDATE FIELDS
-    ------------------------------------------ */
 
     if (name) user.name = name.trim();
 
@@ -416,12 +389,15 @@ export const updateUser = async (req, res) => {
     }
 
     if (status) {
+      // If status changed to non-active, invalidate active sessions
+      if (status !== user.status && status !== "active") {
+        user.tokenVersion = (user.tokenVersion || 0) + 1;
+      }
       user.status = status;
     }
 
-
     /* ------------------------------------------
-       ROLE CHANGE — copy permissions to user
+       ROLE CHANGE & DELEGATION CHECK
     ------------------------------------------ */
 
     if (roleId !== undefined) {
@@ -435,6 +411,13 @@ export const updateUser = async (req, res) => {
           });
         }
 
+        if (!actorCanAssignRole(req.authUser, role)) {
+          return res.status(403).json({
+            success: false,
+            message: "You are not authorized to assign this role.",
+          });
+        }
+
         user.roleId = roleId;
         user.permissions = role.permissions || [];
         user.allowedPages = role.allowedPages || [];
@@ -445,14 +428,21 @@ export const updateUser = async (req, res) => {
           user.role = "department_editor";
         }
       } else {
-        // Clearing role
+        // Clearing role — only allowed if not demoting super_admin without authorization
+        if (user.role === "super_admin" && req.authUser.role !== "super_admin") {
+          return res.status(403).json({
+            success: false,
+            message: "Super Admin role cannot be removed.",
+          });
+        }
         user.roleId = null;
       }
+
+      // Invalidate active session tokens when role changes
+      user.tokenVersion = (user.tokenVersion || 0) + 1;
     }
 
-
     await user.save();
-
 
     /* ------------------------------------------
        AUDIT LOG
@@ -472,11 +462,11 @@ export const updateUser = async (req, res) => {
         department: user.department,
         status: user.status,
         roleId: user.roleId,
+        role: user.role,
       },
       approvalRequired: false,
       approvalStatus: "not_required",
     });
-
 
     const updatedUser = await User.findById(userId)
       .select("-passwordHash")
@@ -498,7 +488,6 @@ export const updateUser = async (req, res) => {
   }
 };
 
-
 /* ==========================================
    DELETE USER (SOFT DELETE)
 ========================================== */
@@ -507,22 +496,12 @@ export const deleteUser = async (req, res) => {
   try {
     const { userId } = req.params;
 
-
-    /* ------------------------------------------
-       CANNOT DELETE SELF
-    ------------------------------------------ */
-
     if (userId === req.authUser._id.toString()) {
       return res.status(400).json({
         success: false,
         message: "You cannot delete your own account.",
       });
     }
-
-
-    /* ------------------------------------------
-       FIND TARGET USER
-    ------------------------------------------ */
 
     const user = await User.findById(userId);
 
@@ -533,6 +512,16 @@ export const deleteUser = async (req, res) => {
       });
     }
 
+    /* ------------------------------------------
+       SUPER ADMIN CANNOT BE DELETED
+    ------------------------------------------ */
+
+    if (user.role === "super_admin") {
+      return res.status(403).json({
+        success: false,
+        message: "Super Admin accounts cannot be deleted.",
+      });
+    }
 
     /* ------------------------------------------
        PROTECTION CHECK
@@ -541,22 +530,13 @@ export const deleteUser = async (req, res) => {
     if (!actorCanManageTarget(req.authUser, user)) {
       return res.status(403).json({
         success: false,
-        message: "You are not allowed to delete this user.",
+        message: "You are not authorized to delete this user.",
       });
     }
 
-
-    /* ------------------------------------------
-       SOFT DELETE
-    ------------------------------------------ */
-
     user.status = "deleted";
+    user.tokenVersion = (user.tokenVersion || 0) + 1;
     await user.save();
-
-
-    /* ------------------------------------------
-       AUDIT LOG
-    ------------------------------------------ */
 
     await createAuditLog({
       req,
@@ -576,7 +556,6 @@ export const deleteUser = async (req, res) => {
       approvalStatus: "not_required",
     });
 
-
     return res.status(200).json({
       success: true,
       message: "User deactivated successfully.",
@@ -591,7 +570,6 @@ export const deleteUser = async (req, res) => {
     });
   }
 };
-
 
 /* ==========================================
    ASSIGN ROLE TO USER
@@ -618,7 +596,6 @@ export const assignRoleToUser = async (req, res) => {
       });
     }
 
-
     /* ------------------------------------------
        PROTECTION CHECK
     ------------------------------------------ */
@@ -626,7 +603,7 @@ export const assignRoleToUser = async (req, res) => {
     if (!actorCanManageTarget(req.authUser, user)) {
       return res.status(403).json({
         success: false,
-        message: "You are not allowed to modify this user's role.",
+        message: "You are not authorized to modify this user's role.",
       });
     }
 
@@ -639,20 +616,17 @@ export const assignRoleToUser = async (req, res) => {
       });
     }
 
-
-    /* ------------------------------------------
-       CAPTURE BEFORE STATE
-    ------------------------------------------ */
+    if (!actorCanAssignRole(req.authUser, role)) {
+      return res.status(403).json({
+        success: false,
+        message: "You are not authorized to assign this role.",
+      });
+    }
 
     const before = {
       roleId: user.roleId,
       role: user.role,
     };
-
-
-    /* ------------------------------------------
-       ASSIGN ROLE + COPY PERMISSIONS
-    ------------------------------------------ */
 
     user.roleId = roleId;
 
@@ -664,13 +638,9 @@ export const assignRoleToUser = async (req, res) => {
 
     user.permissions = role.permissions || [];
     user.allowedPages = role.allowedPages || [];
+    user.tokenVersion = (user.tokenVersion || 0) + 1;
 
     await user.save();
-
-
-    /* ------------------------------------------
-       AUDIT LOG
-    ------------------------------------------ */
 
     await createAuditLog({
       req,
@@ -689,7 +659,6 @@ export const assignRoleToUser = async (req, res) => {
       approvalStatus: "not_required",
     });
 
-
     const updatedUser = await User.findById(userId)
       .select("-passwordHash")
       .populate("roleId", "name description isSystemRole systemRole");
@@ -706,6 +675,82 @@ export const assignRoleToUser = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Failed to assign role.",
+    });
+  }
+};
+
+/* ==========================================
+   RESET USER PASSWORD (ADMIN / SUPER ADMIN)
+========================================== */
+
+export const resetUserPassword = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { newPassword } = req.body;
+
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found.",
+      });
+    }
+
+    /* ------------------------------------------
+       HIERARCHY CHECK
+       - Super Admin can reset anyone's password.
+       - Admin can reset custom role users.
+       - Admin CANNOT reset Super Admin or other Admins.
+    ------------------------------------------ */
+
+    if (!actorCanManageTarget(req.authUser, user)) {
+      return res.status(403).json({
+        success: false,
+        message: "You are not authorized to reset this user's password.",
+      });
+    }
+
+    // Generate secure temporary password if not provided
+    const generatedPassword = newPassword && newPassword.length >= 8
+      ? newPassword
+      : `College@${crypto.randomBytes(4).toString("hex").toUpperCase()}`;
+
+    const passwordHash = await bcrypt.hash(generatedPassword, 12);
+    user.passwordHash = passwordHash;
+    user.tokenVersion = (user.tokenVersion || 0) + 1; // Invalidate all active sessions
+
+    await user.save();
+
+    /* ------------------------------------------
+       AUDIT LOG (Never log passwords)
+    ------------------------------------------ */
+
+    await createAuditLog({
+      req,
+      actor: req.authUser,
+      resourceType: "user",
+      resourceId: user._id,
+      resourceName: user.email,
+      action: "PASSWORD_RESET",
+      before: null,
+      after: { passwordReset: true },
+      approvalRequired: false,
+      approvalStatus: "not_required",
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Password reset successfully.",
+      temporaryPassword: generatedPassword,
+    });
+
+  } catch (error) {
+    console.error("RESET USER PASSWORD ERROR:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to reset password.",
     });
   }
 };

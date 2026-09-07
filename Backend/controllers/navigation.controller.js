@@ -2,12 +2,22 @@ import NavigationMenu from "../models/NavigationMenu.js";
 import NavigationItem from "../models/NavigationItem.js";
 import Page from "../models/Page.js";
 
+// In-Memory Fast Cache for public navigation
+let serverNavCache = null;
+
+export const clearServerNavigationCache = () => {
+  serverNavCache = null;
+};
+
 /**
  * GET /api/navigation
  * Returns all active menus and navigation items
  */
 export const getNavigation = async (req, res) => {
   try {
+    if (serverNavCache) {
+      return res.json(serverNavCache);
+    }
 
     const menus = await NavigationMenu.find({
       isActive: true,
@@ -22,12 +32,6 @@ export const getNavigation = async (req, res) => {
       .sort({ order: 1 })
       .lean();
 
-      console.log("Menus");
-console.log(menus);
-
-console.log("Items");
-console.log(items);
-
     const navigation = menus.map((menu) => ({
       ...menu,
       children: items.filter(
@@ -35,6 +39,7 @@ console.log(items);
       ),
     }));
 
+    serverNavCache = navigation;
     res.json(navigation);
 
   } catch (error) {
@@ -103,6 +108,8 @@ export const deleteChild = async (req, res) => {
     // Delete navigation item
     await NavigationItem.findByIdAndDelete(req.params.id);
 
+    clearServerNavigationCache();
+
     res.json({
       success: true,
     });
@@ -160,6 +167,8 @@ export const reorderChild = async (req, res) => {
 
     await current.save();
     await swapWith.save();
+
+    clearServerNavigationCache();
 
     res.json({
       success: true,
@@ -223,6 +232,8 @@ export const createMenu = async (req, res) => {
       showInNavbar,
     });
 
+    clearServerNavigationCache();
+
     res.status(201).json(menu);
 
   } catch (error) {
@@ -255,6 +266,8 @@ export const updateMenu = async (req, res) => {
     menu.showInNavbar = req.body.showInNavbar;
 
     await menu.save();
+
+    clearServerNavigationCache();
 
     res.json(menu);
 
@@ -298,6 +311,8 @@ export const deleteMenu = async (req, res) => {
 }
 
     await menu.deleteOne();
+
+    clearServerNavigationCache();
 
     res.json({
       success: true,
@@ -362,6 +377,8 @@ export const reorderMenu = async (req, res) => {
     await current.save();
     await swapWith.save();
 
+    clearServerNavigationCache();
+
     res.json({
       success: true,
     });
@@ -400,7 +417,7 @@ export const toggleChildVisibility = async (req, res) => {
 
     try {
       await child.save();
-      console.log("Saved successfully");
+      clearServerNavigationCache();
     } catch (err) {
       console.error("SAVE ERROR");
       console.error(err);
@@ -442,6 +459,8 @@ export const updateChild = async (req, res) => {
     child.isActive = req.body.isActive;
 
     await child.save();
+
+    clearServerNavigationCache();
 
     res.json({
       success: true,

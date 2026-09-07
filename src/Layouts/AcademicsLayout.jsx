@@ -16,7 +16,7 @@ const AcademicsLayout = () => {
   useEffect(() => {
 
     fetch(
-      "http://localhost:5000/api/pages/sidebar/academics"
+      "/api/pages/sidebar/academics"
     )
       .then((res) => res.json())
 

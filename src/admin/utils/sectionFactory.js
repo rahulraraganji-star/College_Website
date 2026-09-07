@@ -98,6 +98,14 @@ export const createSection = (type) => {
         events: [],
       };
 
+    case "organogram":
+      return {
+        id: generateSectionId(),
+        type: "organogram",
+        title: "Institutional Organogram",
+        subheading: "Hierarchical governance and operational reporting structure.",
+      };
+
     case "embed":
       return {
         id: generateSectionId(),

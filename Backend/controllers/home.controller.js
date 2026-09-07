@@ -1,6 +1,14 @@
 import Page from "../models/page.js";
 import { createApprovalRequest } from "../services/approvalService.js";
+import { clearServerPageCache } from "./pages.controller.js";
 
+
+// In-Memory Fast Cache for Home Page
+let cachedHome = null;
+
+export const clearHomeCache = () => {
+  cachedHome = null;
+};
 
 /* ==========================================
    GET HOME
@@ -9,6 +17,10 @@ import { createApprovalRequest } from "../services/approvalService.js";
 
 export const getHome = async (req, res) => {
   try {
+    if (cachedHome) {
+      return res.status(200).json(cachedHome);
+    }
+
     const home = await Page.findOne({
       slug: "home",
     }).lean();
@@ -20,6 +32,7 @@ export const getHome = async (req, res) => {
       });
     }
 
+    cachedHome = home;
     return res.status(200).json(home);
 
   } catch (error) {
@@ -39,14 +52,7 @@ export const getHome = async (req, res) => {
 
 export const updateHome = async (req, res) => {
   try {
-    console.log("========== UPDATE HOME ==========");
-
     const incomingSections = req.body?.sections;
-
-    console.log(
-      "Incoming sections:",
-      JSON.stringify(incomingSections, null, 2)
-    );
 
     /* ------------------------------------------
        VALIDATE
@@ -114,10 +120,7 @@ export const updateHome = async (req, res) => {
 
     const canPublishDirectly =
       req.authUser.role === "super_admin" ||
-      req.authUser.role === "admin" ||
-      (req.authUser.permissions || []).includes(
-        "pages.publish"
-      );
+      req.authUser.role === "admin";
 
     console.log(
       "CAN PUBLISH DIRECTLY:",
@@ -200,8 +203,11 @@ export const updateHome = async (req, res) => {
     ========================================== */
 
     existingHome.sections = mergedSections;
+    existingHome.markModified("sections");
 
     await existingHome.save();
+    clearServerPageCache();
+    cachedHome = null;
 
     /* ------------------------------------------
        GET FRESH DATA
@@ -210,14 +216,6 @@ export const updateHome = async (req, res) => {
     const freshHome = await Page.findOne({
       slug: "home",
     }).lean();
-
-    console.log(
-      "========== HOME AFTER UPDATE =========="
-    );
-
-    console.log(
-      JSON.stringify(freshHome, null, 2)
-    );
 
     return res.status(200).json({
       success: true,

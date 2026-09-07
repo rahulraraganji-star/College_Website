@@ -1,21 +1,33 @@
 import DashboardCard from "./DashboardCard";
 
-const LargestContent = () => {
+const LargestContent = ({ stats, loading }) => {
+  const largestFile = stats?.largestContent?.largestFile || {
+    name: "Exam_Schedule_2026.pdf",
+    size: "4.2 MB",
+  };
+
+  const largestDoc = stats?.largestContent?.largestDoc || {
+    name: "NAAC_Self_Study_Report.pdf",
+    size: "8.5 MB",
+  };
+
+  const totalPages = stats?.pages?.total || 12;
+
   const items = [
     {
-      label: "Largest Page",
-      name: "IQAC Report",
-      value: "3.2 MB",
+      label: "Largest Document / PDF",
+      name: largestDoc.name || "Academic Prospectus.pdf",
+      value: largestDoc.size || "8.5 MB",
     },
     {
-      label: "Largest Gallery",
-      name: "Convocation 2025",
-      value: "348 imgs",
+      label: "Largest Media Asset",
+      name: largestFile.name || "Campus_Hero_Banner.jpg",
+      value: largestFile.size || "3.8 MB",
     },
     {
-      label: "Largest PDF",
-      name: "Prospectus 2026",
-      value: "42 MB",
+      label: "Published Pages",
+      name: `${totalPages} Active CMS Pages`,
+      value: `${stats?.pages?.published || totalPages} live`,
     },
   ];
 
@@ -30,18 +42,18 @@ const LargestContent = () => {
             key={item.label}
             className="flex items-center justify-between py-3"
           >
-            <div>
-              <p className="text-sm font-medium text-gray-900">
+            <div className="min-w-0 pr-4">
+              <p className="text-sm font-medium text-gray-900 truncate">
                 {item.label}
               </p>
 
-              <p className="text-xs text-gray-400 mt-1">
-                {item.name}
+              <p className="text-xs text-gray-400 mt-0.5 truncate font-mono">
+                {loading ? "..." : item.name}
               </p>
             </div>
 
-            <span className="text-sm font-semibold text-gray-900">
-              {item.value}
+            <span className="text-sm font-semibold text-gray-900 shrink-0">
+              {loading ? "..." : item.value}
             </span>
           </div>
         ))}

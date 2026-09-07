@@ -1,21 +1,39 @@
+import mongoose from "mongoose";
 import Page from "../models/page.js";
 import NavigationItem from "../models/NavigationItem.js";
 import { createApprovalRequest } from "../services/approvalService.js";
+import { clearServerNavigationCache } from "./navigation.controller.js";
+
+// In-Memory Fast Cache for public page reads
+const serverPageCache = new Map();
+const serverSidebarCache = new Map();
+
+export const clearServerPageCache = () => {
+  serverPageCache.clear();
+  serverSidebarCache.clear();
+  clearServerNavigationCache();
+};
 
 export const getPageBySlug = async (req, res) => {
   try {
+    const slug = req.params.slug;
+    if (serverPageCache.has(slug)) {
+      return res.json(serverPageCache.get(slug));
+    }
+
     const page = await Page.findOne({
-      slug: req.params.slug,
+      slug,
       $or: [
         { isPublished: true },
         { isPublished: { $exists: false } }
       ],
-    });
+    }).lean();
 
     if (!page) {
       return res.status(404).json({ message: "Page not found" });
     }
 
+    serverPageCache.set(slug, page);
     res.json(page);
   } catch (error) {
     console.error(error);
@@ -29,9 +47,7 @@ export const getAllPages = async (req, res) => {
     const allowedPages =
       req.authUser?.allowedPages || [];
 
-    let query = {
-      isPublished: true,
-    };
+    let query = {};
 
     /* ------------------------------------------
        RESTRICT BY EFFECTIVE USER PAGE SCOPE
@@ -41,15 +57,18 @@ export const getAllPages = async (req, res) => {
       allowedPages.length > 0 &&
       !allowedPages.includes("*")
     ) {
-      query.parentSlug = {
-        $in: allowedPages,
-      };
+      query.$or = [
+        { parentSlug: { $in: allowedPages } },
+        { slug: { $in: allowedPages } },
+      ];
     }
 
     const pages = await Page.find(query)
+      .select("title slug parentSlug template isPublished createdAt updatedAt")
       .sort({
         createdAt: -1,
-      });
+      })
+      .lean();
 
     res.json(pages);
 
@@ -65,16 +84,23 @@ export const getAllPages = async (req, res) => {
 
 export const getPagesByParent = async (req, res) => {
   try {
+    const parentSlug = req.params.parentSlug;
+    if (serverSidebarCache.has(parentSlug)) {
+      return res.json(serverSidebarCache.get(parentSlug));
+    }
+
     const pages = await Page.find({
-      parentSlug: req.params.parentSlug,
+      parentSlug,
       $or: [
         { isPublished: true },
         { isPublished: { $exists: false } },
       ],
     })
       .select("title slug parentSlug")
-      .sort({ createdAt: 1 });
+      .sort({ createdAt: 1 })
+      .lean();
 
+    serverSidebarCache.set(parentSlug, pages);
     res.json(pages);
   } catch (error) {
     console.error(error);
@@ -90,6 +116,7 @@ export const createPage = async (req, res) => {
     const page = new Page(req.body);
 
     await page.save();
+    clearServerPageCache();
 
     // Automatically create a navigation child
     if (page.parentSlug) {
@@ -138,7 +165,16 @@ export const updatePage = async (req, res) => {
        FIND EXISTING PAGE
     ========================================== */
 
-    const page = await Page.findById(req.params.id);
+    const idOrSlug = req.params.id;
+    let page = null;
+
+    if (mongoose.Types.ObjectId.isValid(idOrSlug)) {
+      page = await Page.findById(idOrSlug);
+    }
+
+    if (!page) {
+      page = await Page.findOne({ slug: idOrSlug });
+    }
 
     if (!page) {
       return res.status(404).json({
@@ -163,8 +199,7 @@ export const updatePage = async (req, res) => {
 
     const canPublishDirectly =
       req.authUser.role === "super_admin" ||
-      req.authUser.role === "admin" ||
-      (req.authUser.permissions || []).includes("pages.publish");
+      req.authUser.role === "admin";
 
     if (!canPublishDirectly) {
 
@@ -230,6 +265,7 @@ export const updatePage = async (req, res) => {
       });
     }
 
+    clearServerPageCache();
 
     /* ==========================================
        UPDATE NAVIGATION ITEM
@@ -272,7 +308,16 @@ export const updatePage = async (req, res) => {
 
 export const deletePage = async (req, res) => {
   try {
-    const page = await Page.findByIdAndDelete(req.params.id);
+    const idOrSlug = req.params.id;
+    let page = null;
+
+    if (mongoose.Types.ObjectId.isValid(idOrSlug)) {
+      page = await Page.findByIdAndDelete(idOrSlug);
+    }
+
+    if (!page) {
+      page = await Page.findOneAndDelete({ slug: idOrSlug });
+    }
 
     if (!page) {
       return res.status(404).json({
@@ -281,10 +326,16 @@ export const deletePage = async (req, res) => {
       });
     }
 
+    clearServerPageCache();
+
     // Delete corresponding navigation item
-    await NavigationItem.findOneAndDelete({
-      pageId: page._id,
-    });
+    try {
+      await NavigationItem.findOneAndDelete({
+        pageId: page._id,
+      });
+    } catch (navErr) {
+      console.warn("NavigationItem cleanup warning:", navErr);
+    }
 
     res.status(200).json({
       success: true,
@@ -292,18 +343,27 @@ export const deletePage = async (req, res) => {
     });
 
   } catch (error) {
-    console.error(error);
+    console.error("DELETE PAGE ERROR:", error);
 
     res.status(500).json({
       success: false,
-      message: "Server Error",
+      message: error.message || "Server Error",
     });
   }
 };
 
 export const togglePublishPage = async (req, res) => {
   try {
-    const page = await Page.findById(req.params.id);
+    const idOrSlug = req.params.id;
+    let page = null;
+
+    if (mongoose.Types.ObjectId.isValid(idOrSlug)) {
+      page = await Page.findById(idOrSlug);
+    }
+
+    if (!page) {
+      page = await Page.findOne({ slug: idOrSlug });
+    }
 
     if (!page) {
       return res.status(404).json({
@@ -315,12 +375,17 @@ export const togglePublishPage = async (req, res) => {
     page.isPublished = !page.isPublished;
 
     await page.save();
+    clearServerPageCache();
 
     // Update navigation item active status to match page
-    await NavigationItem.findOneAndUpdate(
-      { pageId: page._id },
-      { isActive: page.isPublished }
-    );
+    try {
+      await NavigationItem.findOneAndUpdate(
+        { pageId: page._id },
+        { isActive: page.isPublished }
+      );
+    } catch (navErr) {
+      console.warn("NavigationItem update warning:", navErr);
+    }
 
     res.status(200).json({
       success: true,
@@ -330,18 +395,27 @@ export const togglePublishPage = async (req, res) => {
       page,
     });
   } catch (error) {
-    console.error(error);
+    console.error("TOGGLE PUBLISH ERROR:", error);
 
     res.status(500).json({
       success: false,
-      message: "Server Error",
+      message: error.message || "Server Error",
     });
   }
 };
 
 export const getPageById = async (req, res) => {
   try {
-    const page = await Page.findById(req.params.id);
+    const idOrSlug = req.params.id;
+    let page = null;
+
+    if (mongoose.Types.ObjectId.isValid(idOrSlug)) {
+      page = await Page.findById(idOrSlug);
+    }
+
+    if (!page) {
+      page = await Page.findOne({ slug: idOrSlug });
+    }
 
     if (!page) {
       return res.status(404).json({

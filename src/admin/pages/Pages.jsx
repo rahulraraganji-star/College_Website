@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import PageActionsMenu from "../components/PageActionsMenu";
 import ConfirmModal from "../components/ConfirmModal";
 import Toast from "../components/Toast";
+import LoadingScreen from "../../Components/LoadingScreen";
 import {
   ChevronDown,
   ChevronUp,
@@ -53,7 +54,7 @@ const Pages = () => {
   const [collapsedGroups, setCollapsedGroups] = useState({});
 
   useEffect(() => {
-    fetch("http://localhost:5000/api/pages", {
+    fetch("/api/pages", {
   credentials: "include",
 })
       .then((res) => res.json())
@@ -74,7 +75,7 @@ const Pages = () => {
       setIsDeleting(true);
 
      const response = await fetch(
-  `http://localhost:5000/api/pages/${selectedPage._id}`,
+  `/api/pages/${selectedPage._id}`,
   {
     method: "DELETE",
     credentials: "include",
@@ -132,7 +133,7 @@ const Pages = () => {
 const handleTogglePublish = async (page) => {
   try {
     const response = await fetch(
-  `http://localhost:5000/api/pages/${page._id}/publish`,
+  `/api/pages/${page._id}/publish`,
   {
     method: "PATCH",
     credentials: "include",
@@ -225,32 +226,22 @@ const handleTogglePublish = async (page) => {
     );
 
   if (loading) {
-    return (
-      <div
-        className="flex items-center justify-center py-32 text-neutral-400 text-sm tracking-wide"
-        style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
-      >
-        <span className="flex items-center gap-3">
-          <span className="w-4 h-4 rounded-full border-2 border-neutral-300 border-t-black animate-spin" />
-          Loading pages…
-        </span>
-      </div>
-    );
+    return <LoadingScreen fullScreen={false} text="Loading pages..." />;
   }
 
   return (
-    <div style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+    <div style={{ fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" }}>
       {/* HEADER */}
       <div className="flex items-center justify-between mb-10 pb-6 border-b border-neutral-200">
         <div>
           <h1
-            className="text-[32px] text-black tracking-tight"
-            style={{ fontFamily: "'Fraunces', serif", fontWeight: 700 }}
+            className="text-[28px] text-black tracking-tight font-extrabold"
+            style={{ fontFamily: "'Inter', sans-serif", fontWeight: 800 }}
           >
             Pages
           </h1>
 
-          <p className="text-neutral-500 mt-1.5 text-[14.5px]">
+          <p className="text-neutral-500 mt-1.5 text-[14px]">
             Manage website pages
           </p>
         </div>
@@ -285,11 +276,22 @@ const handleTogglePublish = async (page) => {
         </button>
       </div>
 
-      {/* GROUPS */}
-      <div className="space-y-5">
-        {Object.entries(groupedPages).map(
-          ([parent, items]) => {
-            const GroupIcon = getGroupIcon(parent);
+      {/* GROUPS OR EMPTY STATE */}
+      {Object.keys(groupedPages).length === 0 ? (
+        <div className="rounded-2xl border border-neutral-200 bg-white p-12 text-center">
+          <p className="text-neutral-500 text-sm">No pages found in this section.</p>
+          <Link
+            to="/admin/pages/create"
+            className="mt-4 inline-flex items-center gap-2 rounded-xl bg-black px-4 py-2.5 text-xs font-semibold text-white hover:bg-neutral-800 transition"
+          >
+            ＋ Create First Page
+          </Link>
+        </div>
+      ) : (
+        <div className="space-y-5">
+          {Object.entries(groupedPages).map(
+            ([parent, items]) => {
+              const GroupIcon = getGroupIcon(parent);
 
             return (
               <div
@@ -346,7 +348,13 @@ const handleTogglePublish = async (page) => {
                           </p>
                         </div>
 
-                        <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-3">
+                          {page.template === "courses" && (
+                            <span className="inline-flex items-center rounded-full bg-neutral-100 border border-neutral-200 px-2.5 py-1 text-[11px] font-semibold text-neutral-800">
+                              Courses
+                            </span>
+                          )}
+
                           <span
                             className={`inline-flex items-center rounded-full border px-3 py-1.5 text-[11px] font-semibold tracking-wide transition
     ${page.isPublished
@@ -382,9 +390,9 @@ const handleTogglePublish = async (page) => {
                 )}
               </div>
             );
-          }
-        )}
-      </div>
+          })}
+        </div>
+      )}
 
       <ConfirmModal
         open={showDeleteModal}

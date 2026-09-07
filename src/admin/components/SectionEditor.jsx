@@ -5,6 +5,7 @@ import GalleryEditor from "../editors/GalleryEditor";
 import FacultyGridEditor from "../editors/FacultyGridEditor";
 import TableEditor from "../editors/TableEditor";
 import EmbedEditor from "../editors/EmbedEditor";
+import OrganogramSectionEditor from "../editors/OrganogramSectionEditor";
 
 const SectionEditor = (props) => {
 
@@ -76,6 +77,9 @@ const SectionEditor = (props) => {
 
     case "embed":
       return <EmbedEditor {...props} />;
+
+    case "organogram":
+      return <OrganogramSectionEditor {...props} />;
 
     default:
       return null;

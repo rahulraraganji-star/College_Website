@@ -59,6 +59,7 @@ const SectionCard = ({
       faculty: "Faculty",
       timeline: "Timeline",
       table: "Table",
+      organogram: "Organogram",
       layout: "Layout",
       list: "List",
       grid: "Grid",

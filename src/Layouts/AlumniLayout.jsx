@@ -17,7 +17,7 @@ const AlumniLayout = () => {
   useEffect(() => {
 
     fetch(
-      "http://localhost:5000/api/pages/sidebar/alumni"
+      "/api/pages/sidebar/alumni"
     )
       .then((res) => res.json())
 

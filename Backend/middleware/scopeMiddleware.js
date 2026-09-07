@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import Page from "../models/page.js";
 
 /* ==========================================
@@ -85,16 +86,20 @@ export const requirePageAccessFromPage = async (
     }
 
 
-    /* ------------------------------------------
-       FIND PAGE
-    ------------------------------------------ */
+    const idOrSlug = req.params.id;
+    let page = null;
 
-    const page = await Page.findById(
-      req.params.id
-    ).select(
-      "_id parentSlug slug title"
-    );
+    if (mongoose.Types.ObjectId.isValid(idOrSlug)) {
+      page = await Page.findById(idOrSlug).select(
+        "_id parentSlug slug title"
+      );
+    }
 
+    if (!page) {
+      page = await Page.findOne({ slug: idOrSlug }).select(
+        "_id parentSlug slug title"
+      );
+    }
 
     if (!page) {
       return res.status(404).json({
@@ -135,8 +140,11 @@ export const requirePageAccessFromPage = async (
 
     const allowedPages = getEffectiveAllowedPages(req);
     const scopeToCheck = page.parentSlug || page.slug;
+    const hasScope =
+      (page.parentSlug && allowedPages.includes(page.parentSlug)) ||
+      (page.slug && allowedPages.includes(page.slug));
 
-    if (!allowedPages.includes(scopeToCheck)) {
+    if (!hasScope) {
       return res.status(403).json({
         success: false,
         message:
@@ -182,20 +190,7 @@ export const requirePageAccessFromBody = async (
 
 
     /* ------------------------------------------
-       ROOT / NO PARENT
-    ------------------------------------------ */
-
-    if (!pageScope) {
-      return res.status(403).json({
-        success: false,
-        message:
-          "A page scope (parentSlug) is required to create this page.",
-      });
-    }
-
-
-    /* ------------------------------------------
-       SUPER ADMIN BYPASS
+       AUTH & SUPER ADMIN BYPASS
     ------------------------------------------ */
 
     if (!req.authUser) {
@@ -206,8 +201,20 @@ export const requirePageAccessFromBody = async (
     }
 
     if (isSuperAdmin(req)) {
-      req.pageScope = pageScope;
+      req.pageScope = pageScope || req.body?.slug || "root";
       return next();
+    }
+
+    /* ------------------------------------------
+       ROOT / NO PARENT (FOR NON-SUPERADMIN)
+    ------------------------------------------ */
+
+    if (!pageScope) {
+      return res.status(403).json({
+        success: false,
+        message:
+          "A page scope (parentSlug) is required to create this page.",
+      });
     }
 
 

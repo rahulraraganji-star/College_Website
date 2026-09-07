@@ -1,31 +1,37 @@
+import { useNavigate } from "react-router-dom";
 import DashboardCard from "./DashboardCard";
 
-const Problems = () => {
+const Problems = ({ stats, loading }) => {
+  const navigate = useNavigate();
+
+  const draftPages = stats?.problems?.draftPages ?? stats?.pages?.draft ?? 0;
+  const pendingApprovals = stats?.problems?.pendingApprovals ?? stats?.approvals?.pending ?? 0;
+  const unmappedFiles = stats?.problems?.unmappedFiles ?? 0;
+  const dbDisconnected = stats?.health?.dbConnected === false;
+
   const problems = [
     {
-      label: "Missing Images",
-      count: 2,
-      status: "warning",
+      label: "Draft Pages (Unpublished)",
+      count: draftPages,
+      status: draftPages > 0 ? "warning" : "success",
+      route: "/admin/pages",
     },
     {
-      label: "Broken PDF",
-      count: 1,
-      status: "error",
+      label: "Pending Approvals",
+      count: pendingApprovals,
+      status: pendingApprovals > 0 ? "warning" : "success",
+      route: "/admin/approvals",
     },
     {
-      label: "Empty Galleries",
-      count: 4,
-      status: "warning",
+      label: "Unmapped Legacy URLs",
+      count: unmappedFiles,
+      status: unmappedFiles > 0 ? "warning" : "success",
+      route: "/admin/link-manager",
     },
     {
-      label: "Draft Pages",
-      count: 3,
-      status: "neutral",
-    },
-    {
-      label: "Broken Links",
-      count: 0,
-      status: "success",
+      label: "Database Connection Issues",
+      count: dbDisconnected ? 1 : 0,
+      status: dbDisconnected ? "error" : "success",
     },
   ];
 
@@ -36,17 +42,20 @@ const Problems = () => {
     success: "bg-green-600",
   };
 
+  const totalIssues = (draftPages > 0 ? 1 : 0) + (pendingApprovals > 0 ? 1 : 0) + (unmappedFiles > 0 ? 1 : 0) + (dbDisconnected ? 1 : 0);
+
   return (
     <DashboardCard
-      eyebrow="Problems"
-      action="Auto-checked"
+      eyebrow="Problems & Actions"
+      action={totalIssues === 0 ? "All clear" : `${totalIssues} attention items`}
       className="min-h-[230px]"
     >
       <div className="divide-y divide-gray-200">
         {problems.map((problem) => (
           <div
             key={problem.label}
-            className="flex items-center gap-3 py-3"
+            onClick={() => problem.route && navigate(problem.route)}
+            className={`flex items-center gap-3 py-3 ${problem.route ? "cursor-pointer hover:bg-gray-50/80 -mx-2 px-2 rounded-lg transition-colors" : ""}`}
           >
             {/* STATUS DOT */}
             <span
@@ -54,26 +63,27 @@ const Problems = () => {
             />
 
             {/* NAME */}
-            <span className="flex-1 text-sm text-gray-900">
+            <span className="flex-1 text-sm text-gray-900 font-medium truncate">
               {problem.label}
             </span>
 
             {/* COUNT */}
             <span
-              className="
+              className={`
                 flex
                 items-center
                 justify-center
-                w-6
+                min-w-6
                 h-6
+                px-1.5
                 rounded-full
                 border
-                border-gray-300
                 text-[11px]
-                text-gray-700
-              "
+                font-semibold
+                ${problem.count > 0 ? "border-amber-300 bg-amber-50 text-amber-900" : "border-gray-200 text-gray-400 bg-white"}
+              `}
             >
-              {problem.count}
+              {loading ? "..." : problem.count}
             </span>
 
             {/* ARROW */}

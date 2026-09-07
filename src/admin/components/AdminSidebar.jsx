@@ -8,10 +8,11 @@ import { useAuth } from "../auth/AuthContext";
  * - Super Admin: sees everything (permissions includes "*")
  * - Admin: sees items matching their permissions
  * - Dept Editor: sees only their pages + workspace
+ * - All authenticated users have access to My Account
  */
 
 const AdminSidebar = () => {
-  const { user, hasPermission, hasPageAccess, logout } = useAuth();
+  const { user, hasPermission, logout } = useAuth();
   const navigate = useNavigate();
 
   const isSuperAdmin = user?.role === "super_admin";
@@ -30,7 +31,7 @@ const AdminSidebar = () => {
   const navGroups = [
 
     // ------------------------------------------
-    // OVERVIEW — admin/super_admin only
+    // OVERVIEW
     // ------------------------------------------
     {
       label: "Overview",
@@ -47,6 +48,12 @@ const AdminSidebar = () => {
           end: true,
           show: isDeptEditor,
         },
+        {
+          to: "/admin/account",
+          label: "My Account",
+          end: true,
+          show: true,
+        },
       ],
     },
 
@@ -61,7 +68,6 @@ const AdminSidebar = () => {
           label: "Home Page",
           show: hasPermission("pages.edit") && (
             isSuperAdmin || isAdmin ||
-            // Dept editor: show if they have any home section access
             (user?.allowedPages || []).some((p) => p === "home" || p.startsWith("home:"))
           ),
         },
@@ -79,6 +85,25 @@ const AdminSidebar = () => {
     },
 
     // ------------------------------------------
+    // WEBSITE
+    // ------------------------------------------
+    {
+      label: "Website",
+      items: [
+        {
+          to: "/admin/header",
+          label: "Header",
+          show: isSuperAdmin || isAdmin || hasPermission("settings.view") || hasPermission("settings.edit"),
+        },
+        {
+          to: "/admin/footer",
+          label: "Footer",
+          show: isSuperAdmin || isAdmin || hasPermission("settings.view") || hasPermission("settings.edit"),
+        },
+      ],
+    },
+
+    // ------------------------------------------
     // STRUCTURE
     // ------------------------------------------
     {
@@ -88,6 +113,16 @@ const AdminSidebar = () => {
           to: "/admin/navigation",
           label: "Navigation",
           show: hasPermission("navigation.view"),
+        },
+        {
+          to: "/admin/organogram",
+          label: "Organogram",
+          show: hasPermission("organogram.view"),
+        },
+        {
+          to: "/admin/link-manager",
+          label: "Link Manager",
+          show: hasPermission("link_manager.view"),
         },
       ],
     },
@@ -134,77 +169,107 @@ const AdminSidebar = () => {
 
   return (
     <aside
-      className="w-64 min-h-screen bg-black text-neutral-300 flex flex-col antialiased"
-      style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+      className="w-64 min-h-screen bg-black text-neutral-300 flex flex-col antialiased overflow-hidden"
+      style={{
+        fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
+      }}
     >
+      <style>{`
+        .sidebar-minimal-scroll::-webkit-scrollbar {
+          width: 4px;
+        }
+        .sidebar-minimal-scroll::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        .sidebar-minimal-scroll::-webkit-scrollbar-thumb {
+          background: rgba(255, 255, 255, 0.2);
+          border-radius: 9999px;
+        }
+        .sidebar-minimal-scroll::-webkit-scrollbar-thumb:hover {
+          background: rgba(255, 255, 255, 0.45);
+        }
+        .sidebar-minimal-scroll::-webkit-scrollbar-button {
+          display: none;
+        }
+        .sidebar-minimal-scroll {
+          scrollbar-width: thin;
+          scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+        }
+      `}</style>
+
       {/* Brand */}
-      <div className="flex items-center gap-3 px-5 py-6">
+      <div className="flex items-center gap-3 px-5 py-5 border-b border-neutral-900">
         <div
-          className="w-9 h-9 rounded-full border border-neutral-600 flex items-center justify-center text-[15px] text-white"
-          style={{ fontFamily: "'Fraunces', serif", fontWeight: 600 }}
+          className="w-9 h-9 rounded-full border border-neutral-600 flex items-center justify-center text-[13px] font-bold text-white font-mono"
+          style={{ fontFamily: "'IBM Plex Mono', monospace" }}
         >
           C
         </div>
         <span
-          className="text-white text-[17px] tracking-tight"
-          style={{ fontFamily: "'Fraunces', serif", fontWeight: 600 }}
+          className="text-white text-[16px] font-extrabold tracking-tight"
+          style={{ fontFamily: "'Inter', sans-serif" }}
         >
-          CMS
+          College CMS
         </span>
       </div>
 
-      {/* Nav groups */}
-      <nav className="flex-1 px-3 flex flex-col gap-7 mt-3">
-        {navGroups.map((group) => {
-          const visibleItems = group.items.filter((item) => item.show);
+      {/* Nav groups with minimal scrollbar and bottom fade cue */}
+      <div className="relative flex-1 flex flex-col min-h-0">
+        <nav className="sidebar-minimal-scroll flex-1 px-3 flex flex-col gap-4 py-3 overflow-y-auto">
+          {navGroups.map((group) => {
+            const visibleItems = group.items.filter((item) => item.show);
 
-          if (visibleItems.length === 0) return null;
+            if (visibleItems.length === 0) return null;
 
-          return (
-            <div key={group.label}>
-              <p className="px-3 mb-2 text-[10.5px] font-bold uppercase tracking-[0.12em] text-neutral-400">
-                {group.label}
-              </p>
-              <div className="flex flex-col gap-0.5">
-                {visibleItems.map((item) => (
-                  <NavLink
-                    key={item.to}
-                    to={item.to}
-                    end={item.end}
-                    className={({ isActive }) =>
-                      [
-                        "flex items-center gap-3 px-3 py-2.5 rounded-md text-[14.5px] transition-colors",
-                        isActive
-                          ? "bg-white/10 text-white font-semibold"
-                          : "text-neutral-300 font-medium hover:bg-white/5 hover:text-white",
-                      ].join(" ")
-                    }
-                  >
-                    {({ isActive }) => (
-                      <>
-                        <span
-                          className={[
-                            "w-1.5 h-1.5 rounded-full flex-shrink-0",
-                            isActive ? "bg-white" : "bg-neutral-500",
-                          ].join(" ")}
-                        />
-                        <span className="flex-1">{item.label}</span>
-                      </>
-                    )}
-                  </NavLink>
-                ))}
+            return (
+              <div key={group.label}>
+                <p className="px-3 mb-1.5 text-[10.5px] font-bold uppercase tracking-[0.12em] text-neutral-400">
+                  {group.label}
+                </p>
+                <div className="flex flex-col gap-0.5">
+                  {visibleItems.map((item) => (
+                    <NavLink
+                      key={item.to}
+                      to={item.to}
+                      end={item.end}
+                      className={({ isActive }) =>
+                        [
+                          "flex items-center gap-3 px-3 py-1.5 rounded-md text-[13.5px] transition-colors",
+                          isActive
+                            ? "bg-white/10 text-white font-semibold"
+                            : "text-neutral-300 font-medium hover:bg-white/5 hover:text-white",
+                        ].join(" ")
+                      }
+                    >
+                      {({ isActive }) => (
+                        <>
+                          <span
+                            className={[
+                              "w-1.5 h-1.5 rounded-full flex-shrink-0",
+                              isActive ? "bg-white" : "bg-neutral-500",
+                            ].join(" ")}
+                          />
+                          <span className="flex-1">{item.label}</span>
+                        </>
+                      )}
+                    </NavLink>
+                  ))}
+                </div>
               </div>
-            </div>
-          );
-        })}
-      </nav>
+            );
+          })}
+        </nav>
+
+        {/* Subtle bottom fade cue */}
+        <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-6 bg-gradient-to-t from-black to-transparent opacity-80" />
+      </div>
 
       {/* Footer — logout */}
       <div className="px-3 py-4 border-t border-neutral-800">
         <button
           type="button"
           onClick={handleLogout}
-          className="w-full flex items-center gap-2 px-3 py-2.5 rounded-md text-[13px] text-neutral-400 font-medium hover:bg-white/5 hover:text-white transition-colors"
+          className="w-full flex items-center gap-2 px-3 py-2 rounded-md text-[13px] text-neutral-400 font-medium hover:bg-white/5 hover:text-white transition-colors"
         >
           <span>⎋</span>
           <span>Sign Out</span>

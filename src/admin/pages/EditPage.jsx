@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import DynamicPageEditor from "../components/DynamicPageEditor";
+import CoursesEditor from "../editors/CoursesEditor";
 import AddSectionModal from "../components/AddSectionModal";
 import { createSection } from "../utils/sectionFactory";
 
@@ -66,6 +67,7 @@ const EditPage = () => {
   const navigate = useNavigate();
 
   const [page, setPage] = useState(null);
+  const [menus, setMenus] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showSectionModal, setShowSectionModal] = useState(false);
   const [saveStatus, setSaveStatus] = useState("idle"); // idle | saving | saved
@@ -79,25 +81,31 @@ const EditPage = () => {
       ? JSON.stringify(page) !== savedSnapshotRef.current
       : false;
 
-  // FETCH PAGE
+  // FETCH PAGE & MENUS
   useEffect(() => {
-    const fetchPage = async () => {
+    const fetchData = async () => {
       try {
-        const res = await fetch(
-          `http://localhost:5000/api/pages/id/${id}`,
-          {
-            credentials: "include", // ✅ FIXED: Send cookie
-          }
-        );
+        const [pageRes, menusRes] = await Promise.all([
+          fetch(`/api/pages/id/${id}`, {
+            credentials: "include",
+          }),
+          fetch(`/api/navigation/admin`, {
+            credentials: "include",
+          }).catch(() => null),
+        ]);
 
-        if (!res.ok) {
+        if (!pageRes.ok) {
           throw new Error("Failed to fetch page");
         }
 
-        const data = await res.json();
-
+        const data = await pageRes.json();
         setPage(data);
         savedSnapshotRef.current = JSON.stringify(data);
+
+        if (menusRes && menusRes.ok) {
+          const menuData = await menusRes.json();
+          setMenus(Array.isArray(menuData) ? menuData : []);
+        }
       } catch (error) {
         console.error(error);
       } finally {
@@ -105,7 +113,7 @@ const EditPage = () => {
       }
     };
 
-    fetchPage();
+    fetchData();
   }, [id]);
 
   // WARN BEFORE LEAVING WITH UNSAVED CHANGES
@@ -150,16 +158,16 @@ const EditPage = () => {
 
   // UPDATE PAGE
   const handleSubmit = async (e) => {
-    e.preventDefault();
+    if (e && typeof e.preventDefault === "function") e.preventDefault();
 
     setSaveStatus("saving");
 
     try {
       const response = await fetch(
-        `http://localhost:5000/api/pages/${id}`,
+        `/api/pages/${id}`,
         {
           method: "PUT",
-          credentials: "include", // ✅ FIXED: Send cookie
+          credentials: "include", // ✅ Send cookie
           headers: {
             "Content-Type": "application/json",
           },
@@ -167,21 +175,36 @@ const EditPage = () => {
         }
       );
 
+      const data = await response.json();
+
       if (!response.ok) {
-        throw new Error("Failed to update page");
+        throw new Error(data?.message || "Failed to update page");
       }
 
-      const updatedPage = await response.json();
+      if (data?.approvalRequired) {
+        setSaveStatus("saved");
+        alert(data.message || "Your changes have been submitted for Admin approval.");
+        savedSnapshotRef.current = JSON.stringify(page);
+        setTimeout(() => setSaveStatus("idle"), 2500);
+        return;
+      }
 
-      setPage(updatedPage);
-      savedSnapshotRef.current = JSON.stringify(updatedPage);
+      // Handle both direct page object and { page: updatedPage } envelope
+      const updatedPage = data?.page || data;
+
+      if (updatedPage && typeof updatedPage === "object") {
+        setPage(updatedPage);
+        savedSnapshotRef.current = JSON.stringify(updatedPage);
+      } else {
+        savedSnapshotRef.current = JSON.stringify(page);
+      }
 
       setSaveStatus("saved");
-      setTimeout(() => setSaveStatus("idle"), 2000);
+      setTimeout(() => setSaveStatus("idle"), 2500);
     } catch (error) {
-      console.error(error);
+      console.error("Save Page Error:", error);
       setSaveStatus("idle");
-      alert("Failed to update page");
+      alert(error.message || "Failed to update page");
     }
   };
 
@@ -194,22 +217,25 @@ const EditPage = () => {
     setIsDeleting(true);
 
     try {
+      const targetId = page?._id || id;
       const response = await fetch(
-        `http://localhost:5000/api/pages/${id}`,
+        `/api/pages/${targetId}`,
         {
           method: "DELETE",
           credentials: "include", // ✅ FIXED: Send cookie
         }
       );
 
+      const data = await response.json().catch(() => ({}));
+
       if (!response.ok) {
-        throw new Error("Failed to delete page");
+        throw new Error(data.message || "Failed to delete page");
       }
 
-      navigate("/pages");
+      navigate("/admin/pages");
     } catch (error) {
       console.error(error);
-      alert("Failed to delete page");
+      alert(error.message || "Failed to delete page");
       setIsDeleting(false);
     }
   };
@@ -226,6 +252,23 @@ const EditPage = () => {
     );
   }
 
+  // ==========================================
+  // SPECIALIZED COURSES EDITOR
+  // ==========================================
+  if (page.template === "courses") {
+    return (
+      <div className="max-w-[1400px] mx-auto">
+        <CoursesEditor
+          page={page}
+          setPage={setPage}
+          onSave={handleSubmit}
+          saveStatus={saveStatus}
+          menus={menus}
+        />
+      </div>
+    );
+  }
+
   const sectionCount = page.sections?.length || 0;
 
   return (
@@ -233,15 +276,15 @@ const EditPage = () => {
       {/* HEADER */}
       <div className="flex items-center justify-between mb-8 pb-6 border-b border-gray-200">
         <div>
-          <div className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1">
+          <p className="text-xs font-semibold uppercase tracking-[0.15em] text-neutral-400 mb-1">
             Pages
-          </div>
-          <h1 className="text-2xl font-semibold text-gray-900">
+          </p>
+          <h1 className="text-[28px] font-extrabold text-black tracking-tight">
             Edit Page
           </h1>
 
           {/* PAGE METADATA */}
-          <div className="flex items-center flex-wrap gap-x-2 gap-y-1 mt-2 text-[12px] text-gray-400">
+          <div className="flex items-center flex-wrap gap-x-2 gap-y-1 mt-1.5 text-[14px] text-neutral-500">
             <span>
               /{page.slug || "—"}
             </span>

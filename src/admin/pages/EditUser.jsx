@@ -3,7 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import CreateRoleModal from "../components/CreateRoleModal";
 import { useAuth } from "../auth/AuthContext";
 
-const API_URL = "http://localhost:5000/api";
+const API_URL = "/api";
 
 const EditUser = () => {
   const { userId } = useParams();
@@ -184,10 +184,9 @@ const EditUser = () => {
     );
   }
 
-  // isProtected = true only when a NON-super_admin is trying to edit a super_admin account.
-  // Super Admin can edit anyone (including other super admins and themselves).
+  // isProtected = true when a non-super_admin tries to edit a super_admin or admin
   const isProtected =
-    user?.role === "super_admin" &&
+    (user?.role === "super_admin" || user?.role === "admin") &&
     currentUser?.role !== "super_admin";
 
 
@@ -207,13 +206,13 @@ const EditUser = () => {
           ← Users
         </button>
 
-        <p className="text-xs uppercase tracking-[0.2em] text-gray-400">
+        <p className="text-xs font-semibold uppercase tracking-[0.15em] text-neutral-400 mb-1">
           Users & Access
         </p>
-        <h1 className="mt-2 text-2xl font-semibold text-gray-900">
+        <h1 className="text-[28px] font-extrabold text-black tracking-tight">
           Edit User
         </h1>
-        <p className="mt-1 text-sm text-gray-500">
+        <p className="text-[14px] text-neutral-500 mt-1.5">
           {user.name} · {user.email}
         </p>
       </div>
@@ -313,11 +312,19 @@ const EditUser = () => {
                     className={inputClass}
                   >
                     <option value="">No role assigned</option>
-                    {roles.map((role) => (
-                      <option key={role._id} value={role._id}>
-                        {role.name}
-                      </option>
-                    ))}
+                    {roles
+                      .filter((r) => {
+                        if (currentUser?.role !== "super_admin") {
+                          return r.systemRole !== "super_admin" && r.slug !== "super-admin";
+                        }
+                        return true;
+                      })
+                      .map((role) => (
+                        <option key={role._id} value={role._id}>
+                          {role.name}
+                          {role.isSystemRole ? " (System Role)" : ""}
+                        </option>
+                      ))}
                   </select>
                 )}
               </FormField>

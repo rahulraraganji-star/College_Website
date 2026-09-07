@@ -88,7 +88,7 @@ const NavigationManager = () => {
   const loadNavigation = async () => {
     try {
       const res = await fetch(
-        "http://localhost:5000/api/navigation/admin",
+        "/api/navigation/admin",
         {
           credentials: "include", // ADDED
         }
@@ -130,7 +130,7 @@ const NavigationManager = () => {
 
     try {
       await fetch(
-        `http://localhost:5000/api/navigation/child/${deleteTarget._id}`,
+        `/api/navigation/child/${deleteTarget._id}`,
         {
           method: "DELETE",
           credentials: "include", // ADDED
@@ -153,7 +153,7 @@ const NavigationManager = () => {
       setIsDeletingMenu(true);
 
       const res = await fetch(
-        `http://localhost:5000/api/navigation/menu/${selectedMenu._id}`,
+        `/api/navigation/menu/${selectedMenu._id}`,
         {
           method: "DELETE",
           credentials: "include", // ADDED
@@ -208,7 +208,7 @@ const NavigationManager = () => {
   const reorderMenu = async (id, direction) => {
     try {
       const res = await fetch(
-        `http://localhost:5000/api/navigation/menu/${id}/reorder`,
+        `/api/navigation/menu/${id}/reorder`,
         {
           method: "PATCH",
           credentials: "include", // ADDED
@@ -236,7 +236,7 @@ const NavigationManager = () => {
   const reorderChild = async (id, direction) => {
     try {
       await fetch(
-        `http://localhost:5000/api/navigation/child/${id}/reorder`,
+        `/api/navigation/child/${id}/reorder`,
         {
           method: "PATCH",
           credentials: "include", // ADDED
@@ -264,7 +264,7 @@ const NavigationManager = () => {
   const saveChild = async (form) => {
     try {
       const res = await fetch(
-        `http://localhost:5000/api/navigation/child/${editingChild._id}`,
+        `/api/navigation/child/${editingChild._id}`,
         {
           method: "PATCH",
           credentials: "include", // ADDED
@@ -328,8 +328,8 @@ const NavigationManager = () => {
 
     try {
       const url = editingMenu
-        ? `http://localhost:5000/api/navigation/menu/${editingMenu._id}`
-        : "http://localhost:5000/api/navigation/menu";
+        ? `/api/navigation/menu/${editingMenu._id}`
+        : "/api/navigation/menu";
 
       const method = editingMenu ? "PATCH" : "POST";
 
@@ -446,7 +446,7 @@ const NavigationManager = () => {
     return (
       <div
         className="flex items-center justify-center py-32 text-neutral-400 text-sm tracking-wide"
-        style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+        style={{ fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" }}
       >
         <span className="flex items-center gap-3">
           <span className="w-4 h-4 rounded-full border-2 border-neutral-300 border-t-black animate-spin" />
@@ -458,18 +458,18 @@ const NavigationManager = () => {
 
   return (
     <>
-      <div style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+      <div style={{ fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" }}>
         {/* HEADER */}
         <div className="flex items-center justify-between mb-10 pb-6 border-b border-neutral-200">
           <div>
             <h1
-              className="text-[32px] text-black tracking-tight"
-              style={{ fontFamily: "'Fraunces', serif", fontWeight: 700 }}
+              className="text-[28px] text-black tracking-tight font-extrabold"
+              style={{ fontFamily: "'Inter', sans-serif", fontWeight: 800 }}
             >
               Navigation
             </h1>
 
-            <p className="text-neutral-500 mt-1.5 text-[14.5px]">
+            <p className="text-neutral-500 mt-1.5 text-[14px]">
               Manage navbar menus and their pages
             </p>
           </div>
@@ -707,11 +707,11 @@ const NavigationManager = () => {
           <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50">
             <div
               className="bg-white rounded-2xl p-7 w-[450px] shadow-[0_20px_70px_-15px_rgba(0,0,0,0.3)] ring-1 ring-black/5"
-              style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+              style={{ fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" }}
             >
               <h2
-                className="text-xl text-black tracking-tight mb-6"
-                style={{ fontFamily: "'Fraunces', serif", fontWeight: 700 }}
+                className="text-xl text-black tracking-tight mb-6 font-bold"
+                style={{ fontFamily: "'Inter', sans-serif", fontWeight: 700 }}
               >
                 {editingMenu
                   ? "Edit Navigation Menu"

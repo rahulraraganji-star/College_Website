@@ -22,7 +22,7 @@ const CreateUserOverlay = ({ onClose }) => {
         setRolesError("");
 
         const response = await fetch(
-          "http://localhost:5000/api/roles",
+          "/api/roles",
           {
             credentials: "include",
           }

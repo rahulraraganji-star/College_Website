@@ -107,6 +107,11 @@ const mediaSchema = new mongoose.Schema(
   }
 );
 
+/* Indexes for high performance media lookups and filtering */
+mediaSchema.index({ createdAt: -1 });
+mediaSchema.index({ folder: 1 });
+mediaSchema.index({ type: 1 });
+
 export default mongoose.model(
   "Media",
   mediaSchema

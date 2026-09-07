@@ -1,5 +1,8 @@
 import Page from "../models/page.js";
 import NavigationItem from "../models/NavigationItem.js";
+import OrganogramNode from "../models/OrganogramNode.js";
+import { clearOrganogramCache } from "../controllers/organogram.controller.js";
+import { clearServerPageCache } from "../controllers/pages.controller.js";
 
 
 /* ==========================================
@@ -96,20 +99,20 @@ const applyHomeChange = async (approval) => {
     ? home.sections.toObject()
     : home.sections || {};
 
-  home.sections = {
+  const mergedSections = {
     ...existingSections,
     ...after.sections,
   };
 
-  await home.save();
+  const updatedHome = await Page.findByIdAndUpdate(
+    resourceId,
+    {
+      $set: { sections: mergedSections },
+    },
+    { new: true }
+  ).lean();
 
-
-  /* ------------------------------------------
-     RETURN FRESH HOME
-  ------------------------------------------ */
-
-  const updatedHome =
-    await Page.findById(resourceId).lean();
+  clearServerPageCache();
 
   return updatedHome;
 };
@@ -172,7 +175,7 @@ const applyPageChange = async (approval) => {
       });
     }
 
-
+    clearServerPageCache();
     return page;
   }
 
@@ -224,7 +227,7 @@ const applyPageChange = async (approval) => {
       }
     );
 
-
+    clearServerPageCache();
     return updatedPage;
   }
 
@@ -262,7 +265,7 @@ const applyPageChange = async (approval) => {
       resourceId
     );
 
-
+    clearServerPageCache();
     return page;
   }
 
@@ -270,6 +273,70 @@ const applyPageChange = async (approval) => {
   throw new Error(
     `Unsupported page action: ${action}`
   );
+};
+
+
+/* ==========================================
+   APPLY ORGANOGRAM CHANGE
+========================================== */
+
+const applyOrganogramChange = async (approval) => {
+  const { resourceId, action, after } = approval;
+
+  /* ------------------------------------------
+     CREATE NODE
+  ------------------------------------------ */
+  if (action === "create") {
+    const nodeData = sanitizeData(after);
+    const node = await OrganogramNode.create(nodeData);
+    clearOrganogramCache();
+    return node;
+  }
+
+  /* ------------------------------------------
+     UPDATE NODE
+  ------------------------------------------ */
+  if (action === "update") {
+    if (!resourceId) {
+      throw new Error("Organogram resourceId is required for update.");
+    }
+    const nodeData = sanitizeData(after);
+    const updatedNode = await OrganogramNode.findByIdAndUpdate(
+      resourceId,
+      { $set: nodeData },
+      { new: true, runValidators: true }
+    );
+    if (!updatedNode) {
+      throw new Error("Organogram position to update was not found.");
+    }
+    clearOrganogramCache();
+    return updatedNode;
+  }
+
+  /* ------------------------------------------
+     DELETE NODE
+  ------------------------------------------ */
+  if (action === "delete") {
+    if (!resourceId) {
+      throw new Error("Organogram resourceId is required for delete.");
+    }
+    const node = await OrganogramNode.findById(resourceId);
+    if (!node) {
+      throw new Error("Organogram position to delete was not found.");
+    }
+
+    const reassignTo = after?.reassignTo || node.parent || null;
+    await OrganogramNode.updateMany(
+      { parent: resourceId },
+      { $set: { parent: reassignTo } }
+    );
+
+    await OrganogramNode.findByIdAndDelete(resourceId);
+    clearOrganogramCache();
+    return node;
+  }
+
+  throw new Error(`Unsupported organogram action: ${action}`);
 };
 
 
@@ -300,6 +367,13 @@ export const applyApprovedChange = async (
     case "home":
 
       return await applyHomeChange(
+        approval
+      );
+
+
+    case "organogram":
+
+      return await applyOrganogramChange(
         approval
       );
 

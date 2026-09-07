@@ -1,8 +1,9 @@
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useAuth } from "../auth/AuthContext";
+import LoadingScreen from "../../Components/LoadingScreen";
 
-const API_URL = "http://localhost:5000/api";
+const API_URL = "/api";
 
 // ==========================================
 // SCOPE → DISPLAY LABEL
@@ -70,26 +71,22 @@ const WorkspaceDashboard = () => {
   const canSubmit         = hasPermission("approvals.submit");
 
   if (loading) {
-    return (
-      <div className="py-20 text-center text-sm text-neutral-400">
-        Loading workspace...
-      </div>
-    );
+    return <LoadingScreen fullScreen={false} text="Loading workspace..." />;
   }
 
   return (
     <div className="max-w-[860px] mx-auto px-6 lg:px-8 py-10"
-      style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+      style={{ fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" }}>
 
       {/* HEADER */}
       <div className="mb-8 pb-6 border-b border-neutral-200">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-neutral-400">
+        <p className="text-xs font-semibold uppercase tracking-[0.15em] text-neutral-400 mb-1">
           My Workspace
         </p>
-        <h1 className="mt-2 text-2xl font-semibold text-neutral-900">
+        <h1 className="text-[28px] font-extrabold text-black tracking-tight">
           Welcome back, {user?.name?.split(" ")[0]}
         </h1>
-        <p className="mt-1 text-sm text-neutral-500">
+        <p className="text-[14px] text-neutral-500 mt-1.5">
           {user?.roleId?.name || "CMS User"}
           {myPages.length > 0
             ? ` · ${myPages.length} resource${myPages.length !== 1 ? "s" : ""} assigned`

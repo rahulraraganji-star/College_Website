@@ -139,7 +139,9 @@ const userSchema = new mongoose.Schema(
       enum: [
         "pending",
         "active",
+        "inactive",
         "suspended",
+        "deleted",
       ],
       default: "pending",
     },
@@ -147,6 +149,11 @@ const userSchema = new mongoose.Schema(
     emailVerified: {
       type: Boolean,
       default: false,
+    },
+
+    tokenVersion: {
+      type: Number,
+      default: 0,
     },
 
     // ==========================================
@@ -168,6 +175,9 @@ const userSchema = new mongoose.Schema(
     timestamps: true,
   }
 );
+
+/* Index for fast active user and role queries */
+userSchema.index({ status: 1, role: 1 });
 
 export default mongoose.models.User ||
   mongoose.model("User", userSchema);

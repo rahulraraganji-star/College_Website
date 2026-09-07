@@ -1,15 +1,19 @@
 const ConfirmModal = ({
-  open,
+  open = true,
   title,
   message,
-  confirmText = "Confirm",
+  confirmText,
+  confirmLabel,
   cancelText = "Cancel",
   confirmColor = "bg-red-600 hover:bg-red-700",
   loading = false,
   onConfirm,
   onCancel,
 }) => {
-  if (!open) return null;
+  if (open === false) return null;
+
+  const displayConfirmText =
+    confirmText || confirmLabel || (loading ? "Deleting..." : "Confirm");
 
   return (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm">
@@ -24,7 +28,7 @@ const ConfirmModal = ({
 
         {/* Body */}
         <div className="px-6 py-5">
-          <p className="leading-relaxed text-gray-600">
+          <p className="leading-relaxed text-gray-600 whitespace-pre-line">
             {message}
           </p>
         </div>
@@ -47,7 +51,7 @@ const ConfirmModal = ({
             onClick={onConfirm}
             className={`rounded-lg px-5 py-2 text-white transition disabled:cursor-not-allowed disabled:opacity-50 ${confirmColor}`}
           >
-            {loading ? "Deleting..." : confirmText}
+            {loading ? "Deleting..." : displayConfirmText}
           </button>
 
         </div>

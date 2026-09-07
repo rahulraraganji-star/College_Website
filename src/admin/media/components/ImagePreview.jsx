@@ -38,8 +38,13 @@ const ImagePreview = ({
 
   }
 
-  return (
+  const displayUrl = typeof image === "string" ? image : image?.url;
+  const displayName =
+    typeof image === "string"
+      ? image.split("/").pop()?.split("?")[0] || "Selected Image"
+      : image?.filename || image?.originalName || image?.alt || "Selected Image";
 
+  return (
     <div
       className="
         border
@@ -50,29 +55,22 @@ const ImagePreview = ({
         shadow-sm
       "
     >
-
       {/* IMAGE */}
-
       <div className="aspect-video bg-gray-100">
-
         <img
-          src={image.url}
-          alt={image.alt || image.filename}
+          src={displayUrl}
+          alt={displayName}
           className="
             w-full
             h-full
             object-cover
           "
         />
-
       </div>
 
       {/* INFO */}
-
       <div className="p-4 space-y-2">
-
         <div>
-
           <h4
             className="
               font-medium
@@ -80,26 +78,24 @@ const ImagePreview = ({
               truncate
             "
           >
-
-            {image.filename}
-
+            {displayName}
           </h4>
 
           <p className="text-sm text-gray-500">
-
-            {image.width &&
-              image.height &&
+            {image?.width &&
+              image?.height &&
               `${image.width} × ${image.height}`}
 
-            {image.width &&
-              image.height &&
-              image.size &&
+            {image?.width &&
+              image?.height &&
+              image?.size &&
               " • "}
 
-            {image.size}
-
+            {image?.size &&
+              (typeof image.size === "number"
+                ? `${(image.size / 1024 / 1024).toFixed(2)} MB`
+                : image.size)}
           </p>
-
         </div>
 
         {/* ACTIONS */}

@@ -1,5 +1,6 @@
 import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { useAuth } from "./AuthContext";
+import LoadingScreen from "../../Components/LoadingScreen";
 
 /**
  * ProtectedRoute
@@ -7,21 +8,16 @@ import { useAuth } from "./AuthContext";
  * Usage:
  *   <ProtectedRoute />                        — any authenticated user
  *   <ProtectedRoute permission="users.view" /> — requires specific permission
+ *   <ProtectedRoute anyPermission={["pages.view", "pages.edit"]} /> — requires at least one of the permissions
  *   <ProtectedRoute roles={["super_admin","admin"]} /> — requires system role
  */
-const ProtectedRoute = ({ permission = null, roles = null }) => {
-  const { user, loading, hasPermission } = useAuth();
+const ProtectedRoute = ({ permission = null, anyPermission = null, roles = null }) => {
+  const { user, loading, hasPermission, hasAnyPermission } = useAuth();
   const location = useLocation();
 
   // Still checking authentication
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-neutral-50">
-        <div className="text-sm text-neutral-500">
-          Checking authentication...
-        </div>
-      </div>
-    );
+    return <LoadingScreen text="Checking authentication..." />;
   }
 
   // Not authenticated → login
@@ -43,6 +39,14 @@ const ProtectedRoute = ({ permission = null, roles = null }) => {
   // Permission check
   if (permission && !hasPermission(permission)) {
     return <AccessDenied />;
+  }
+
+  // Any permission check
+  if (anyPermission && Array.isArray(anyPermission) && anyPermission.length > 0) {
+    const hasAny = anyPermission.some((perm) => hasPermission(perm));
+    if (!hasAny) {
+      return <AccessDenied />;
+    }
   }
 
   return <Outlet />;

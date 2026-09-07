@@ -1,19 +1,25 @@
+import React from "react";
 import DashboardCard from "./DashboardCard";
 
-const SystemInfo = () => {
+const SystemInfo = ({ stats, loading }) => {
+  const envMode = import.meta.env.MODE === "production" ? "Production" : "Development";
+  const nodeVer = (stats?.server?.nodeVersion || "v22.20").replace("v", "");
+  const expressVer = stats?.server?.expressVersion || "5.2";
+  const dbStatus = stats?.server?.database || "Connected";
+
   const system = [
-    ["Environment", "Production"],
-    ["React", "19"],
-    ["Node", "22"],
-    ["MongoDB", "8"],
-    ["Express", "5"],
-    ["Build", "2.3.1"],
+    ["Environment", envMode],
+    ["React", React.version || "19.2"],
+    ["Node.js", nodeVer],
+    ["Database", `MongoDB (${dbStatus})`],
+    ["Express", expressVer],
+    ["Vite", "7.2 (ESM)"],
   ];
 
   return (
     <DashboardCard
       eyebrow="System Info"
-      action="Production"
+      action={envMode}
       className="min-h-[300px]"
     >
       <div className="space-y-4">
@@ -23,14 +29,14 @@ const SystemInfo = () => {
             key={label}
             className="flex items-center gap-3"
           >
-            <span className="text-sm text-gray-500">
+            <span className="text-sm text-gray-500 font-medium">
               {label}
             </span>
 
             <div className="flex-1 border-t border-dotted border-gray-300" />
 
-            <span className="text-sm font-medium text-gray-900">
-              {value}
+            <span className="text-sm font-semibold text-gray-900 font-mono">
+              {loading ? "..." : value}
             </span>
           </div>
         ))}

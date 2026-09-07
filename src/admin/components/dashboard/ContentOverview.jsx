@@ -1,25 +1,36 @@
 import DashboardCard from "./DashboardCard";
 
-const ContentOverview = () => {
-  const stats = [
-    { value: 186, label: "Pages" },
-    { value: 170, label: "Published" },
-    { value: 16, label: "Draft" },
-    { value: 2812, label: "Media" },
-    { value: 521, label: "Documents" },
-    { value: 1927, label: "Gallery Images" },
-    { value: 43, label: "Events" },
-    { value: 61, label: "Menu Items" },
+const ContentOverview = ({ stats, loading }) => {
+  const pagesTotal = stats?.pages?.total ?? 0;
+  const published = stats?.pages?.published ?? 0;
+  const draft = stats?.pages?.draft ?? 0;
+  const mediaTotal = stats?.media?.total ?? 0;
+  const docs = stats?.media?.documents ?? 0;
+  const images = stats?.media?.images ?? 0;
+  const menuItems = stats?.navigation?.items ?? stats?.navigation?.menus ?? 0;
+  const users = stats?.users?.total ?? 0;
+
+  const statItems = [
+    { value: pagesTotal, label: "Pages" },
+    { value: published, label: "Published" },
+    { value: draft, label: "Draft" },
+    { value: mediaTotal, label: "Media Files" },
+    { value: docs, label: "Documents & PDFs" },
+    { value: images, label: "Gallery Images" },
+    { value: menuItems, label: "Menu Items" },
+    { value: users, label: "Active Users" },
   ];
+
+  const collectionsCount = stats?.collections?.length || 7;
 
   return (
     <DashboardCard
       eyebrow="Content Overview"
-      action="7 collections"
+      action={`${collectionsCount} collections`}
       className="min-h-[425px]"
     >
       <div className="grid grid-cols-2">
-        {stats.map((stat, index) => (
+        {statItems.map((stat, index) => (
           <div
             key={stat.label}
             className={`
@@ -29,7 +40,7 @@ const ContentOverview = () => {
             `}
           >
             <div className="text-2xl font-semibold tracking-tight text-gray-900">
-              {stat.value.toLocaleString()}
+              {loading ? "..." : (stat.value ?? 0).toLocaleString()}
             </div>
 
             <div className="mt-1 text-xs text-gray-500">

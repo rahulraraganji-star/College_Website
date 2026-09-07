@@ -28,6 +28,8 @@ const GalleryImage = ({ image, index, onClick }) => {
         <img
           src={image.media.url}
           alt={image.alt || image.media?.alt || ""}
+          loading="lazy"
+          decoding="async"
           className="w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.04]"
         />
       </div>
@@ -63,6 +65,8 @@ const GalleryGrid = ({ images, onImageClick }) => {
           <img
             src={image.media?.url}
             alt={image.alt || image.media?.alt || ""}
+            loading="lazy"
+            decoding="async"
             className="w-full h-80 lg:h-96 object-cover transition-transform duration-700 ease-out group-hover:scale-[1.04]"
           />
           {(image.caption || image.alt) && (

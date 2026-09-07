@@ -203,8 +203,11 @@ const MediaLibrary = () => {
       {/* PAGE HEADER */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold">Media Library</h1>
-          <p className="text-gray-500 mt-1">
+          <p className="text-xs font-semibold uppercase tracking-[0.15em] text-neutral-400 mb-1">
+            Media
+          </p>
+          <h1 className="text-[28px] font-extrabold text-black tracking-tight">Media Library</h1>
+          <p className="text-[14px] text-neutral-500 mt-1.5">
             Manage images, documents and videos.
           </p>
         </div>

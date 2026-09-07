@@ -3,23 +3,23 @@ import Page from "../models/page.js";
 import {
   PERMISSION_GROUPS,
 } from "../constants/permissions.js";
-
+import {
+  canGrantPermission,
+  canGrantScope,
+} from "../utils/authorization.js";
 
 // ==========================================
 // HOME PAGE SECTION SCOPES
-// These map 1:1 to the sections inside
-// HomePageEditor. They are always available.
 // ==========================================
 
 const HOME_SECTION_SCOPES = [
-  { key: "home:hero",           label: "Hero Banner" },
+  { key: "home:hero",          label: "Hero Banner" },
   { key: "home:eventsMarquee", label: "Events Marquee" },
   { key: "home:notices",       label: "Notices" },
   { key: "home:heroSection2",  label: "Learning Spaces" },
   { key: "home:eventsSection", label: "Events Section" },
   { key: "home:coreStrengths", label: "Core Strengths" },
 ];
-
 
 // ==========================================
 // FORMAT SLUG → READABLE LABEL
@@ -31,43 +31,14 @@ const formatSlug = (slug) =>
     .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
     .join(" ");
 
-
 // ==========================================
 // GET ACCESS DEFINITIONS
-//
-// Returns scopes structured as groups so
-// the frontend can render an expandable tree:
-//
-// {
-//   groups: [
-//     {
-//       key: "home",
-//       label: "Home Page",
-//       type: "home",
-//       children: [
-//         { key: "home:hero", label: "Hero Banner" },
-//         ...
-//       ]
-//     },
-//     {
-//       key: "about-us",
-//       label: "About Us",
-//       type: "page",
-//       children: [
-//         { key: "about-us/history", label: "History" },
-//         ...
-//       ]
-//     },
-//     ...
-//   ]
-// }
 // ==========================================
 
-export const getAccessDefinitions = async (
-  req,
-  res
-) => {
+export const getAccessDefinitions = async (req, res) => {
   try {
+    const actorRole = req.authRole;
+    const isSuper = req.authUser?.role === "super_admin" || actorRole?.systemRole === "super_admin";
 
     /* ------------------------------------------
        1. LOAD ALL PUBLISHED PAGES
@@ -76,7 +47,6 @@ export const getAccessDefinitions = async (
     const allPages = await Page.find({
       isPublished: true,
     }).select("slug parentSlug title").lean();
-
 
     /* ------------------------------------------
        2. SEPARATE TOP-LEVEL AND CHILD PAGES
@@ -90,7 +60,6 @@ export const getAccessDefinitions = async (
       (p) => p.parentSlug && p.parentSlug !== ""
     );
 
-    // Build a map: parentSlug → child pages
     const childrenByParent = {};
     for (const child of childPages) {
       if (!childrenByParent[child.parentSlug]) {
@@ -99,32 +68,26 @@ export const getAccessDefinitions = async (
       childrenByParent[child.parentSlug].push(child);
     }
 
-
     /* ------------------------------------------
        3. BUILD GROUPS
-
-       Order:
-         a) Home Page (always first, special)
-         b) Top-level pages (excluding "home")
-         c) Any orphan parentSlugs in DB that
-            don't have a matching top-level page
     ------------------------------------------ */
 
-    // a) Home group
     const homeGroup = {
       key: "home",
       label: "Home Page",
       type: "home",
-      children: HOME_SECTION_SCOPES,
+      children: isSuper
+        ? HOME_SECTION_SCOPES
+        : HOME_SECTION_SCOPES.filter((s) => canGrantScope(actorRole, s.key)),
     };
 
-    // b) Top-level DB pages (excluding "home")
     const pageGroups = topLevelPages
       .filter((p) => p.slug !== "home")
       .sort((a, b) => (a.slug > b.slug ? 1 : -1))
       .map((page) => {
         const children = (childrenByParent[page.slug] || [])
           .sort((a, b) => (a.slug > b.slug ? 1 : -1))
+          .filter((child) => isSuper || canGrantScope(actorRole, child.slug))
           .map((child) => ({
             key: child.slug,
             label: child.title || formatSlug(child.slug),
@@ -134,12 +97,11 @@ export const getAccessDefinitions = async (
           key: page.slug,
           label: page.title || formatSlug(page.slug),
           type: "page",
-          // Also allow selecting the whole top-level page
           children,
         };
-      });
+      })
+      .filter((g) => isSuper || canGrantScope(actorRole, g.key) || g.children.length > 0);
 
-    // c) Orphan parent slugs (pages whose parent page doesn't exist as a published top-level page)
     const knownTopLevelSlugs = new Set([
       "home",
       ...topLevelPages.map((p) => p.slug),
@@ -157,22 +119,38 @@ export const getAccessDefinitions = async (
         type: "page",
         children: childrenByParent[parentSlug]
           .sort((a, b) => (a.slug > b.slug ? 1 : -1))
+          .filter((child) => isSuper || canGrantScope(actorRole, child.slug))
           .map((child) => ({
             key: child.slug,
             label: child.title || formatSlug(child.slug),
           })),
-      }));
+      }))
+      .filter((g) => isSuper || canGrantScope(actorRole, g.key) || g.children.length > 0);
 
-    const groups = [homeGroup, ...pageGroups, ...orphanGroups];
-
+    const groups = [homeGroup, ...pageGroups, ...orphanGroups].filter(
+      (g) => g.children.length > 0 || isSuper || canGrantScope(actorRole, g.key)
+    );
 
     /* ------------------------------------------
-       4. ALSO RETURN FLAT SCOPES
-       (kept for backward compatibility with any
-        code that still reads scopes[].key)
+       4. FILTER PERMISSION GROUPS BY DELEGATION
     ------------------------------------------ */
 
-    const scopes = [
+    const filteredPermissionGroups = PERMISSION_GROUPS.map((group) => {
+      const allowedPermissions = isSuper
+        ? group.permissions
+        : group.permissions.filter((p) => canGrantPermission(actorRole, p.key));
+
+      return {
+        ...group,
+        permissions: allowedPermissions,
+      };
+    }).filter((group) => group.permissions.length > 0);
+
+    /* ------------------------------------------
+       5. FLAT SCOPES
+    ------------------------------------------ */
+
+    const flatScopes = [
       ...HOME_SECTION_SCOPES,
       ...topLevelPages
         .filter((p) => p.slug !== "home")
@@ -181,13 +159,12 @@ export const getAccessDefinitions = async (
         key: p.slug,
         label: `${formatSlug(p.parentSlug)} > ${p.title || formatSlug(p.slug)}`,
       })),
-    ];
-
+    ].filter((s) => isSuper || canGrantScope(actorRole, s.key));
 
     return res.status(200).json({
       success: true,
-      permissions: PERMISSION_GROUPS,
-      scopes,
+      permissions: filteredPermissionGroups,
+      scopes: flatScopes,
       groups,
     });
 

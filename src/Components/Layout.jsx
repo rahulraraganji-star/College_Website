@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
 import Header from "./Header";
 import Footer from "./Footer";
+import LoadingScreen from "./LoadingScreen";
 
 const Layout = ({ children }) => {
   const [settings, setSettings] = useState(null);
 
   useEffect(() => {
-    fetch("http://localhost:5000/api/settings")
+    fetch("/api/settings")
       .then((res) => res.json())
       .then((data) => {
         console.log("SETTINGS:", data); // DEBUG
@@ -16,7 +17,7 @@ const Layout = ({ children }) => {
   }, []);
 
   // 🚨 VERY IMPORTANT
-  if (!settings) return <div>Loading layout...</div>;
+  if (!settings) return <LoadingScreen text="Loading College Portal..." />;
 
   return (
     <>

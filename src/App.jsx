@@ -20,18 +20,29 @@ import HomePageTemplate from "./Components/HomePageTemplate";
 
 /* DYNAMIC */
 import DynamicPage from "./Pages/DynamicPage";
-import DynamicLayout from "./Layouts/DynamicLayout";
+
+/* COURSES */
+import CoursesDirectory from "./Components/Courses/CoursesDirectory";
 
 /* REUSABLE LAYOUT */
 import SectionLayout from "./Layouts/SectionLayout";
 import SectionRedirect from "./Layouts/SectionRedirect";
 
-/* PREMIUM CUSTOM LAYOUTS */
-import AboutLayout from "./Layouts/AboutLayout";
-import AdministrationLayout from "./Layouts/AdministrationLayout";
-
 /* ADMIN */
 import AdminRoutes from "./admin/routes/AdminRoutes";
+
+/* LEGACY RESOLVER / 404 */
+import LegacyResolverFallback from "./Components/LegacyResolverFallback";
+
+function ScrollToTop() {
+  const { pathname } = useLocation();
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "instant" });
+  }, [pathname]);
+
+  return null;
+}
 
 function App() {
 
@@ -54,7 +65,7 @@ function App() {
   useEffect(() => {
 
     fetch(
-      "http://localhost:5000/api/settings/header"
+      "/api/settings/header"
     )
       .then((res) => res.json())
       .then(setHeader)
@@ -63,7 +74,7 @@ function App() {
       );
 
     fetch(
-      "http://localhost:5000/api/settings/footer"
+      "/api/settings/footer"
     )
       .then((res) => res.json())
       .then(setFooter)
@@ -75,6 +86,7 @@ function App() {
 
   return (
     <>
+      <ScrollToTop />
 
       {!isAdminRoute && (
         <>
@@ -94,357 +106,25 @@ function App() {
           element={<HomePageTemplate />}
         />
 
+        {/* COURSES DIRECTORY */}
+        <Route
+          path="/courses"
+          element={<CoursesDirectory />}
+        />
+
+        {/* DIRECT COURSE DETAIL */}
+        <Route
+          path="/courses/:slug"
+          element={<DynamicPage />}
+        />
+
         {/* GENERIC PAGE */}
         <Route
           path="/page/:slug"
           element={<DynamicPage />}
         />
 
-        {/* ABOUT */}
-        <Route
-          path="about"
-          element={<AboutLayout />}
-        >
-
-          <Route
-            index
-            element={
-              <Navigate
-                to="history"
-                replace
-              />
-            }
-          />
-
-          <Route
-            element={<DynamicLayout />}
-          >
-
-            <Route
-              path=":slug"
-              element={<DynamicPage />}
-            />
-
-          </Route>
-
-        </Route>
-
-        {/* ADMINISTRATION */}
-        <Route
-          path="administration"
-          element={<AdministrationLayout />}
-        >
-
-          <Route
-            index
-            element={
-              <Navigate
-                to="organogram"
-                replace
-              />
-            }
-          />
-
-          <Route
-            element={<DynamicLayout />}
-          >
-
-            <Route
-              path=":slug"
-              element={<DynamicPage />}
-            />
-
-          </Route>
-
-        </Route>
-
-        {/* ============================================== */}
-        {/* OLD SECTION ROUTES - COMMENTED OUT FOR TESTING */}
-        {/* ============================================== */}
-
-        {/* STUDENT LIFE */}
-        {/* <Route
-          path="student-life"
-          element={
-            <SectionLayout
-              title="Student Life"
-              parentSlug="student-life"
-            />
-          }
-        >
-
-          <Route
-            index
-            element={
-              <Navigate
-                to="support"
-                replace
-              />
-            }
-          />
-
-          <Route
-            path=":slug"
-            element={<DynamicPage />}
-          />
-
-        </Route> */}
-
-        {/* ACADEMICS */}
-        {/* <Route
-          path="academics"
-          element={
-            <SectionLayout
-              title="Academics"
-              parentSlug="academics"
-            />
-          }
-        >
-
-          <Route
-            index
-            element={
-              <Navigate
-                to="programmes"
-                replace
-              />
-            }
-          />
-
-          <Route
-            path=":slug"
-            element={<DynamicPage />}
-          />
-
-        </Route> */}
-
-        {/* STAFF */}
-        {/* <Route
-          path="staff"
-          element={
-            <SectionLayout
-              title="Staff"
-              parentSlug="staff"
-            />
-          }
-        >
-
-          <Route
-            index
-            element={
-              <Navigate
-                to="faculty"
-                replace
-              />
-            }
-          />
-
-          <Route
-            path=":slug"
-            element={<DynamicPage />}
-          />
-
-        </Route> */}
-
-        {/* ADMISSIONS */}
-        {/* <Route
-          path="admissions"
-          element={
-            <SectionLayout
-              title="Admissions"
-              parentSlug="admissions"
-            />
-          }
-        >
-
-          <Route
-            index
-            element={
-              <Navigate
-                to="prospectus"
-                replace
-              />
-            }
-          />
-
-          <Route
-            path=":slug"
-            element={<DynamicPage />}
-          />
-
-        </Route> */}
-
-        {/* EXAMINATION */}
-        {/* <Route
-          path="examination"
-          element={
-            <SectionLayout
-              title="Examination"
-              parentSlug="examination"
-            />
-          }
-        >
-
-          <Route
-            index
-            element={
-              <Navigate
-                to="committee"
-                replace
-              />
-            }
-          />
-
-          <Route
-            path=":slug"
-            element={<DynamicPage />}
-          />
-
-        </Route> */}
-
-        {/* ACCREDITATION */}
-        {/* <Route
-          path="accreditation"
-          element={
-            <SectionLayout
-              title="Accreditation"
-              parentSlug="accreditation"
-            />
-          }
-        >
-
-          <Route
-            index
-            element={
-              <Navigate
-                to="naac"
-                replace
-              />
-            }
-          />
-
-          <Route
-            path=":slug"
-            element={<DynamicPage />}
-          />
-
-        </Route> */}
-
-        {/* RTI */}
-        {/* <Route
-          path="rti"
-          element={
-            <SectionLayout
-              title="RTI"
-              parentSlug="rti"
-            />
-          }
-        >
-
-          <Route
-            index
-            element={
-              <Navigate
-                to="reservation-admission-recruitment"
-                replace
-              />
-            }
-          />
-
-          <Route
-            path=":slug"
-            element={<DynamicPage />}
-          />
-
-        </Route> */}
-
-        {/* ALUMNI */}
-        {/* <Route
-          path="alumni"
-          element={
-            <SectionLayout
-              title="Alumni"
-              parentSlug="alumni"
-            />
-          }
-        >
-
-          <Route
-            index
-            element={
-              <Navigate
-                to="about"
-                replace
-              />
-            }
-          />
-
-          <Route
-            path=":slug"
-            element={<DynamicPage />}
-          />
-
-        </Route> */}
-
-        {/* INFRASTRUCTURE */}
-        {/* <Route
-          path="infrastructure"
-          element={
-            <SectionLayout
-              title="Infrastructure"
-              parentSlug="infrastructure"
-            />
-          }
-        >
-
-          <Route
-            index
-            element={
-              <Navigate
-                to="facilities"
-                replace
-              />
-            }
-          />
-
-          <Route
-            path=":slug"
-            element={<DynamicPage />}
-          />
-
-        </Route> */}
-
-        {/* IQAC */}
-        {/* <Route
-          path="iqac"
-          element={
-            <SectionLayout
-              title="IQAC"
-              parentSlug="iqac"
-            />
-          }
-        >
-
-          <Route
-            index
-            element={
-              <Navigate
-                to="about"
-                replace
-              />
-            }
-          />
-
-          <Route
-            path=":slug"
-            element={<DynamicPage />}
-          />
-
-        </Route> */}
-
-        {/* ============================================== */}
-        {/* NEW DYNAMIC SECTION ROUTE */}
-        {/* ============================================== */}
+        {/* DYNAMIC SECTION ROUTE */}
         <Route
           path=":parentSlug"
           element={<SectionLayout />}
@@ -460,14 +140,10 @@ function App() {
           />
         </Route>
 
-        {/* 404 */}
+        {/* 404 & LEGACY LINK RESOLVER */}
         <Route
           path="*"
-          element={
-            <div className="p-20 text-center text-2xl">
-              404 – Page Not Found
-            </div>
-          }
+          element={<LegacyResolverFallback />}
         />
 
       </Routes>

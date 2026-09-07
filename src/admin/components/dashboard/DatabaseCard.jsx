@@ -1,33 +1,46 @@
+import { useNavigate } from "react-router-dom";
 import DashboardCard from "./DashboardCard";
 
-const DatabaseCard = () => {
+const DatabaseCard = ({ stats, loading }) => {
+  const navigate = useNavigate();
+
   const collections = [
     {
       name: "Pages",
-      count: "186",
+      count: stats?.pages?.total ?? 0,
+      route: "/admin/pages",
     },
     {
-      name: "Media",
-      count: "2,812",
+      name: "Media Assets",
+      count: stats?.media?.total ?? 0,
+      route: "/admin/media",
     },
     {
-      name: "Navigation",
-      count: "61",
-    },
-    {
-      name: "Settings",
-      count: "12",
+      name: "Navigation Items",
+      count: stats?.navigation?.items ?? stats?.navigation?.menus ?? 0,
+      route: "/admin/navigation",
     },
     {
       name: "Users",
-      count: "5",
+      count: stats?.users?.total ?? 0,
+      route: "/admin/users",
+    },
+    {
+      name: "Roles",
+      count: stats?.roles?.total ?? 0,
+      route: "/admin/roles",
+    },
+    {
+      name: "Approval Requests",
+      count: stats?.approvals?.total ?? 0,
+      route: "/admin/approvals",
     },
   ];
 
   return (
     <DashboardCard
       eyebrow="Database"
-      action="5 collections"
+      action={`${collections.length} collections`}
       className="min-h-[300px]"
     >
       <div className="divide-y divide-gray-200">
@@ -35,14 +48,21 @@ const DatabaseCard = () => {
         {collections.map((item) => (
           <div
             key={item.name}
+            onClick={() => item.route && navigate(item.route)}
             className="
               flex
               items-center
               justify-between
               py-3
+              cursor-pointer
+              hover:bg-gray-50/80
+              -mx-2
+              px-2
+              rounded-lg
+              transition-colors
             "
           >
-            <span className="text-sm text-gray-900">
+            <span className="text-sm font-medium text-gray-900">
               {item.name}
             </span>
 
@@ -60,10 +80,12 @@ const DatabaseCard = () => {
                   border
                   border-gray-300
                   text-[11px]
+                  font-semibold
                   text-gray-700
+                  bg-gray-50
                 "
               >
-                {item.count}
+                {loading ? "..." : (item.count || 0).toLocaleString()}
               </span>
 
               <span className="text-gray-400">

@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import CreateRoleModal from "../components/CreateRoleModal";
 import ConfirmModal from "../components/ConfirmModal";
 
-const API_URL = "http://localhost:5000/api";
+const API_URL = "/api";
 
 const Roles = () => {
   const navigate = useNavigate();
@@ -95,10 +95,10 @@ const Roles = () => {
           <p className="text-xs uppercase tracking-[0.2em] text-gray-400">
             Users & Access
           </p>
-          <h1 className="mt-2 text-2xl font-semibold text-gray-900">
+          <h1 className="mt-1 text-[28px] font-extrabold text-black tracking-tight">
             Roles
           </h1>
-          <p className="mt-1 text-sm text-gray-500">
+          <p className="mt-1.5 text-[14px] text-neutral-500">
             Reusable access profiles. Assign roles to users to control what they can do.
           </p>
         </div>
@@ -188,7 +188,7 @@ const Roles = () => {
                       {(role.allowedPages || []).length === 0 ? (
                         <span className="text-xs text-gray-400">—</span>
                       ) : (
-                        role.allowedPages.slice(0, 3).map((pg) => (
+                        (role.allowedPages || []).slice(0, 3).map((pg) => (
                           <span
                             key={pg}
                             className="rounded-md bg-gray-100 px-2 py-0.5 text-xs text-gray-600"
@@ -199,7 +199,7 @@ const Roles = () => {
                       )}
                       {(role.allowedPages || []).length > 3 && (
                         <span className="text-xs text-gray-400">
-                          +{role.allowedPages.length - 3} more
+                          +{(role.allowedPages || []).length - 3} more
                         </span>
                       )}
                     </div>
@@ -268,9 +268,11 @@ const Roles = () => {
       {/* DELETE CONFIRM MODAL */}
       {deleteTarget && (
         <ConfirmModal
+          open={Boolean(deleteTarget)}
           title="Delete Role"
           message={`Are you sure you want to delete "${deleteTarget.name}"? Users assigned this role will lose their access profile.`}
-          confirmLabel={deleting ? "Deleting..." : "Delete Role"}
+          confirmText="Delete Role"
+          loading={deleting}
           onConfirm={handleDelete}
           onCancel={() => setDeleteTarget(null)}
         />

@@ -1,34 +1,57 @@
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { createSection } from "../utils/sectionFactory";
 import DynamicPageEditor from "../components/DynamicPageEditor";
+import CoursesEditor from "../editors/CoursesEditor";
 import AddSectionModal from "../components/AddSectionModal";
-import { useEffect, useState } from "react";
+
+const slugify = (text) => {
+  return (text || "")
+    .toString()
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+};
 
 const CreatePage = () => {
+  const navigate = useNavigate();
   const [menus, setMenus] = useState([]);
   const [showSectionModal, setShowSectionModal] = useState(false);
+  const [saveStatus, setSaveStatus] = useState("idle");
+
   const [formData, setFormData] = useState({
     title: "",
     slug: "",
-    parentSlug: "",
+    parentSlug: "academics",
+    template: "default", // "default" | "courses"
     status: "published",
+    isPublished: true,
     sections: [],
+    courseData: {
+      courses: [],
+    },
   });
 
-  // FETCH NAVIGATION MENUS - FIXED with credentials
+  // FETCH NAVIGATION MENUS
   useEffect(() => {
-    fetch("http://localhost:5000/api/navigation/admin", {
+    fetch("/api/navigation/admin", {
       credentials: "include",
     })
       .then((res) => res.json())
       .then((data) => {
-        setMenus(
-          Array.isArray(data)
-            ? data
-            : []
-        );
+        if (Array.isArray(data)) {
+          setMenus(data);
+          if (data.length > 0 && !formData.parentSlug) {
+            setFormData((prev) => ({
+              ...prev,
+              parentSlug: data[0].key || "academics",
+            }));
+          }
+        }
       })
       .catch((err) => {
-        console.error(err);
+        console.error("Failed to load menus:", err);
       });
   }, []);
 
@@ -38,6 +61,7 @@ const CreatePage = () => {
     setFormData((prev) => ({
       ...prev,
       [name]: value,
+      ...(name === "status" ? { isPublished: value === "published" } : {}),
     }));
   };
 
@@ -47,99 +71,163 @@ const CreatePage = () => {
 
     setFormData((prev) => ({
       ...prev,
-      sections: [
-        ...prev.sections,
-        newSection,
-      ],
+      sections: [...prev.sections, newSection],
     }));
 
     setShowSectionModal(false);
   };
 
-  // AUTO GENERATE SLUG
+  // AUTO GENERATE SLUG ON TITLE CHANGE
   const handleTitleChange = (e) => {
     const title = e.target.value;
+    const generatedSlug = slugify(title);
+
     setFormData((prev) => ({
       ...prev,
       title,
-      slug: title
-        .toLowerCase()
-        .replace(/\s+/g, "-")
-        .replace(/[^a-z0-9-]/g, ""),
+      slug: generatedSlug,
     }));
   };
 
-  // SAVE PAGE - FIXED with credentials
+  // SAVE PAGE
   const handleSubmit = async (e) => {
-    e.preventDefault();
+    if (e && typeof e.preventDefault === "function") e.preventDefault();
+
+    const submissionData = { ...formData };
+    if (submissionData.template === "courses") {
+      submissionData.title = submissionData.title?.trim() || "Courses";
+      submissionData.slug = submissionData.slug?.trim() || "courses";
+      submissionData.kicker = submissionData.kicker || "Academic Programmes";
+      submissionData.parentSlug = submissionData.parentSlug || "academics";
+    }
+
     // VALIDATION
-    if (!formData.title.trim()) {
+    if (!submissionData.title?.trim()) {
       alert("Page title is required");
       return;
     }
-    if (!formData.slug.trim()) {
+    if (!submissionData.slug?.trim()) {
       alert("Slug is required");
       return;
     }
+
+    setSaveStatus("saving");
+
     try {
-      const response = await fetch(
-        "http://localhost:5000/api/pages",
-        {
-          method: "POST",
-          credentials: "include", // ADDED THIS LINE
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(formData),
-        }
-      );
+      const response = await fetch("/api/pages", {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(submissionData),
+      });
+
       const data = await response.json();
-      // HANDLE ERRORS
+
       if (!response.ok) {
-        alert(
-          data.message ||
-          "Failed to create page"
-        );
+        setSaveStatus("idle");
+        alert(data.message || "Failed to create page");
         return;
       }
-      console.log(data);
+
+      setSaveStatus("saved");
       alert("Page created successfully!");
+
       // REFRESH NAVBAR
-      window.dispatchEvent(
-        new Event("navbarRefresh")
-      );
-      // RESET FORM
-      setFormData({
-        title: "",
-        slug: "",
-        parentSlug: "",
-        status: "published",
-        sections: [],
-      });
+      window.dispatchEvent(new Event("navbarRefresh"));
+
+      const createdPage = data?.page || data;
+
+      // Stay in the admin panel by transitioning to the page editor
+      if (createdPage?._id) {
+        navigate(`/admin/pages/${createdPage._id}`, { replace: true });
+      } else {
+        setSaveStatus("idle");
+      }
     } catch (error) {
       console.error(error);
+      setSaveStatus("idle");
       alert("Failed to create page");
     }
   };
 
-  return (
-    <div className="max-w-[1400px] mx-auto">
-      {/* HEADER */}
-      <div className="flex items-center justify-between mb-8 pb-6 border-b border-gray-200">
-        <div>
-          <div className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1">
-            Pages
+  // ==========================================
+  // COURSES TEMPLATE CREATION VIEW
+  // ==========================================
+  if (formData.template === "courses") {
+    return (
+      <div className="max-w-[1400px] mx-auto space-y-6">
+        {/* Template Selector Switcher */}
+        <div className="bg-white border border-neutral-200/90 rounded-2xl p-4 shadow-sm flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <span className="text-xs font-bold uppercase tracking-wider text-neutral-500">
+              Page Type:
+            </span>
+            <div className="inline-flex bg-neutral-100 p-1 rounded-xl">
+              <button
+                type="button"
+                onClick={() =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    template: "default",
+                  }))
+                }
+                className="px-3.5 py-1.5 text-xs font-semibold rounded-lg transition text-neutral-600 hover:text-black"
+              >
+                Default Page
+              </button>
+              <button
+                type="button"
+                className="px-3.5 py-1.5 text-xs font-semibold rounded-lg bg-black text-white shadow-sm"
+              >
+                Courses Page
+              </button>
+            </div>
           </div>
-          <h1 className="text-2xl font-semibold text-gray-900">
-            Create Page
-          </h1>
+        </div>
+
+        <CoursesEditor
+          page={formData}
+          setPage={setFormData}
+          onSave={handleSubmit}
+          saveStatus={saveStatus}
+          menus={menus}
+        />
+
+        {showSectionModal && (
+          <AddSectionModal
+            onSelect={handleAddSection}
+            onClose={() => setShowSectionModal(false)}
+          />
+        )}
+      </div>
+    );
+  }
+
+  // ==========================================
+  // DEFAULT PAGE CREATION VIEW
+  // ==========================================
+  return (
+    <div className="max-w-[1400px] mx-auto space-y-6">
+      {/* HEADER */}
+      <div className="flex items-center justify-between pb-6 border-b border-gray-200">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.15em] text-neutral-400 mb-1">
+            Pages
+          </p>
+          <h1 className="text-[28px] font-extrabold text-black tracking-tight">Create Page</h1>
+          <p className="text-[14px] text-neutral-500 mt-1.5">
+            Configure page settings, slug, and initial layout structure.
+          </p>
         </div>
         <button
           type="submit"
           form="create-page-form"
-          className="bg-gray-900 hover:bg-black text-white text-sm font-medium px-5 py-2.5 rounded-lg transition-colors"
+          disabled={saveStatus === "saving"}
+          className="bg-gray-900 hover:bg-black text-white text-sm font-medium px-5 py-2.5 rounded-lg transition-colors disabled:opacity-50"
         >
-          Save Page
+          {saveStatus === "saving" ? "Saving..." : "Save Page"}
         </button>
       </div>
 
@@ -150,7 +238,6 @@ const CreatePage = () => {
       >
         {/* MAIN COLUMN */}
         <div className="space-y-6 min-w-0">
-
           {/* TITLE & SLUG CARD */}
           <div className="bg-white border border-gray-200 rounded-xl p-6 space-y-5">
             <div>
@@ -169,7 +256,7 @@ const CreatePage = () => {
 
             <div>
               <label className="block mb-1.5 text-xs font-semibold uppercase tracking-wider text-gray-500">
-                Slug
+                Slug (Auto-Generated)
               </label>
               <div className="flex items-center border border-gray-300 rounded-lg overflow-hidden focus-within:border-gray-900 focus-within:ring-1 focus-within:ring-gray-900 transition-colors">
                 <span className="px-3.5 py-2.5 text-sm text-gray-400 bg-gray-50 border-r border-gray-300 shrink-0">
@@ -210,9 +297,9 @@ const CreatePage = () => {
               <DynamicPageEditor
                 sections={formData.sections}
                 setSections={(sections) =>
-                  setFormData(prev => ({
+                  setFormData((prev) => ({
                     ...prev,
-                    sections
+                    sections,
                   }))
                 }
                 setShowSectionModal={setShowSectionModal}
@@ -226,7 +313,22 @@ const CreatePage = () => {
           <div className="bg-white border border-gray-200 rounded-xl p-5 space-y-5">
             <div>
               <label className="block mb-1.5 text-xs font-semibold uppercase tracking-wider text-gray-500">
-                Parent Category
+                Page Template / Type
+              </label>
+              <select
+                name="template"
+                value={formData.template || "default"}
+                onChange={handleChange}
+                className="w-full border border-gray-300 rounded-lg px-3.5 py-2.5 text-sm outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900 transition-colors bg-white font-medium"
+              >
+                <option value="default">Default Page</option>
+                <option value="courses">Courses</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block mb-1.5 text-xs font-semibold uppercase tracking-wider text-gray-500">
+                Parent Category (parentSlug)
               </label>
               <select
                 name="parentSlug"
@@ -234,17 +336,13 @@ const CreatePage = () => {
                 onChange={handleChange}
                 className="w-full border border-gray-300 rounded-lg px-3.5 py-2.5 text-sm outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900 transition-colors bg-white"
               >
-                <option value="">
-                  None
-                </option>
                 {menus.map((menu) => (
-                  <option
-                    key={menu._id}
-                    value={menu.key}
-                  >
-                    {menu.title}
+                  <option key={menu._id || menu.key} value={menu.key}>
+                    {menu.title} ({menu.key})
                   </option>
                 ))}
+                <option value="academics">Academics (academics)</option>
+                <option value="courses">Courses (courses)</option>
               </select>
             </div>
 
@@ -258,12 +356,8 @@ const CreatePage = () => {
                 onChange={handleChange}
                 className="w-full border border-gray-300 rounded-lg px-3.5 py-2.5 text-sm outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900 transition-colors bg-white"
               >
-                <option value="published">
-                  Published
-                </option>
-                <option value="draft">
-                  Draft
-                </option>
+                <option value="published">Published</option>
+                <option value="draft">Draft</option>
               </select>
             </div>
           </div>

@@ -166,6 +166,10 @@ approvalRequestSchema.index({
 });
 
 approvalRequestSchema.index({
+  createdAt: -1,
+});
+
+approvalRequestSchema.index({
   status: 1,
   createdAt: -1,
 });

@@ -14,7 +14,7 @@ export const AuthProvider = ({ children }) => {
   const checkAuth = async () => {
     try {
       const response = await fetch(
-        "http://localhost:5000/api/auth/me",
+        "/api/auth/me",
         {
           method: "GET",
           credentials: "include",
@@ -42,7 +42,7 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     const response = await fetch(
-      "http://localhost:5000/api/auth/login",
+      "/api/auth/login",
       {
         method: "POST",
         headers: {
@@ -65,8 +65,6 @@ export const AuthProvider = ({ children }) => {
     }
 
     /*
-     * Do NOT use data.user directly — it may lack
-     * role-inherited permissions and allowedPages.
      * Call /auth/me immediately to load the full
      * user object after the cookie is set.
      */
@@ -78,7 +76,7 @@ export const AuthProvider = ({ children }) => {
   const logout = async () => {
     try {
       await fetch(
-        "http://localhost:5000/api/auth/logout",
+        "/api/auth/logout",
         {
           method: "POST",
           credentials: "include",
@@ -96,8 +94,12 @@ export const AuthProvider = ({ children }) => {
   // ==========================================
 
   const hasPermission = (permission) => {
-    if (!user) {
+    if (!user || !permission) {
       return false;
+    }
+
+    if (user.role === "super_admin") {
+      return true;
     }
 
     const permissions = user.permissions || [];
@@ -107,12 +109,26 @@ export const AuthProvider = ({ children }) => {
       return true;
     }
 
-    return permissions.includes(permission);
+    if (permissions.includes(permission)) {
+      return true;
+    }
+
+    // Permission hierarchy: edit/create/delete/upload implies view
+    if (permission.endsWith(".view")) {
+      const modulePrefix = permission.split(".")[0] + ".";
+      return permissions.some((p) => p.startsWith(modulePrefix));
+    }
+
+    return false;
   };
 
-  const hasAnyPermission = (permissions = []) => {
+  const hasAnyPermission = (permissionList = []) => {
     if (!user) {
       return false;
+    }
+
+    if (user.role === "super_admin") {
+      return true;
     }
 
     const userPermissions = user.permissions || [];
@@ -122,14 +138,16 @@ export const AuthProvider = ({ children }) => {
       return true;
     }
 
-    return permissions.some((permission) =>
-      userPermissions.includes(permission)
-    );
+    return permissionList.some((perm) => hasPermission(perm));
   };
 
-  const hasAllPermissions = (permissions = []) => {
+  const hasAllPermissions = (permissionList = []) => {
     if (!user) {
       return false;
+    }
+
+    if (user.role === "super_admin") {
+      return true;
     }
 
     const userPermissions = user.permissions || [];
@@ -139,14 +157,16 @@ export const AuthProvider = ({ children }) => {
       return true;
     }
 
-    return permissions.every((permission) =>
-      userPermissions.includes(permission)
-    );
+    return permissionList.every((perm) => hasPermission(perm));
   };
 
   const hasPageAccess = (pageSlug) => {
     if (!user) {
       return false;
+    }
+
+    if (user.role === "super_admin") {
+      return true;
     }
 
     const allowedPages = user.allowedPages || [];

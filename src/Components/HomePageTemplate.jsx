@@ -6,34 +6,38 @@ import CoreStrengths from "./CoreStrengths";
 import ScrollingText from "./ScrollingText";
 import LearningSpacesCarousel from "./LearningSpacesCarousel";
 import NoticesSection from "./NoticesSection";
+import LoadingScreen from "./LoadingScreen";
+
+let clientHomeCache = null;
 
 const HomePageTemplate = () => {
-  const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [data, setData] = useState(() => clientHomeCache || null);
+  const [loading, setLoading] = useState(() => !clientHomeCache);
 
   useEffect(() => {
-    fetch("http://localhost:5000/api/home")
+    let isCurrent = true;
+    fetch("/api/home")
       .then((res) => res.json())
       .then((resData) => {
-        console.log("HOME:", resData);
-
-        // FIX ARRAY RESPONSE
-        setData(
-          Array.isArray(resData)
-            ? resData[0]
-            : resData
-        );
-
+        if (!isCurrent) return;
+        const normalized = Array.isArray(resData) ? resData[0] : resData;
+        clientHomeCache = normalized;
+        setData(normalized);
         setLoading(false);
       })
       .catch((error) => {
+        if (!isCurrent) return;
         console.error(error);
         setLoading(false);
       });
+
+    return () => {
+      isCurrent = false;
+    };
   }, []);
 
   if (loading) {
-    return <div>Loading...</div>;
+    return <LoadingScreen text="Loading Fragnel College..." />;
   }
 
   if (!data) {
@@ -42,10 +46,9 @@ const HomePageTemplate = () => {
 
   // Extract sections from the data object
   const sections = data.sections || {};
-  console.log("NOTICES SECTION:", sections.notices);
 
   return (
-    <div>
+    <div className="page-transition">
       {/* HERO */}
       {sections.hero && (
         <Hero_Section data={sections.hero} />

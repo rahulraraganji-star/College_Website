@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import ChangeDiff from "../components/ChangeDiff";
 
-const API_URL = "http://localhost:5000/api";
+const API_URL = "/api";
 
 const ACTION_META = {
   USER_CREATED:   { label: "User Created",   color: "bg-green-100 text-green-700",   icon: "👤" },
@@ -68,9 +68,9 @@ const AuditLogs = () => {
   return (
     <div className="max-w-[1200px] mx-auto px-6 lg:px-8 py-8">
       <div className="mb-8">
-        <p className="text-xs uppercase tracking-[0.2em] text-gray-400">Workflows</p>
-        <h1 className="mt-2 text-2xl font-semibold text-gray-900">Audit Log</h1>
-        <p className="mt-1 text-sm text-gray-500">
+        <p className="text-xs font-semibold uppercase tracking-[0.15em] text-neutral-400 mb-1">Workflows</p>
+        <h1 className="text-[28px] font-extrabold text-black tracking-tight">Audit Log</h1>
+        <p className="text-[14px] text-neutral-500 mt-1.5">
           A complete, permanent record of every change made in the CMS.
         </p>
       </div>

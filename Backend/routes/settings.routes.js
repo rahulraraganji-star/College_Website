@@ -3,19 +3,24 @@ import express from "express";
 import {
   getHeader,
   getFooter,
+  getAllSettings,
+  updateHeader,
+  updateFooter,
 } from "../controllers/settings.controller.js";
 
-const router = express.Router();
+import { requireAuth } from "../middleware/authMiddleware.js";
+import { requirePermission } from "../middleware/permissionMiddleware.js";
 
+const router = express.Router();
 
 /* ==========================================
    PUBLIC SETTINGS
 ========================================== */
 
-/*
-   The public website needs these endpoints
-   to render the header and footer.
-*/
+router.get(
+  "/",
+  getAllSettings
+);
 
 router.get(
   "/header",
@@ -27,5 +32,22 @@ router.get(
   getFooter
 );
 
+/* ==========================================
+   ADMIN / PROTECTED SETTINGS
+========================================== */
+
+router.put(
+  "/header",
+  requireAuth,
+  requirePermission("settings.edit"),
+  updateHeader
+);
+
+router.put(
+  "/footer",
+  requireAuth,
+  requirePermission("settings.edit"),
+  updateFooter
+);
 
 export default router;

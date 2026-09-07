@@ -1,44 +1,47 @@
 import mongoose from "mongoose";
 
-const settingsSchema = new mongoose.Schema({
-  type: { type: String, required: true }, // "header" or "footer"
+const settingsSchema = new mongoose.Schema(
+  {
+    type: { type: String, required: true, unique: true }, // "header" or "footer"
 
-  // header fields
-  logo: String,
-  title: String,
-  subtitle: String,
-  tagline: String,
+    // header fields
+    logo: { type: String, default: "" },
+    title: { type: String, default: "" },
+    subtitle: { type: String, default: "" },
+    tagline: { type: String, default: "" },
 
-  // footer fields
-  brand: String,
-  description: String,
-  addressLines: [String],
-  phone: String,
-  email: String,
+    // footer fields
+    brand: { type: String, default: "" },
+    description: { type: String, default: "" },
+    addressLines: [{ type: String }],
+    phone: { type: String, default: "" },
+    email: { type: String, default: "" },
 
-  quickLinks: [
-    {
-      name: String,
-      url: String,
-    },
-  ],
+    quickLinks: [
+      {
+        name: { type: String, default: "" },
+        url: { type: String, default: "" },
+      },
+    ],
 
-  supportLinks: [
-    {
-      name: String,
-      url: String,
-    },
-  ],
+    supportLinks: [
+      {
+        name: { type: String, default: "" },
+        url: { type: String, default: "" },
+      },
+    ],
 
-  socials: [
-    {
-      name: String,
-      icon: String,
-      url: String,
-    },
-  ],
+    socials: [
+      {
+        name: { type: String, default: "" },
+        icon: { type: String, default: "" },
+        url: { type: String, default: "" },
+      },
+    ],
 
-  mapEmbedUrl: String,
-});
+    mapEmbedUrl: { type: String, default: "" },
+  },
+  { timestamps: true }
+);
 
 export default mongoose.model("Settings", settingsSchema);

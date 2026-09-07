@@ -39,7 +39,7 @@ const Login = () => {
 
       // Role-based redirect after login
       const loginData = await fetch(
-        "http://localhost:5000/api/auth/me",
+        "/api/auth/me",
         { credentials: "include" }
       ).then((r) => r.json());
 

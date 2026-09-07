@@ -1,36 +1,64 @@
 import { useEffect, useState } from "react";
-import { Navigate, useParams } from "react-router-dom";
+import { Navigate, useParams, useOutletContext } from "react-router-dom";
+import LoadingScreen from "../Components/LoadingScreen";
+import { sidebarCache } from "./SectionLayout";
 
 const SectionRedirect = () => {
   const { parentSlug } = useParams();
+  const outletContext = useOutletContext();
+  const contextNavItems = outletContext?.navItems;
 
-  const [firstPage, setFirstPage] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const getCachedFirstPage = () => {
+    if (Array.isArray(contextNavItems) && contextNavItems.length > 0) {
+      const first = contextNavItems[0];
+      const slug = first.to ? first.to.split("/").filter(Boolean).pop() : first.slug;
+      return slug ? { slug } : null;
+    }
+    const cached = sidebarCache.get(parentSlug);
+    if (Array.isArray(cached) && cached.length > 0) {
+      const first = cached[0];
+      const slug = first.to ? first.to.split("/").filter(Boolean).pop() : first.slug;
+      return slug ? { slug } : null;
+    }
+    return null;
+  };
+
+  const [firstPage, setFirstPage] = useState(getCachedFirstPage);
+  const [loading, setLoading] = useState(() => !getCachedFirstPage());
 
   useEffect(() => {
+    const cached = getCachedFirstPage();
+    if (cached) {
+      setFirstPage(cached);
+      setLoading(false);
+      return;
+    }
+
+    let isCurrent = true;
     fetch(
-      `http://localhost:5000/api/pages/sidebar/${parentSlug}`
+      `/api/pages/sidebar/${parentSlug}`
     )
       .then((res) => res.json())
       .then((pages) => {
+        if (!isCurrent) return;
         if (Array.isArray(pages) && pages.length > 0) {
           setFirstPage(pages[0]);
         }
-
         setLoading(false);
       })
       .catch((err) => {
+        if (!isCurrent) return;
         console.error(err);
         setLoading(false);
       });
-  }, [parentSlug]);
+
+    return () => {
+      isCurrent = false;
+    };
+  }, [parentSlug, contextNavItems]);
 
   if (loading) {
-    return (
-      <div className="p-20 text-center">
-        Loading...
-      </div>
-    );
+    return <LoadingScreen fullScreen={false} text="Loading section..." />;
   }
 
   if (!firstPage) {

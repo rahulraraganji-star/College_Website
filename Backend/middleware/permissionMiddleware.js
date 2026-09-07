@@ -7,12 +7,14 @@
    
    Super Admin (permissions === ["*"]) bypasses
    every check automatically.
+   
+   Hierarchy support: edit/create/delete/upload
+   implies view for the corresponding module.
 ========================================== */
 
 export const requirePermission = (permission) => {
   return async (req, res, next) => {
     try {
-
       /* ------------------------------------------
          MUST HAVE AUTH CONTEXT FROM requireAuth
       ------------------------------------------ */
@@ -24,7 +26,6 @@ export const requirePermission = (permission) => {
         });
       }
 
-
       /* ------------------------------------------
          ACCOUNT STATUS
       ------------------------------------------ */
@@ -35,7 +36,6 @@ export const requirePermission = (permission) => {
           message: "Your account is not active.",
         });
       }
-
 
       /* ------------------------------------------
          SUPER ADMIN / WILDCARD BYPASS
@@ -53,7 +53,6 @@ export const requirePermission = (permission) => {
         return next();
       }
 
-
       /* ------------------------------------------
          VALIDATE PERMISSION NAME
       ------------------------------------------ */
@@ -65,12 +64,18 @@ export const requirePermission = (permission) => {
         });
       }
 
-
       /* ------------------------------------------
-         CHECK SPECIFIC PERMISSION
+         CHECK SPECIFIC PERMISSION (WITH HIERARCHY)
       ------------------------------------------ */
 
-      if (!permissions.includes(permission)) {
+      let hasPerm = permissions.includes(permission);
+
+      if (!hasPerm && permission.endsWith(".view")) {
+        const modulePrefix = permission.split(".")[0] + ".";
+        hasPerm = permissions.some((p) => p.startsWith(modulePrefix));
+      }
+
+      if (!hasPerm) {
         return res.status(403).json({
           success: false,
           message:
@@ -95,13 +100,74 @@ export const requirePermission = (permission) => {
   };
 };
 
+/* ==========================================
+   REQUIRE ANY PERMISSION
+========================================== */
+
+export const requireAnyPermission = (...requiredPermissions) => {
+  return async (req, res, next) => {
+    try {
+      if (!req.authUser) {
+        return res.status(401).json({
+          success: false,
+          message: "Authentication required.",
+        });
+      }
+
+      if (req.authUser.status !== "active") {
+        return res.status(403).json({
+          success: false,
+          message: "Your account is not active.",
+        });
+      }
+
+      const permissions =
+        Array.isArray(req.authUser.permissions)
+          ? req.authUser.permissions
+          : [];
+
+      if (
+        req.authUser.role === "super_admin" ||
+        permissions.includes("*")
+      ) {
+        return next();
+      }
+
+      const hasAny = requiredPermissions.some((permission) => {
+        if (permissions.includes(permission)) return true;
+        if (permission.endsWith(".view")) {
+          const modulePrefix = permission.split(".")[0] + ".";
+          return permissions.some((p) => p.startsWith(modulePrefix));
+        }
+        return false;
+      });
+
+      if (!hasAny) {
+        return res.status(403).json({
+          success: false,
+          message: "You do not have permission to perform this action.",
+          requiredPermissions,
+        });
+      }
+
+      next();
+
+    } catch (error) {
+      console.error(
+        "PERMISSION MIDDLEWARE ERROR:",
+        error
+      );
+
+      return res.status(500).json({
+        success: false,
+        message: "Authorization check failed.",
+      });
+    }
+  };
+};
 
 /* ==========================================
    REQUIRE SYSTEM ROLE
-   
-   Checks that the user has one of the given
-   system roles. Used for admin-only routes
-   where role is more important than permission.
 ========================================== */
 
 export const requireSystemRole = (...roles) => {

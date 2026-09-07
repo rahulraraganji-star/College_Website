@@ -1,4 +1,6 @@
+import { useMemo } from "react";
 import { NavLink } from "react-router-dom";
+import { prefetchPage } from "../Pages/DynamicPage";
 
 import HeroSection from "./sections/HeroSection";
 import PageKicker from "./sections/PageKicker";
@@ -11,10 +13,12 @@ import DocumentsSection from "./sections/DocumentsSection";
 import EventListSection from "./sections/EventListSection";
 import TableSection from "./sections/TableSection";
 import EmbedSection from "./sections/EmbedSection";
+import OrganogramSection from "./sections/OrganogramSection";
 
 const hasData = (section) => {
   switch (section.type) {
     case "hero": return true;
+    case "organogram": return true;
     case "heading": return Boolean(section.text?.trim());
     case "richText": return Boolean(section.content?.trim());
     case "list": return Array.isArray(section.items) && section.items.length > 0;
@@ -94,13 +98,18 @@ const PageTemplate = ({
   }
 
   const safeSections = Array.isArray(data.sections) ? data.sections : [];
-  const heroSection = safeSections.find((section) => section.type === "hero");
-  console.log("Sections:", safeSections);
-console.log("Hero:", heroSection);
-  const remainingSections = safeSections.filter(
-    (section) => section.type !== "hero" && hasData(section)
+  const heroSection = useMemo(
+    () => safeSections.find((section) => section.type === "hero"),
+    [safeSections]
   );
-  const groups = buildEditorialGroups(remainingSections);
+  const remainingSections = useMemo(
+    () => safeSections.filter((section) => section.type !== "hero" && hasData(section)),
+    [safeSections]
+  );
+  const groups = useMemo(
+    () => buildEditorialGroups(remainingSections),
+    [remainingSections]
+  );
   const isEmpty = !heroSection && groups.length === 0;
 
   const renderSidebar = () => {
@@ -119,6 +128,11 @@ console.log("Hero:", heroSection);
               <NavLink
                 key={item.to}
                 to={item.to}
+                onMouseEnter={() => {
+                  const parts = (item.to || "").split("/").filter(Boolean);
+                  const itemSlug = parts.pop();
+                  if (itemSlug) prefetchPage(itemSlug);
+                }}
                 className={({ isActive }) =>
                   `group flex items-center border-l-2 py-3 pl-6 transition-all duration-300 ${
                     isActive ? "border-[#C9A555]" : "border-[#E6DED3] hover:border-[#C9A555]/50"
@@ -145,7 +159,7 @@ console.log("Hero:", heroSection);
   };
 
   const renderContent = () => (
-    <div className="space-y-12">
+    <div className="space-y-12 min-w-0 w-full">
       {groups.map((group, index) => {
         switch (group.kind) {
           case "content": return <ContentSection key={index} heading={group.heading} blocks={group.blocks} />;
@@ -157,6 +171,7 @@ console.log("Hero:", heroSection);
           case "eventList": return <EventListSection key={index} section={group.section} />;
           case "table": return <TableSection key={index} section={group.section} />;
           case "embed": return <EmbedSection key={index} section={group.section} />;
+          case "organogram": return <OrganogramSection key={index} section={group.section} />;
           default: return null;
         }
       })}

@@ -155,7 +155,7 @@ const DynamicPageEditor = ({
 
       {sections.map((section, index) => (
         <SectionCard
-          key={section.id}
+          key={section.id || section._id || `section-${index}`}
           title={section.type}
           index={index}
           onDelete={() => deleteSection(index)}

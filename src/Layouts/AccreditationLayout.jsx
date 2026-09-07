@@ -16,7 +16,7 @@ const AccreditationLayout = () => {
   useEffect(() => {
 
     fetch(
-      "http://localhost:5000/api/pages/sidebar/accreditation"
+      "/api/pages/sidebar/accreditation"
     )
       .then((res) => res.json())
 

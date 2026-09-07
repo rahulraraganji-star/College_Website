@@ -1,16 +1,14 @@
+import React from "react";
+
 /**
  * ChangeDiff
- * Human-readable before/after comparison component.
- *
- * Supports:
- * - Normal flat page objects
- * - Nested Home sections
- * - Nested objects
- * - Arrays
- * - Media objects
+ * Human-readable text-only before/after comparison component.
+ * Recursively extracts only the granular fields and text that changed.
+ * Zero raw JSON output.
  */
 
 const FIELD_LABELS = {
+  // Common & User fields
   name: "Name",
   email: "Email",
   role: "System Role",
@@ -27,801 +25,333 @@ const FIELD_LABELS = {
   content: "Content",
   isPublished: "Published",
   parentSlug: "Section",
+  template: "Template",
 
-  // Home
+  // Organogram fields
+  designation: "Designation / Title",
+  parent: "Reports To (Parent Node)",
+  photo: "Photo",
+  order: "Display Order",
+  level: "Hierarchy Level",
+  phone: "Phone Number",
+  bio: "Biography",
+
+  // Course & Academics fields
+  courseData: "Course Information",
+  courses: "Courses",
+  general: "General Info",
+  overview: "Overview",
+  curriculum: "Curriculum",
+  highlights: "Highlights",
+  careerOpportunities: "Career Opportunities",
+  learningOutcomes: "Learning Outcomes",
+  admissionProcess: "Admission Process",
+  eligibility: "Eligibility Criteria",
+  feeStructure: "Fee Structure",
+  faqs: "FAQs",
+  courseName: "Course Name",
+  courseCode: "Course Code",
+  level: "Degree Level",
+  duration: "Duration",
+  semesters: "Semesters",
+  degree: "Degree Awarded",
+  intake: "Annual Intake",
+  shortDescription: "Short Summary",
+  question: "Question",
+  answer: "Answer",
+  term: "Term / Semester",
+  subjects: "Subjects",
+  credits: "Credits",
+  code: "Subject Code",
+  icon: "Icon",
+  kicker: "Kicker / Category Tag",
+
+  // Home & Layout fields
   sections: "Sections",
-  hero: "Hero",
+  hero: "Hero Section",
   heroSection2: "Hero Section 2",
   eventsSection: "Events Section",
   eventsMarquee: "Events Marquee",
   coreStrengths: "Core Strengths",
   notices: "Notices",
-
   buttonText: "Button Text",
   caption: "Caption",
   image: "Image",
   slides: "Slides",
-
   heading: "Heading",
   subtitle: "Subtitle",
   subTitle: "Subtitle",
   desc: "Description",
   text: "Text",
-
   primaryButtonText: "Primary Button Text",
   secondaryButtonText: "Secondary Button Text",
   primaryButtonLink: "Primary Button Link",
   secondaryButtonLink: "Secondary Button Link",
-
   alignment: "Alignment",
-
   eventTitle: "Event Title",
   eventDescription: "Event Description",
   date: "Date",
   link: "Link",
-
   items: "Items",
 };
 
+// Keys to ignore from diffing (internal metadata)
+const IGNORED_KEYS = new Set([
+  "_id",
+  "__v",
+  "createdAt",
+  "updatedAt",
+  "tokenVersion",
+  "passwordHash",
+  "tempPassword",
+  "id",
+]);
 
 /* ==========================================
-   LABEL FORMATTER
+   HELPERS
 ========================================== */
 
 const getLabel = (key) => {
+  if (/^\d+$/.test(key)) {
+    return `Item ${parseInt(key, 10) + 1}`;
+  }
+
   if (FIELD_LABELS[key]) {
     return FIELD_LABELS[key];
   }
 
-  // camelCase → readable text
   return key
     .replace(/([A-Z])/g, " $1")
-    .replace(/^./, (char) => char.toUpperCase());
+    .replace(/[_-]/g, " ")
+    .replace(/^./, (char) => char.toUpperCase())
+    .trim();
 };
-
-
-/* ==========================================
-   MEDIA OBJECT
-========================================== */
 
 const isMediaObject = (value) => {
-  if (!value || typeof value !== "object") {
-    return false;
-  }
-
-  return Boolean(
-    value.filename ||
-    value.originalName ||
-    value.url ||
-    value.mimeType
-  );
+  if (!value || typeof value !== "object") return false;
+  return Boolean(value.filename || value.originalName || value.url || value.mimeType);
 };
 
-
-/* ==========================================
-   FORMAT MEDIA
-========================================== */
-
-const formatMedia = (media) => {
-  const name =
-    media.originalName ||
-    media.filename ||
-    "Media";
-
-  return (
-    <div className="space-y-1">
-      <div className="font-medium text-gray-900">
-        {name}
-      </div>
-
-      {media.url && (
-        <div className="text-xs text-gray-500 break-all">
-          {media.url}
-        </div>
-      )}
-    </div>
-  );
+// Strips HTML tags for clean human reading
+const stripHtml = (html) => {
+  if (typeof html !== "string") return html;
+  return html
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<\/p>/gi, "\n\n")
+    .replace(/<\/li>/gi, "\n")
+    .replace(/<[^>]+>/g, "")
+    .replace(/&nbsp;/g, " ")
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .trim();
 };
 
-
 /* ==========================================
-   FORMAT VALUE
+   DEEP FLATTEN TO LEAF VALUES
 ========================================== */
 
-const formatValue = (key, val) => {
-
-  if (
-    val === null ||
-    val === undefined ||
-    val === ""
-  ) {
-    return (
-      <em className="text-gray-400">
-        —
-      </em>
-    );
-  }
-
-
-  /* ------------------------------------------
-     BOOLEAN
-  ------------------------------------------ */
-
-  if (typeof val === "boolean") {
-    return val ? (
-      <span className="text-green-700 font-medium">
-        Yes
-      </span>
-    ) : (
-      <span className="text-red-600 font-medium">
-        No
-      </span>
-    );
-  }
-
-
-  /* ------------------------------------------
-     MEDIA OBJECT
-  ------------------------------------------ */
-
-  if (isMediaObject(val)) {
-    return formatMedia(val);
-  }
-
-
-  /* ------------------------------------------
-     ARRAY
-  ------------------------------------------ */
-
-  if (Array.isArray(val)) {
-
-    if (val.length === 0) {
-      return (
-        <em className="text-gray-400">
-          None
-        </em>
-      );
-    }
-
-
-    /*
-     * Array of simple values
-     */
-
-    if (
-      val.every(
-        (item) =>
-          typeof item !== "object" ||
-          item === null
-      )
-    ) {
-      return (
-        <div className="flex flex-wrap gap-1 mt-0.5">
-          {val.map((item, index) => (
-            <span
-              key={index}
-              className="rounded-md bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-700"
-            >
-              {String(item)}
-            </span>
-          ))}
-        </div>
-      );
-    }
-
-
-    /*
-     * Array of objects
-     *
-     * Instead of dumping JSON, show a
-     * readable summary for each item.
-     */
-
-    return (
-      <div className="space-y-2">
-
-        {val.map((item, index) => {
-
-          if (
-            item === null ||
-            typeof item !== "object"
-          ) {
-            return (
-              <div
-                key={index}
-                className="text-sm text-gray-700"
-              >
-                {String(item)}
-              </div>
-            );
-          }
-
-
-          if (isMediaObject(item)) {
-            return (
-              <div
-                key={index}
-                className="rounded-lg border border-gray-200 bg-white px-3 py-2"
-              >
-                <span className="text-xs text-gray-400 mr-2">
-                  #{index + 1}
-                </span>
-
-                {formatMedia(item)}
-              </div>
-            );
-          }
-
-
-          /*
-           * Try to show the most useful human-readable
-           * fields instead of JSON.
-           */
-
-          const usefulFields = [
-            "title",
-            "name",
-            "caption",
-            "description",
-            "desc",
-            "text",
-            "date",
-            "heading",
-          ];
-
-
-          const visibleFields =
-            usefulFields.filter(
-              (field) =>
-                item[field] !== undefined &&
-                item[field] !== null &&
-                item[field] !== ""
-            );
-
-
-          if (visibleFields.length > 0) {
-            return (
-              <div
-                key={index}
-                className="rounded-lg border border-gray-200 bg-white px-3 py-2"
-              >
-                <div className="text-xs text-gray-400 mb-1">
-                  Item {index + 1}
-                </div>
-
-                {visibleFields.map(
-                  (field) => (
-                    <div
-                      key={field}
-                      className="text-sm"
-                    >
-                      <span className="font-medium text-gray-600">
-                        {getLabel(field)}:
-                      </span>{" "}
-                      <span className="text-gray-900">
-                        {String(item[field])}
-                      </span>
-                    </div>
-                  )
-                )}
-              </div>
-            );
-          }
-
-
-          /*
-           * Last fallback for unusual objects.
-           * Pretty-print rather than one massive line.
-           */
-
-          return (
-            <pre
-              key={index}
-              className="text-xs text-gray-600 whitespace-pre-wrap break-words"
-            >
-              {JSON.stringify(item, null, 2)}
-            </pre>
-          );
-        })}
-
-      </div>
-    );
-  }
-
-
-  /* ------------------------------------------
-     OBJECT
-  ------------------------------------------ */
-
-  if (typeof val === "object") {
-
-    if (val.name) {
-      return (
-        <span className="text-gray-700">
-          {val.name}
-        </span>
-      );
-    }
-
-    if (val._id) {
-      return (
-        <span className="text-gray-700">
-          {val._id}
-        </span>
-      );
-    }
-
-    return (
-      <pre className="text-xs text-gray-600 whitespace-pre-wrap break-words">
-        {JSON.stringify(val, null, 2)}
-      </pre>
-    );
-  }
-
-
-  /* ------------------------------------------
-     STRING / NUMBER
-  ------------------------------------------ */
-
-  return (
-    <span className="text-gray-900">
-      {String(val)}
-    </span>
-  );
-};
-
-
-/* ==========================================
-   FLATTEN NESTED OBJECT
-========================================== */
-
-const flattenObject = (
-  obj,
-  prefix = "",
-  result = {}
-) => {
-
-  if (!obj || typeof obj !== "object") {
+const deepFlatten = (obj, prefix = "", result = {}) => {
+  if (obj === null || obj === undefined) {
     return result;
   }
 
+  // Primitive value
+  if (typeof obj !== "object") {
+    result[prefix] = obj;
+    return result;
+  }
 
-  Object.entries(obj).forEach(
-    ([key, value]) => {
+  // Media object
+  if (isMediaObject(obj)) {
+    result[prefix] = obj.url || obj.originalName || obj.filename || "Media File";
+    return result;
+  }
 
-      const path = prefix
-        ? `${prefix}.${key}`
-        : key;
-
-
-      /*
-       * Arrays remain a single field.
-       *
-       * This is important for:
-       * slides
-       * notices
-       * events
-       * coreStrengths
-       *
-       * Their formatter will display them
-       * in a human-readable way.
-       */
-
-      if (Array.isArray(value)) {
-        result[path] = value;
-        return;
-      }
-
-
-      /*
-       * Nested object → continue recursively.
-       */
-
-      if (
-        value &&
-        typeof value === "object" &&
-        !isMediaObject(value)
-      ) {
-        flattenObject(
-          value,
-          path,
-          result
-        );
-
-        return;
-      }
-
-
-      result[path] = value;
+  // Array of primitives (e.g. string tags, permissions)
+  if (Array.isArray(obj)) {
+    if (obj.length === 0) {
+      result[prefix] = "";
+      return result;
     }
-  );
 
+    const allPrimitives = obj.every((item) => typeof item !== "object" || item === null);
+
+    if (allPrimitives) {
+      obj.forEach((item, index) => {
+        deepFlatten(item, prefix ? `${prefix}.${index}` : `${index}`, result);
+      });
+      return result;
+    }
+
+    // Array of objects
+    obj.forEach((item, index) => {
+      deepFlatten(item, prefix ? `${prefix}.${index}` : `${index}`, result);
+    });
+    return result;
+  }
+
+  // Standard object
+  Object.entries(obj).forEach(([key, value]) => {
+    if (IGNORED_KEYS.has(key)) return;
+
+    const path = prefix ? `${prefix}.${key}` : key;
+    deepFlatten(value, path, result);
+  });
 
   return result;
 };
 
-
 /* ==========================================
-   DISPLAY LABEL FOR NESTED FIELD
+   PATH BREADCRUMB FORMATTER
 ========================================== */
 
-const getPathLabel = (path) => {
-
+const formatPathLabel = (path) => {
   const parts = path.split(".");
 
   if (parts.length === 1) {
-    return getLabel(parts[0]);
+    return <span className="font-semibold text-gray-900">{getLabel(parts[0])}</span>;
   }
 
-
-  const section = parts
-    .slice(0, -1)
-    .map(getLabel)
-    .join(" → ");
-
-  const field =
-    getLabel(parts[parts.length - 1]);
-
+  const category = parts.slice(0, -1).map(getLabel).join(" → ");
+  const fieldName = getLabel(parts[parts.length - 1]);
 
   return (
-    <span>
-      <span className="text-gray-400">
-        {section}
-      </span>
-
-      <span className="mx-1 text-gray-300">
-        /
-      </span>
-
-      <span>
-        {field}
-      </span>
-    </span>
-  );
-};
-
-
-/* ==========================================
-   CHANGE DIFF
-========================================== */
-
-const ChangeDiff = ({
-  before,
-  after,
-}) => {
-
-  if (!before && !after) {
-    return (
-      <p className="text-sm text-gray-400 italic">
-        No change data recorded.
+    <div>
+      <p className="text-[11px] font-medium text-gray-400 uppercase tracking-wider mb-0.5">
+        {category}
       </p>
-    );
-  }
-
-
-  /* ==========================================
-     FLATTEN BOTH OBJECTS
-  ========================================== */
-
-  const flatBefore =
-    flattenObject(before || {});
-
-  const flatAfter =
-    flattenObject(after || {});
-
-
-  const allKeys = Array.from(
-    new Set([
-      ...Object.keys(flatBefore),
-      ...Object.keys(flatAfter),
-    ])
-  );
-
-
-  /* ==========================================
-     NEW RECORD
-  ========================================== */
-
-  if (!before && after) {
-
-    return (
-      <div className="rounded-xl border border-green-200 overflow-hidden">
-
-        <div className="px-4 py-2.5 bg-green-50 border-b border-green-100">
-          <p className="text-xs font-semibold text-green-700 uppercase tracking-[0.1em]">
-            ✅ New record — what will be added
-          </p>
-        </div>
-
-        <table className="w-full text-sm">
-
-          <tbody>
-
-            {allKeys.map((key) => (
-
-              <tr
-                key={key}
-                className="border-b border-gray-100 last:border-0"
-              >
-
-                <td className="w-64 px-4 py-2 text-xs font-semibold text-gray-400 align-top">
-                  {getPathLabel(key)}
-                </td>
-
-                <td className="px-4 py-2 bg-green-50">
-                  {formatValue(
-                    key,
-                    flatAfter[key]
-                  )}
-                </td>
-
-              </tr>
-
-            ))}
-
-          </tbody>
-
-        </table>
-
-      </div>
-    );
-  }
-
-
-  /* ==========================================
-     DELETION
-  ========================================== */
-
-  if (!after && before) {
-
-    return (
-      <div className="rounded-xl border border-red-200 overflow-hidden">
-
-        <div className="px-4 py-2.5 bg-red-50 border-b border-red-100">
-          <p className="text-xs font-semibold text-red-700 uppercase tracking-[0.1em]">
-            🗑️ Record will be removed
-          </p>
-        </div>
-
-        <table className="w-full text-sm">
-
-          <tbody>
-
-            {allKeys.map((key) => (
-
-              <tr
-                key={key}
-                className="border-b border-gray-100 last:border-0"
-              >
-
-                <td className="w-64 px-4 py-2 text-xs font-semibold text-gray-400 align-top">
-                  {getPathLabel(key)}
-                </td>
-
-                <td className="px-4 py-2 bg-red-50 line-through text-gray-400">
-                  {formatValue(
-                    key,
-                    flatBefore[key]
-                  )}
-                </td>
-
-              </tr>
-
-            ))}
-
-          </tbody>
-
-        </table>
-
-      </div>
-    );
-  }
-
-
-  /* ==========================================
-     FIND CHANGED FIELDS
-  ========================================== */
-
-  const changedKeys = allKeys.filter(
-    (key) => {
-
-      return (
-        JSON.stringify(
-          flatBefore[key] ?? null
-        ) !==
-        JSON.stringify(
-          flatAfter[key] ?? null
-        )
-      );
-
-    }
-  );
-
-
-  const unchangedKeys =
-    allKeys.filter(
-      (key) =>
-        !changedKeys.includes(key)
-    );
-
-
-  /* ==========================================
-     NO CHANGES
-  ========================================== */
-
-  if (changedKeys.length === 0) {
-
-    return (
-      <div className="rounded-xl border border-gray-200 px-4 py-3 text-sm text-gray-400">
-        No field changes recorded.
-      </div>
-    );
-  }
-
-
-  /* ==========================================
-     UPDATED RECORD
-  ========================================== */
-
-  return (
-    <div className="space-y-3">
-
-      {/* ======================================
-          CHANGED FIELDS
-      ====================================== */}
-
-      <div className="rounded-xl border border-gray-200 overflow-hidden">
-
-        <div className="px-4 py-2.5 bg-gray-50 border-b border-gray-100">
-
-          <p className="text-xs font-semibold text-gray-500 uppercase tracking-[0.1em]">
-            What will change &mdash;{" "}
-            {changedKeys.length} field
-            {changedKeys.length !== 1
-              ? "s"
-              : ""}
-          </p>
-
-        </div>
-
-
-        <table className="w-full text-sm">
-
-          <thead>
-
-            <tr className="bg-gray-50 border-b border-gray-100">
-
-              <th className="w-64 px-4 py-2 text-left text-xs font-semibold text-gray-400 uppercase">
-                Field
-              </th>
-
-              <th className="px-4 py-2 text-left text-xs font-semibold text-red-500 uppercase">
-                Current
-              </th>
-
-              <th className="px-4 py-2 text-left text-xs font-semibold text-green-600 uppercase">
-                Proposed
-              </th>
-
-            </tr>
-
-          </thead>
-
-
-          <tbody>
-
-            {changedKeys.map(
-              (key) => (
-
-                <tr
-                  key={key}
-                  className="border-b border-gray-100 last:border-0"
-                >
-
-                  <td className="px-4 py-2.5 text-xs font-semibold text-gray-500 align-top">
-                    {getPathLabel(key)}
-                  </td>
-
-
-                  <td className="px-4 py-2.5 bg-red-50 align-top">
-
-                    <span className="text-red-700 line-through decoration-red-300">
-
-                      {formatValue(
-                        key,
-                        flatBefore[key]
-                      )}
-
-                    </span>
-
-                  </td>
-
-
-                  <td className="px-4 py-2.5 bg-green-50 align-top">
-
-                    <span className="text-green-800 font-medium">
-
-                      {formatValue(
-                        key,
-                        flatAfter[key]
-                      )}
-
-                    </span>
-
-                  </td>
-
-                </tr>
-
-              )
-            )}
-
-          </tbody>
-
-        </table>
-
-      </div>
-
-
-      {/* ======================================
-          UNCHANGED FIELDS
-      ====================================== */}
-
-      {unchangedKeys.length > 0 && (
-
-        <details className="rounded-xl border border-gray-100">
-
-          <summary className="px-4 py-2 text-xs text-gray-400 cursor-pointer select-none hover:text-gray-600">
-
-            {unchangedKeys.length} unchanged field
-            {unchangedKeys.length !== 1
-              ? "s"
-              : ""}{" "}
-            (click to expand)
-
-          </summary>
-
-
-          <table className="w-full text-sm">
-
-            <tbody>
-
-              {unchangedKeys.map(
-                (key) => (
-
-                  <tr
-                    key={key}
-                    className="border-t border-gray-100"
-                  >
-
-                    <td className="w-64 px-4 py-2 text-xs font-semibold text-gray-400 align-top">
-                      {getPathLabel(key)}
-                    </td>
-
-                    <td className="px-4 py-2 text-gray-500">
-
-                      {formatValue(
-                        key,
-                        flatAfter[key]
-                      )}
-
-                    </td>
-
-                  </tr>
-
-                )
-              )}
-
-            </tbody>
-
-          </table>
-
-        </details>
-
-      )}
-
+      <p className="text-xs font-semibold text-gray-900">{fieldName}</p>
     </div>
   );
 };
 
+/* ==========================================
+   TEXT VALUE FORMATTER
+========================================== */
+
+const formatTextValue = (val) => {
+  if (val === null || val === undefined || String(val).trim() === "") {
+    return <em className="text-gray-400 font-normal italic">None / Empty</em>;
+  }
+
+  if (typeof val === "boolean") {
+    return (
+      <span className={val ? "text-emerald-700 font-semibold" : "text-gray-600 font-medium"}>
+        {val ? "Yes / Enabled" : "No / Disabled"}
+      </span>
+    );
+  }
+
+  if (typeof val === "number") {
+    return <span>{val}</span>;
+  }
+
+  const cleanText = stripHtml(String(val));
+
+  return (
+    <div className="whitespace-pre-wrap break-words leading-relaxed text-xs">
+      {cleanText}
+    </div>
+  );
+};
+
+/* ==========================================
+   CHANGE DIFF COMPONENT
+========================================== */
+
+const ChangeDiff = ({ before, after }) => {
+  if (!before && !after) {
+    return (
+      <div className="rounded-xl border border-gray-200 bg-white p-4 text-xs text-gray-400 italic text-center">
+        No change details recorded.
+      </div>
+    );
+  }
+
+  const flatBefore = deepFlatten(before || {});
+  const flatAfter = deepFlatten(after || {});
+
+  const allKeys = Array.from(
+    new Set([...Object.keys(flatBefore), ...Object.keys(flatAfter)])
+  );
+
+  // Find strictly changed leaf properties (ignoring empty-to-empty matches)
+  const changedKeys = allKeys.filter((key) => {
+    const rawB = flatBefore[key];
+    const rawA = flatAfter[key];
+
+    const valB = rawB !== undefined && rawB !== null ? String(rawB).trim() : "";
+    const valA = rawA !== undefined && rawA !== null ? String(rawA).trim() : "";
+
+    // If both are empty, ignore
+    if (!valB && !valA) return false;
+
+    // If identical text, ignore
+    if (valB === valA) return false;
+
+    return true;
+  });
+
+  if (changedKeys.length === 0) {
+    return (
+      <div className="rounded-xl border border-gray-200 bg-white p-4 text-xs text-gray-500 text-center">
+        No textual modifications found.
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-3">
+      <div className="rounded-xl border border-gray-200 bg-white overflow-hidden shadow-sm">
+        <div className="flex items-center justify-between px-4 py-2.5 bg-gray-50 border-b border-gray-200">
+          <p className="text-xs font-bold text-gray-700 uppercase tracking-wider">
+            Modified Content ({changedKeys.length} field{changedKeys.length !== 1 ? "s" : ""})
+          </p>
+          <span className="text-[11px] text-gray-500">Only showing modified fields</span>
+        </div>
+
+        <div className="divide-y divide-gray-100">
+          {changedKeys.map((key) => {
+            return (
+              <div key={key} className="p-4 hover:bg-gray-50/50 transition-colors">
+                <div className="mb-2.5">{formatPathLabel(key)}</div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+                  {/* CURRENT (BEFORE) */}
+                  <div className="rounded-lg border border-red-200 bg-red-50/70 p-3">
+                    <div className="flex items-center gap-1.5 mb-1.5">
+                      <span className="h-1.5 w-1.5 rounded-full bg-red-500" />
+                      <span className="font-bold uppercase tracking-wider text-[10px] text-red-700">
+                        Current
+                      </span>
+                    </div>
+                    <div className="text-red-900 line-through decoration-red-400">
+                      {formatTextValue(flatBefore[key])}
+                    </div>
+                  </div>
+
+                  {/* PROPOSED (AFTER) */}
+                  <div className="rounded-lg border border-emerald-200 bg-emerald-50/70 p-3">
+                    <div className="flex items-center gap-1.5 mb-1.5">
+                      <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                      <span className="font-bold uppercase tracking-wider text-[10px] text-emerald-700">
+                        Proposed
+                      </span>
+                    </div>
+                    <div className="text-emerald-950 font-medium">
+                      {formatTextValue(flatAfter[key])}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+};
 
 export default ChangeDiff;

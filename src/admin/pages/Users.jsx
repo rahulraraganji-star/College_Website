@@ -1,17 +1,20 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import ConfirmModal from "../components/ConfirmModal";
+import { useAuth } from "../auth/AuthContext";
 
-const API_URL = "http://localhost:5000/api";
+const API_URL = "/api";
 
 const STATUS_BADGE = {
   active: "bg-green-100 text-green-700",
   inactive: "bg-gray-100 text-gray-500",
+  suspended: "bg-amber-100 text-amber-700",
   deleted: "bg-red-100 text-red-600",
 };
 
 const Users = () => {
   const navigate = useNavigate();
+  const { user: currentUser } = useAuth();
 
   // ==========================================
   // STATE
@@ -20,6 +23,7 @@ const Users = () => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [successMsg, setSuccessMsg] = useState("");
 
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState("");
@@ -30,6 +34,12 @@ const Users = () => {
 
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [deleting, setDeleting] = useState(false);
+
+  // Reset Password Modal State
+  const [resetTarget, setResetTarget] = useState(null);
+  const [newPasswordInput, setNewPasswordInput] = useState("");
+  const [resetting, setResetting] = useState(false);
+  const [resetResult, setResetResult] = useState(null);
 
   // ==========================================
   // FETCH USERS
@@ -99,6 +109,7 @@ const Users = () => {
       }
 
       setDeleteTarget(null);
+      setSuccessMsg(`User ${deleteTarget.name} has been deactivated.`);
       fetchUsers();
 
     } catch (err) {
@@ -108,13 +119,51 @@ const Users = () => {
     }
   };
 
+  // ==========================================
+  // RESET PASSWORD
+  // ==========================================
+
+  const handleResetPassword = async (e) => {
+    e.preventDefault();
+    if (!resetTarget) return;
+
+    setResetting(true);
+    setError("");
+
+    try {
+      const res = await fetch(
+        `${API_URL}/users/${resetTarget._id}/reset-password`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ newPassword: newPasswordInput.trim() || undefined }),
+        }
+      );
+
+      const data = await res.json();
+
+      if (!res.ok || !data.success) {
+        throw new Error(data.message || "Failed to reset password.");
+      }
+
+      setResetResult(data.temporaryPassword);
+      setSuccessMsg(`Password for ${resetTarget.name} was reset successfully.`);
+
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setResetting(false);
+    }
+  };
+
 
   // ==========================================
   // UI
   // ==========================================
 
   return (
-    <div className="max-w-[1400px] mx-auto px-6 lg:px-8 py-8">
+    <div className="max-w-[1400px] mx-auto px-6 lg:px-8 py-8" style={{ fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" }}>
 
       {/* PAGE HEADER */}
       <div className="flex items-center justify-between mb-8">
@@ -122,18 +171,18 @@ const Users = () => {
           <p className="text-xs uppercase tracking-[0.2em] text-gray-400">
             Users & Access
           </p>
-          <h1 className="mt-2 text-2xl font-semibold text-gray-900">
+          <h1 className="mt-1 text-[28px] font-extrabold text-black tracking-tight">
             Users
           </h1>
-          <p className="mt-1 text-sm text-gray-500">
-            Manage CMS users and their role-based access.
+          <p className="mt-1.5 text-[14px] text-neutral-500">
+            Manage CMS users, assign authorized roles, and reset credentials.
           </p>
         </div>
 
         <button
           type="button"
           onClick={() => navigate("/admin/users/create")}
-          className="rounded-lg bg-gray-900 px-4 py-2.5 text-sm font-medium text-white hover:bg-black"
+          className="rounded-lg bg-gray-900 px-4 py-2.5 text-sm font-medium text-white hover:bg-black transition-colors"
         >
           + Create User
         </button>
@@ -170,6 +219,7 @@ const Users = () => {
           <option value="">All Statuses</option>
           <option value="active">Active</option>
           <option value="inactive">Inactive</option>
+          <option value="suspended">Suspended</option>
           <option value="deleted">Deleted</option>
         </select>
 
@@ -189,16 +239,24 @@ const Users = () => {
       </div>
 
 
-      {/* ERROR */}
+      {/* NOTIFICATIONS */}
+      {successMsg && (
+        <div className="mb-5 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800 flex justify-between items-center">
+          <span>{successMsg}</span>
+          <button onClick={() => setSuccessMsg("")} className="text-emerald-600 hover:text-emerald-900">✕</button>
+        </div>
+      )}
+
       {error && (
-        <div className="mb-5 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-          {error}
+        <div className="mb-5 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 flex justify-between items-center">
+          <span>{error}</span>
+          <button onClick={() => setError("")} className="text-red-600 hover:text-red-900">✕</button>
         </div>
       )}
 
 
       {/* TABLE */}
-      <div className="rounded-xl border border-gray-200 bg-white overflow-hidden">
+      <div className="rounded-xl border border-gray-200 bg-white overflow-hidden shadow-sm">
 
         {loading ? (
           <div className="py-16 text-center text-sm text-gray-400">
@@ -231,52 +289,73 @@ const Users = () => {
                   <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-[0.08em] text-gray-500">
                     Created
                   </th>
-                  <th className="px-4 py-3" />
+                  <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-[0.08em] text-gray-500">
+                    Actions
+                  </th>
                 </tr>
               </thead>
 
               <tbody className="divide-y divide-gray-100">
-                {users.map((user) => {
-                  const isProtected =
-                    user.role === "super_admin" ||
-                    (user.role === "admin" && user.isSystemRole);
+                {users.map((targetUser) => {
+                  const isTargetSuper =
+                    targetUser.role === "super_admin" ||
+                    targetUser.roleId?.systemRole === "super_admin" ||
+                    targetUser.roleId?.slug === "super-admin";
+
+                  const isTargetAdmin =
+                    targetUser.role === "admin" ||
+                    targetUser.roleId?.systemRole === "admin" ||
+                    targetUser.roleId?.slug === "admin";
+
+                  const isActorSuper = currentUser?.role === "super_admin";
+                  const isSelf = targetUser._id === (currentUser?.id || currentUser?._id);
+
+                  // Super Admin can edit/reset anyone. Admin can only edit/reset non-super-admin and non-admin custom users.
+                  const canEdit = isActorSuper || (!isTargetSuper && !isTargetAdmin);
+                  const canDelete = !isSelf && !isTargetSuper && (isActorSuper || !isTargetAdmin);
+                  const canReset = isActorSuper || (!isTargetSuper && !isTargetAdmin);
 
                   return (
                     <tr
-                      key={user._id}
+                      key={targetUser._id}
                       className="hover:bg-gray-50 transition-colors"
                     >
                       {/* NAME */}
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2">
                           <div className="w-7 h-7 rounded-full bg-gray-200 flex items-center justify-center text-xs font-semibold text-gray-600 flex-shrink-0">
-                            {user.name?.charAt(0).toUpperCase()}
+                            {targetUser.name?.charAt(0).toUpperCase()}
                           </div>
                           <span className="font-medium text-gray-900">
-                            {user.name}
+                            {targetUser.name}
                           </span>
-                          {isProtected && (
-                            <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-700">
-                              Protected
+                          {isTargetSuper && (
+                            <span className="rounded-full bg-amber-100 border border-amber-300 px-2 py-0.5 text-[10px] font-bold text-amber-800">
+                              Super Admin
+                            </span>
+                          )}
+                          {isTargetAdmin && !isTargetSuper && (
+                            <span className="rounded-full bg-blue-100 border border-blue-200 px-2 py-0.5 text-[10px] font-semibold text-blue-800">
+                              Admin
                             </span>
                           )}
                         </div>
                       </td>
 
                       {/* EMAIL */}
-                      <td className="px-4 py-3 text-gray-500">
-                        {user.email}
+                      <td className="px-4 py-3 text-gray-500 font-mono text-xs">
+                        {targetUser.email}
                       </td>
 
                       {/* ROLE */}
                       <td className="px-4 py-3">
-                        {user.roleId ? (
+                        {targetUser.roleId ? (
                           <span className="rounded-md bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-700">
-                            {user.roleId.name}
+                            {targetUser.roleId.name}
                           </span>
                         ) : (
-                          <span className="text-xs text-gray-400">
-                            {user.role}
+                          <span className="text-xs text-gray-400 capitalize">
+                            {targetUser.role?.replace("_", " ")}
                           </span>
                         )}
                       </td>
@@ -285,42 +364,59 @@ const Users = () => {
                       <td className="px-4 py-3">
                         <span
                           className={[
-                            "rounded-full px-2.5 py-0.5 text-xs font-medium",
-                            STATUS_BADGE[user.status] || STATUS_BADGE.inactive,
+                            "rounded-full px-2.5 py-0.5 text-xs font-medium capitalize",
+                            STATUS_BADGE[targetUser.status] || STATUS_BADGE.inactive,
                           ].join(" ")}
                         >
-                          {user.status}
+                          {targetUser.status}
                         </span>
                       </td>
 
                       {/* DEPARTMENT */}
                       <td className="px-4 py-3 text-gray-500">
-                        {user.department || "—"}
+                        {targetUser.department || "—"}
                       </td>
 
                       {/* CREATED */}
                       <td className="px-4 py-3 text-gray-400 text-xs">
-                        {new Date(user.createdAt).toLocaleDateString()}
+                        {new Date(targetUser.createdAt).toLocaleDateString()}
                       </td>
 
                       {/* ACTIONS */}
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2 justify-end">
-                          <button
-                            type="button"
-                            onClick={() =>
-                              navigate(`/admin/users/${user._id}`)
-                            }
-                            className="rounded-md border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-100"
-                          >
-                            Edit
-                          </button>
-
-                          {!isProtected && (
+                          {canReset && (
                             <button
                               type="button"
-                              onClick={() => setDeleteTarget(user)}
-                              className="rounded-md border border-red-200 px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50"
+                              onClick={() => {
+                                setResetTarget(targetUser);
+                                setNewPasswordInput("");
+                                setResetResult(null);
+                              }}
+                              className="rounded-md border border-gray-200 px-2.5 py-1 text-xs font-medium text-gray-700 hover:bg-gray-100 transition-colors"
+                              title="Reset Password"
+                            >
+                              Reset Pass
+                            </button>
+                          )}
+
+                          {canEdit && (
+                            <button
+                              type="button"
+                              onClick={() =>
+                                navigate(`/admin/users/${targetUser._id}`)
+                              }
+                              className="rounded-md border border-gray-200 px-2.5 py-1 text-xs font-medium text-gray-700 hover:bg-gray-100 transition-colors"
+                            >
+                              Edit
+                            </button>
+                          )}
+
+                          {canDelete && (
+                            <button
+                              type="button"
+                              onClick={() => setDeleteTarget(targetUser)}
+                              className="rounded-md border border-red-200 px-2.5 py-1 text-xs font-medium text-red-600 hover:bg-red-50 transition-colors"
                             >
                               Delete
                             </button>
@@ -383,12 +479,92 @@ const Users = () => {
       {/* DELETE CONFIRM MODAL */}
       {deleteTarget && (
         <ConfirmModal
-          title="Delete User"
-          message={`Are you sure you want to deactivate "${deleteTarget.name}"? They will lose all CMS access.`}
-          confirmLabel={deleting ? "Deleting..." : "Delete"}
+          open={Boolean(deleteTarget)}
+          title="Deactivate User"
+          message={`Are you sure you want to deactivate "${deleteTarget.name}"? Their active sessions will be terminated.`}
+          confirmText="Deactivate"
+          loading={deleting}
           onConfirm={handleDelete}
           onCancel={() => setDeleteTarget(null)}
         />
+      )}
+
+      {/* RESET PASSWORD MODAL */}
+      {resetTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="w-full max-w-md bg-white rounded-xl shadow-xl border border-neutral-200 p-6 animate-in fade-in">
+            <h3 className="text-base font-bold text-neutral-900 mb-1">
+              Reset Password for {resetTarget.name}
+            </h3>
+            <p className="text-xs text-neutral-500 mb-4">
+              Set a custom password or leave blank to automatically generate a secure temporary password.
+            </p>
+
+            {resetResult ? (
+              <div className="space-y-4">
+                <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-lg">
+                  <p className="text-xs font-semibold text-emerald-800 mb-1">
+                    Temporary Password Generated:
+                  </p>
+                  <p className="text-sm font-mono font-bold text-emerald-950 bg-white p-2.5 rounded border border-emerald-200 select-all">
+                    {resetResult}
+                  </p>
+                  <p className="text-[11px] text-emerald-700 mt-2">
+                    Please copy this password and securely transmit it to the user.
+                  </p>
+                </div>
+
+                <div className="flex justify-end">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setResetTarget(null);
+                      setResetResult(null);
+                    }}
+                    className="px-4 py-2 bg-neutral-900 text-white rounded-lg text-xs font-semibold hover:bg-black"
+                  >
+                    Done
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <form onSubmit={handleResetPassword} className="space-y-4">
+                <div>
+                  <label className="block text-xs font-semibold text-neutral-700 mb-1">
+                    Custom Password (Optional)
+                  </label>
+                  <input
+                    type="text"
+                    value={newPasswordInput}
+                    onChange={(e) => setNewPasswordInput(e.target.value)}
+                    placeholder="Leave empty to auto-generate"
+                    className="w-full px-3 py-2 text-sm border border-neutral-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-neutral-900"
+                  />
+                </div>
+
+                <div className="flex justify-end gap-2 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setResetTarget(null);
+                      setNewPasswordInput("");
+                    }}
+                    className="px-4 py-2 border border-neutral-200 text-neutral-700 rounded-lg text-xs font-semibold hover:bg-neutral-50"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={resetting}
+                    className="px-4 py-2 bg-neutral-900 text-white rounded-lg text-xs font-semibold hover:bg-black disabled:opacity-50"
+                  >
+                    {resetting ? "Resetting..." : "Reset Password"}
+                  </button>
+                </div>
+              </form>
+            )}
+          </div>
+        </div>
       )}
 
     </div>

@@ -138,11 +138,8 @@ const HeroSection = ({ section, pageTitle }) => {
             ${revealClass}
           `}
         >
-          {/* ---------- Page Kicker ---------- */}
-          <PageKicker title={pageTitle} dark />
-
           {/* ---------- Gold Divider ---------- */}
-          <div className="mt-4 mb-6 h-[2px] w-16 rounded-full bg-[#C9A555]" />
+          <div className="mb-6 h-[2px] w-16 rounded-full bg-[#C9A555]" />
 
           {/* ---------- Heading ---------- */}
           {section.heading && (
@@ -184,6 +181,24 @@ const HeroSection = ({ section, pageTitle }) => {
             >
               {section.subheading}
             </p>
+          )}
+
+          {/* ---------- Optional Stats / Programme Bar (Course Variant) ---------- */}
+          {Array.isArray(section.stats) && section.stats.length > 0 && (
+            <div className="mt-10 w-full max-w-4xl border-t border-white/15 pt-7 pb-2">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 text-center sm:text-left divide-y sm:divide-y-0 sm:divide-x divide-white/10">
+                {section.stats.map((stat, sIdx) => (
+                  <div key={sIdx} className={sIdx > 0 ? "pt-4 sm:pt-0 sm:pl-6" : ""}>
+                    <p className="font-['Inter'] text-[11px] font-semibold uppercase tracking-[0.2em] text-white/50 mb-1">
+                      {stat.label}
+                    </p>
+                    <p className="font-['Inter'] text-base md:text-lg font-medium text-[#F8F5F0]">
+                      {stat.value}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
           )}
 
 {/* ---------- CTA Buttons ---------- */}
@@ -253,7 +268,9 @@ const HeroSection = ({ section, pageTitle }) => {
           
 
           {/* ---------- Bottom Divider ---------- */}
-          <div className="mt-10 h-px w-full max-w-md bg-white/15" />
+          {!section.stats && (
+            <div className="mt-10 h-px w-full max-w-md bg-white/15" />
+          )}
 
           {/* ---------- Scroll Indicator ---------- */}
           <div className="mt-6 flex flex-col items-center">

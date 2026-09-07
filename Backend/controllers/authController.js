@@ -2,16 +2,18 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
 import User from "../models/User.js";
+import { createAuditLog } from "../services/auditService.js";
 
 // ==========================================
 // CREATE AUTH TOKEN
 // ==========================================
 
-const createToken = (user) => {
+export const createToken = (user) => {
   return jwt.sign(
     {
       userId: user._id.toString(),
       role: user.role,
+      tokenVersion: user.tokenVersion || 0,
     },
     process.env.JWT_SECRET,
     {
@@ -185,6 +187,13 @@ export const getMe = async (req, res) => {
       });
     }
 
+    if (user.status !== "active") {
+      return res.status(403).json({
+        success: false,
+        message: "Your account is not active.",
+      });
+    }
+
     // ==========================================
     // EFFECTIVE PERMISSIONS
     // ==========================================
@@ -202,8 +211,8 @@ export const getMe = async (req, res) => {
       const userPages   = user.allowedPages   || [];
       const rolePages   = user.roleId?.allowedPages   || [];
 
-      effectivePermissions  = userPerms.length  > 0 ? userPerms  : rolePerms;
-      effectiveAllowedPages = userPages.length  > 0 ? userPages  : rolePages;
+      effectivePermissions  = user.roleId ? (rolePerms.length > 0 ? rolePerms : userPerms) : userPerms;
+      effectiveAllowedPages = user.roleId ? (rolePages.length > 0 ? rolePages : userPages) : userPages;
     }
 
     return res.status(200).json({
@@ -235,6 +244,188 @@ export const getMe = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Server error.",
+    });
+  }
+};
+
+// ==========================================
+// CHANGE OWN PASSWORD
+// Authenticated user changes their own password
+// ==========================================
+
+export const changePassword = async (req, res) => {
+  try {
+    const { currentPassword, newPassword, confirmPassword } = req.body;
+
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      return res.status(400).json({
+        success: false,
+        message: "Current password, new password, and confirmation are required.",
+      });
+    }
+
+    if (newPassword !== confirmPassword) {
+      return res.status(400).json({
+        success: false,
+        message: "New password and confirmation do not match.",
+      });
+    }
+
+    if (newPassword.length < 8) {
+      return res.status(400).json({
+        success: false,
+        message: "New password must be at least 8 characters long.",
+      });
+    }
+
+    const user = await User.findById(req.authUser._id);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found.",
+      });
+    }
+
+    // Verify current password
+    const matches = await bcrypt.compare(currentPassword, user.passwordHash);
+    if (!matches) {
+      return res.status(401).json({
+        success: false,
+        message: "Current password is incorrect.",
+      });
+    }
+
+    // Hash new password
+    const newPasswordHash = await bcrypt.hash(newPassword, 12);
+    user.passwordHash = newPasswordHash;
+    
+    // Invalidate stale sessions by incrementing tokenVersion
+    user.tokenVersion = (user.tokenVersion || 0) + 1;
+    await user.save();
+
+    // Issue new JWT token with updated tokenVersion
+    const newToken = createToken(user);
+
+    res.cookie("cms_token", newToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      maxAge: 24 * 60 * 60 * 1000,
+      path: "/",
+    });
+
+    // Create Audit Log (never recording passwords or hashes)
+    await createAuditLog({
+      req,
+      actor: user,
+      resourceType: "user",
+      resourceId: user._id,
+      resourceName: user.email,
+      action: "PASSWORD_CHANGED",
+      before: null,
+      after: { passwordChanged: true },
+      approvalRequired: false,
+      approvalStatus: "not_required",
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Password changed successfully.",
+    });
+
+  } catch (error) {
+    console.error("CHANGE PASSWORD ERROR:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to change password.",
+    });
+  }
+};
+
+// ==========================================
+// UPDATE OWN EMAIL
+// Authenticated user updates their email
+// ==========================================
+
+export const updateEmail = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    if (!email || !email.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: "Valid email address is required.",
+      });
+    }
+
+    const normalizedEmail = email.toLowerCase().trim();
+
+    // Basic email validation regex
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(normalizedEmail)) {
+      return res.status(400).json({
+        success: false,
+        message: "Please provide a valid email format.",
+      });
+    }
+
+    const user = await User.findById(req.authUser._id);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found.",
+      });
+    }
+
+    if (user.email === normalizedEmail) {
+      return res.status(400).json({
+        success: false,
+        message: "New email must be different from current email.",
+      });
+    }
+
+    // Check duplicate email across other users
+    const duplicate = await User.findOne({
+      email: normalizedEmail,
+      _id: { $ne: user._id },
+    });
+
+    if (duplicate) {
+      return res.status(409).json({
+        success: false,
+        message: "This email address is already in use by another account.",
+      });
+    }
+
+    const oldEmail = user.email;
+    user.email = normalizedEmail;
+    await user.save();
+
+    // Audit log
+    await createAuditLog({
+      req,
+      actor: user,
+      resourceType: "user",
+      resourceId: user._id,
+      resourceName: user.email,
+      action: "EMAIL_CHANGED",
+      before: { email: oldEmail },
+      after: { email: normalizedEmail },
+      approvalRequired: false,
+      approvalStatus: "not_required",
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Email address updated successfully.",
+      email: normalizedEmail,
+    });
+
+  } catch (error) {
+    console.error("UPDATE EMAIL ERROR:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to update email.",
     });
   }
 };

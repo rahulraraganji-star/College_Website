@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
-const API_URL = "http://localhost:5000/api";
+const API_URL = "/api";
 
 const toSlug = (name) =>
   name.toLowerCase().trim().replace(/[^a-z0-9\s-]/g, "").replace(/\s+/g, "-").replace(/-+/g, "-");
@@ -103,37 +103,59 @@ const EditRole = () => {
   // ==========================================
 
   const togglePage = (key) =>
-    setSelectedPages((prev) =>
-      prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key]
-    );
+    setSelectedPages((prev) => {
+      const current = prev || [];
+      return current.includes(key)
+        ? current.filter((k) => k !== key)
+        : [...current, key];
+    });
 
   const togglePermission = (perm) =>
-    setSelectedPermissions((prev) =>
-      prev.includes(perm) ? prev.filter((p) => p !== perm) : [...prev, perm]
-    );
+    setSelectedPermissions((prev) => {
+      const current = prev || [];
+      if (current.includes(perm)) {
+        return current.filter((p) => p !== perm);
+      } else {
+        const next = [...current, perm];
+        if (perm && typeof perm === "string" && perm.includes(".")) {
+          const modulePrefix = perm.split(".")[0];
+          const viewPerm = `${modulePrefix}.view`;
+          if (!next.includes(viewPerm)) {
+            next.push(viewPerm);
+          }
+        }
+        return next;
+      }
+    });
 
   const toggleGroupAll = (group) => {
-    const keys = group.permissions.map((p) => p.key);
-    const allSelected = keys.every((k) => selectedPermissions.includes(k));
-    setSelectedPermissions((prev) =>
-      allSelected
-        ? prev.filter((p) => !keys.includes(p))
-        : [...prev.filter((p) => !keys.includes(p)), ...keys]
-    );
+    if (!group || !group.permissions) return;
+    const keys = (group.permissions || []).map((p) => p.key);
+    const current = selectedPermissions || [];
+    const allSelected = keys.length > 0 && keys.every((k) => current.includes(k));
+    setSelectedPermissions((prev) => {
+      const p = prev || [];
+      return allSelected
+        ? p.filter((k) => !keys.includes(k))
+        : [...p.filter((k) => !keys.includes(k)), ...keys];
+    });
   };
 
   const togglePageGroup = (group) => {
-    const childKeys = group.children.map((c) => c.key);
-    const allSelected = childKeys.every((k) => selectedPages.includes(k));
-    if (allSelected) {
-      setSelectedPages((prev) => prev.filter((k) => !childKeys.includes(k)));
-    } else {
-      setSelectedPages((prev) => [...prev.filter((k) => !childKeys.includes(k)), ...childKeys]);
-    }
+    if (!group || !group.children) return;
+    const childKeys = (group.children || []).map((c) => c.key);
+    const current = selectedPages || [];
+    const allSelected = childKeys.length > 0 && childKeys.every((k) => current.includes(k));
+    setSelectedPages((prev) => {
+      const p = prev || [];
+      return allSelected
+        ? p.filter((k) => !childKeys.includes(k))
+        : [...p.filter((k) => !childKeys.includes(k)), ...childKeys];
+    });
   };
 
   const toggleGroupExpand = (key) =>
-    setExpandedGroups((prev) => ({ ...prev, [key]: !prev[key] }));
+    setExpandedGroups((prev) => ({ ...prev, [key]: !prev?.[key] }));
 
 
   // ==========================================
@@ -194,6 +216,13 @@ const EditRole = () => {
   if (!role && error) {
     return (
       <div className="max-w-[900px] mx-auto px-6 py-8">
+        <button
+          type="button"
+          onClick={() => navigate("/admin/roles")}
+          className="text-xs text-gray-400 hover:text-gray-700 mb-3 flex items-center gap-1"
+        >
+          ← Roles
+        </button>
         <p className="text-sm text-red-600">{error}</p>
       </div>
     );
@@ -212,9 +241,24 @@ const EditRole = () => {
         <div className="rounded-xl border border-amber-200 bg-amber-50 px-5 py-4">
           <p className="text-sm font-semibold text-amber-800">System Role — Read Only</p>
           <p className="mt-1 text-sm text-amber-700">
-            The "{role.name}" role is a system role and cannot be modified.
+            The "{role?.name || "System"}" role is a system role and cannot be modified.
           </p>
         </div>
+      </div>
+    );
+  }
+
+  if (!role) {
+    return (
+      <div className="max-w-[900px] mx-auto px-6 py-8">
+        <button
+          type="button"
+          onClick={() => navigate("/admin/roles")}
+          className="text-xs text-gray-400 hover:text-gray-700 mb-3 flex items-center gap-1"
+        >
+          ← Roles
+        </button>
+        <p className="text-sm text-red-600">{error || "Role not found."}</p>
       </div>
     );
   }
@@ -235,13 +279,13 @@ const EditRole = () => {
         >
           ← Roles
         </button>
-        <p className="text-xs uppercase tracking-[0.2em] text-gray-400">
+        <p className="text-xs font-semibold uppercase tracking-[0.15em] text-neutral-400 mb-1">
           Users & Access
         </p>
-        <h1 className="mt-2 text-2xl font-semibold text-gray-900">
+        <h1 className="text-[28px] font-extrabold text-black tracking-tight">
           Edit Role
         </h1>
-        <p className="mt-1 text-sm text-gray-500">{role.name}</p>
+        <p className="text-[14px] text-neutral-500 mt-1.5">{role?.name || "Edit Role"}</p>
       </div>
 
       {success && (
@@ -304,14 +348,15 @@ const EditRole = () => {
           <div className="p-5">
             {loadingAccess ? (
               <p className="text-sm text-gray-400">Loading pages...</p>
-            ) : groups.length === 0 ? (
+            ) : (groups || []).length === 0 ? (
               <p className="text-sm text-gray-400">No published pages found.</p>
             ) : (
               <div className="space-y-2">
-                {groups.map((group) => {
-                  const isExpanded = expandedGroups[group.key];
-                  const childKeys = group.children.map((c) => c.key);
-                  const selectedCount = childKeys.filter((k) => selectedPages.includes(k)).length;
+                {(groups || []).map((group) => {
+                  if (!group) return null;
+                  const isExpanded = Boolean(expandedGroups[group.key]);
+                  const childKeys = (group.children || []).map((c) => c.key);
+                  const selectedCount = childKeys.filter((k) => (selectedPages || []).includes(k)).length;
                   const allSelected = childKeys.length > 0 && selectedCount === childKeys.length;
                   const someSelected = selectedCount > 0 && !allSelected;
 
@@ -346,7 +391,7 @@ const EditRole = () => {
                             )}
                           </div>
                         </div>
-                        <span className={["text-gray-400 text-xs", isExpanded ? "rotate-180" : ""].join(" ")}>
+                        <span className={["text-gray-400 text-xs transition-transform", isExpanded ? "rotate-180" : ""].join(" ")}>
                           ▼
                         </span>
                       </div>
@@ -354,11 +399,12 @@ const EditRole = () => {
                       {/* CHILDREN */}
                       {isExpanded && (
                         <div className="border-t border-gray-100 divide-y divide-gray-50">
-                          {group.children.length === 0 ? (
+                          {(group.children || []).length === 0 ? (
                             <p className="px-4 py-3 text-xs text-gray-400">No pages inside.</p>
                           ) : (
-                            group.children.map((child) => {
-                              const selected = selectedPages.includes(child.key);
+                            (group.children || []).map((child) => {
+                              if (!child) return null;
+                              const selected = (selectedPages || []).includes(child.key);
                               return (
                                 <label
                                   key={child.key}
@@ -399,11 +445,12 @@ const EditRole = () => {
             {loadingAccess ? (
               <p className="text-sm text-gray-400">Loading permissions...</p>
             ) : (
-              permissionGroups
-                .filter((g) => g.key !== "audit")
+              (permissionGroups || [])
+                .filter((g) => g && g.key !== "audit")
                 .map((group) => {
-                  const keys = group.permissions.map((p) => p.key);
-                  const allSelected = keys.every((k) => selectedPermissions.includes(k));
+                  if (!group) return null;
+                  const keys = (group.permissions || []).map((p) => p.key);
+                  const allSelected = keys.length > 0 && keys.every((k) => (selectedPermissions || []).includes(k));
                   return (
                     <div key={group.key} className="rounded-xl border border-gray-200 overflow-hidden">
                       <div className="flex items-center justify-between px-4 py-3 bg-gray-50 border-b border-gray-200">
@@ -413,19 +460,20 @@ const EditRole = () => {
                         <button
                           type="button"
                           onClick={() => toggleGroupAll(group)}
-                          className="text-xs text-gray-500 hover:text-gray-900"
+                          className="text-xs text-gray-500 hover:text-gray-900 font-medium"
                         >
                           {allSelected ? "Deselect all" : "Select all"}
                         </button>
                       </div>
                       <div className="flex flex-wrap gap-2 p-4">
-                        {group.permissions.map((perm) => {
-                          const active = selectedPermissions.includes(perm.key);
+                        {(group.permissions || []).map((perm) => {
+                          if (!perm) return null;
+                          const active = (selectedPermissions || []).includes(perm.key);
                           return (
                             <label
                               key={perm.key}
                               className={[
-                                "flex items-center gap-2 rounded-lg border px-3 py-2 cursor-pointer text-sm transition-colors",
+                                "flex items-center gap-2 rounded-lg border px-3 py-2 cursor-pointer text-sm transition-colors select-none",
                                 active
                                   ? "border-gray-900 bg-gray-900 text-white"
                                   : "border-gray-200 text-gray-600 hover:border-gray-300",

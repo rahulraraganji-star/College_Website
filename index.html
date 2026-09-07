@@ -10,14 +10,87 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 
     <link
-      href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600&family=Inter:wght@400;500&family=Jaini&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=IBM+Plex+Mono:wght@400;500;600;700&family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@400;500;600&family=Jaini&display=swap"
       rel="stylesheet"
     />
 
     <title>ll</title>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <style>
+        .initial-ls-root {
+          position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 24px; background: #F8F5F0; z-index: 99999;
+        }
+        .initial-ls-grain {
+          position: absolute; inset: 0; opacity: .05; mix-blend-mode: multiply; pointer-events: none;
+          background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+        }
+        .initial-ls-svg { width: 148px; height: 148px; overflow: visible; display: block; }
+        .initial-ls-tick { stroke: #2A2623; stroke-width: 1; stroke-linecap: round; }
+        .initial-ls-ring { transform-origin: 80px 80px; animation: initial-ls-spin 9s linear infinite; }
+        .initial-ls-corners path { fill: none; stroke: #C9A555; stroke-width: 1; }
+        .initial-ls-crest { transform: scaleX(0.99); transform-origin: 80px 80px; }
+        .initial-ls-line { fill: none; stroke: #8A6B3F; stroke-width: 1.3; stroke-linejoin: round; stroke-linecap: round; stroke-dasharray: 100; stroke-dashoffset: 100; animation: initial-ls-draw 2.8s ease-in-out infinite; }
+        .initial-ls-d1 { animation-delay: 0s; }
+        .initial-ls-d2 { animation-delay: 0.2s; }
+        .initial-ls-d3 { animation-delay: 0.4s; }
+        .initial-ls-d4 { animation-delay: 0.6s; }
+        .initial-ls-progress { width: 88px; height: 1px; background: rgba(42,38,35,.15); overflow: hidden; }
+        .initial-ls-progress-fill { width: 40%; height: 100%; background: #C9A555; animation: initial-ls-sweep 1.6s ease-in-out infinite; }
+        @keyframes initial-ls-spin { to { transform: rotate(360deg); } }
+        @keyframes initial-ls-draw { 0% { stroke-dashoffset: 100; opacity: .35; } 55% { stroke-dashoffset: 0; opacity: 1; } 100% { stroke-dashoffset: 0; opacity: .35; } }
+        @keyframes initial-ls-sweep { 0% { transform: translateX(-100%); } 100% { transform: translateX(250%); } }
+      </style>
+      <div class="initial-ls-root">
+        <div class="initial-ls-grain"></div>
+        <svg viewBox="0 0 160 160" class="initial-ls-svg">
+          <g class="initial-ls-ring">
+            <line x1="80" y1="8" x2="80" y2="18" class="initial-ls-tick" style="opacity: 0.9" />
+            <line x1="80" y1="12" x2="80" y2="16" transform="rotate(15 80 80)" class="initial-ls-tick" style="opacity: 0.35" />
+            <line x1="80" y1="12" x2="80" y2="16" transform="rotate(30 80 80)" class="initial-ls-tick" style="opacity: 0.35" />
+            <line x1="80" y1="12" x2="80" y2="16" transform="rotate(45 80 80)" class="initial-ls-tick" style="opacity: 0.35" />
+            <line x1="80" y1="12" x2="80" y2="16" transform="rotate(60 80 80)" class="initial-ls-tick" style="opacity: 0.35" />
+            <line x1="80" y1="12" x2="80" y2="16" transform="rotate(75 80 80)" class="initial-ls-tick" style="opacity: 0.35" />
+            <line x1="80" y1="8" x2="80" y2="18" transform="rotate(90 80 80)" class="initial-ls-tick" style="opacity: 0.9" />
+            <line x1="80" y1="12" x2="80" y2="16" transform="rotate(105 80 80)" class="initial-ls-tick" style="opacity: 0.35" />
+            <line x1="80" y1="12" x2="80" y2="16" transform="rotate(120 80 80)" class="initial-ls-tick" style="opacity: 0.35" />
+            <line x1="80" y1="12" x2="80" y2="16" transform="rotate(135 80 80)" class="initial-ls-tick" style="opacity: 0.35" />
+            <line x1="80" y1="12" x2="80" y2="16" transform="rotate(150 80 80)" class="initial-ls-tick" style="opacity: 0.35" />
+            <line x1="80" y1="12" x2="80" y2="16" transform="rotate(165 80 80)" class="initial-ls-tick" style="opacity: 0.35" />
+            <line x1="80" y1="8" x2="80" y2="18" transform="rotate(180 80 80)" class="initial-ls-tick" style="opacity: 0.9" />
+            <line x1="80" y1="12" x2="80" y2="16" transform="rotate(195 80 80)" class="initial-ls-tick" style="opacity: 0.35" />
+            <line x1="80" y1="12" x2="80" y2="16" transform="rotate(210 80 80)" class="initial-ls-tick" style="opacity: 0.35" />
+            <line x1="80" y1="12" x2="80" y2="16" transform="rotate(225 80 80)" class="initial-ls-tick" style="opacity: 0.35" />
+            <line x1="80" y1="12" x2="80" y2="16" transform="rotate(240 80 80)" class="initial-ls-tick" style="opacity: 0.35" />
+            <line x1="80" y1="12" x2="80" y2="16" transform="rotate(255 80 80)" class="initial-ls-tick" style="opacity: 0.35" />
+            <line x1="80" y1="8" x2="80" y2="18" transform="rotate(270 80 80)" class="initial-ls-tick" style="opacity: 0.9" />
+            <line x1="80" y1="12" x2="80" y2="16" transform="rotate(285 80 80)" class="initial-ls-tick" style="opacity: 0.35" />
+            <line x1="80" y1="12" x2="80" y2="16" transform="rotate(300 80 80)" class="initial-ls-tick" style="opacity: 0.35" />
+            <line x1="80" y1="12" x2="80" y2="16" transform="rotate(315 80 80)" class="initial-ls-tick" style="opacity: 0.35" />
+            <line x1="80" y1="12" x2="80" y2="16" transform="rotate(330 80 80)" class="initial-ls-tick" style="opacity: 0.35" />
+            <line x1="80" y1="12" x2="80" y2="16" transform="rotate(345 80 80)" class="initial-ls-tick" style="opacity: 0.35" />
+          </g>
+          <g class="initial-ls-corners">
+            <path d="M 46 46 L 46 34 L 58 34" />
+            <path d="M 114 46 L 114 34 L 102 34" />
+            <path d="M 46 114 L 46 126 L 58 126" />
+            <path d="M 114 114 L 114 126 L 102 126" />
+          </g>
+          <g class="initial-ls-crest">
+            <path class="initial-ls-line initial-ls-d1" pathLength="100" d="M56 50 L104 50 L104 80 Q104 94 94 103 L80 114 L66 103 Q56 94 56 80 Z" />
+            <path class="initial-ls-line initial-ls-d2" pathLength="100" d="M80 50 L80 76" />
+            <path class="initial-ls-line initial-ls-d2" pathLength="100" d="M58 76 L102 76" />
+            <path class="initial-ls-line initial-ls-d3" pathLength="100" d="M69 56 L77 60 L69 64 L61 60 Z M69 64 L69 70" />
+            <path class="initial-ls-line initial-ls-d3" pathLength="100" d="M91 54 L91 68 M91 54 L81 58 L81 66 L91 68 M91 54 L101 58 L101 66 L91 68" />
+            <path class="initial-ls-line initial-ls-d4" pathLength="100" d="M80 76 L80 100 M65 85 L95 85 M69 85 L69 92 M91 85 L91 92 M63 92 L75 92 L69 98 Z M85 92 L97 92 L91 98 Z M73 100 L87 100" />
+          </g>
+        </svg>
+        <div class="initial-ls-progress">
+          <div class="initial-ls-progress-fill"></div>
+        </div>
+      </div>
+    </div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

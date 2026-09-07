@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import * as Icons from "lucide-react";
 import { Menu, X, ChevronDown } from "lucide-react";
+import { prefetchPage } from "../Pages/DynamicPage";
+import { prefetchSidebar } from "../Layouts/SectionLayout";
 
 const Navbar = () => {
 
@@ -20,7 +22,7 @@ const Navbar = () => {
 
     const fetchNavbarData = () => {
 
-      fetch("http://localhost:5000/api/navigation")
+      fetch("/api/navigation")
         .then((res) => res.json())
         .then((navData) => {
 
@@ -37,8 +39,6 @@ const Navbar = () => {
           });
 
           setMenus(updatedMenus);
-          console.log(updatedMenus);
-
           setLoading(false);
 
         })
@@ -121,6 +121,16 @@ const Navbar = () => {
 
   }, []);
 
+  // RECOMPUTE DROPDOWN POSITION ON RESIZE
+  useEffect(() => {
+    const handleResize = () => {
+      menus.forEach((_, index) => positionDropdown(index));
+    };
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, [menus]);
+
   // LOADING
   if (loading) {
     return <nav className="h-[90px]" />;
@@ -135,75 +145,51 @@ const Navbar = () => {
 
   };
 
-  // DROPDOWN POSITIONING - COMPLETELY FIXED
-  const positionDropdown = (index, isAbout) => {
+  // DROPDOWN POSITIONING - instant coordinates without animating left/right
+  const positionDropdown = (index) => {
     const el = dropdownRefs.current[index];
-
     if (!el) return;
 
     const vw = window.innerWidth;
-
-    // Reset all positioning
-    el.style.left = "";
-    el.style.right = "";
-    el.style.marginLeft = "";
-    el.style.transform = "";
-    el.style.position = "absolute";
-
-    // Get the parent li element
-    const parentLi = el.closest('li');
+    const parentLi = el.closest("li");
     if (!parentLi) return;
 
     const parentRect = parentLi.getBoundingClientRect();
+    const dropdownContent = el.querySelector(".dropdown-card");
+    const contentWidth = dropdownContent?.offsetWidth || 760;
 
-    // For About Us, center it
-    if (isAbout) {
-      // Get the actual width of the dropdown content
-      const dropdownContent = el.querySelector('.mt-4');
-      if (!dropdownContent) return;
-      
-      // Force a reflow to get accurate width
-      const contentWidth = dropdownContent.offsetWidth || 820;
-      
-      // Position centered under the parent
-      const centerOffset = (parentRect.width / 2) - (contentWidth / 2);
-      
-      el.style.left = `${centerOffset}px`;
-      el.style.right = "auto";
-      el.style.marginLeft = "0";
-      el.style.transform = "none";
+    // Reset styles
+    el.style.position = "absolute";
+    el.style.top = "100%";
 
-      // Check if it goes off screen
-      const rect = el.getBoundingClientRect();
-      
-      if (rect.right > vw - 16) {
-        // Too far right - align to right edge
-        el.style.left = "auto";
-        el.style.right = "0";
-        el.style.marginLeft = "0";
-      } else if (rect.left < 16) {
-        // Too far left - align to left edge
-        el.style.left = "0";
-        el.style.right = "auto";
-        el.style.marginLeft = "0";
-      }
-    } else {
-      // Regular dropdown - align to left of parent
-      el.style.left = "0";
-      el.style.right = "auto";
-      el.style.marginLeft = "0";
-      el.style.transform = "none";
+    // Center under the parent item
+    const centerOffset = (parentRect.width - contentWidth) / 2;
+    let leftPos = centerOffset;
 
-      // Check if it goes off screen
-      const rect = el.getBoundingClientRect();
-      
-      if (rect.right > vw - 16) {
-        el.style.left = "auto";
-        el.style.right = "0";
-      } else if (rect.left < 16) {
-        el.style.left = "0";
-        el.style.right = "auto";
-      }
+    // Viewport clamping (keep dropdown completely within visible viewport with safe 16px margins)
+    if (parentRect.left + leftPos < 16) {
+      leftPos = 16 - parentRect.left;
+    } else if (parentRect.left + leftPos + contentWidth > vw - 16) {
+      leftPos = vw - 16 - parentRect.left - contentWidth;
+    }
+
+    el.style.left = `${leftPos}px`;
+    el.style.right = "auto";
+  };
+
+  const handlePrefetchMenu = (menu) => {
+    if (!menu) return;
+    if (menu.key) {
+      prefetchSidebar(menu.key);
+    }
+    if (Array.isArray(menu.items)) {
+      menu.items.forEach((item) => {
+        if (item.slug) {
+          const parts = item.slug.split("/").filter(Boolean);
+          const itemSlug = parts.pop();
+          if (itemSlug) prefetchPage(itemSlug);
+        }
+      });
     }
   };
 
@@ -225,20 +211,17 @@ const Navbar = () => {
       <div
         className={`
           ${scrolled ? "h-[64px]" : "h-[78px]"}
-          transition-all duration-300
+          transition-[height] duration-300 ease-out
           flex items-center
         `}
       >
 
-        <div className="max-w-[1300px] mx-auto w-full px-6 flex items-center justify-between lg:justify-center">
+        <div className="max-w-[1300px] mx-auto w-full px-6 flex items-center justify-between lg:justify-center relative">
 
-          {/* DESKTOP NAV — unchanged, just hidden below lg */}
+          {/* DESKTOP NAV */}
           <ul className="hidden lg:flex items-center justify-center gap-10 whitespace-nowrap">
 
             {menus.map((menu, index) => {
-
-              const isAbout =
-                menu.title === "About Us";
 
               const hasChildren =
                 menu.items &&
@@ -247,26 +230,21 @@ const Navbar = () => {
               return (
                 <li
                   key={menu._id || index}
-                  className="relative group"
-                  onMouseEnter={
-                    hasChildren
-                      ? () =>
-                          positionDropdown(
-                            index,
-                            isAbout
-                          )
-                      : undefined
-                  }
+                  className="relative group py-4"
+                  onMouseEnter={() => {
+                    positionDropdown(index);
+                    handlePrefetchMenu(menu);
+                  }}
                 >
 
                   {/* TOP ITEM */}
                   {hasChildren ? (
 
-                    <span className="relative px-3 py-2 text-[18px] font-medium font-['Inter'] text-gray-800 cursor-pointer">
+                    <span className="relative px-2 py-1 text-[17px] font-medium font-['Inter'] text-gray-800 cursor-pointer inline-block transition-colors duration-150 group-hover:text-black">
 
                       {menu.title}
 
-                      <span className="absolute left-0 bottom-0 h-[2px] w-0 bg-[#C89B2F] transition-all duration-300 group-hover:w-full" />
+                      <span className="absolute left-0 bottom-0 h-[2px] w-0 bg-[#C89B2F] transition-[width] duration-200 ease-out group-hover:w-full" />
 
                     </span>
 
@@ -276,123 +254,79 @@ const Navbar = () => {
                       to={buildPath(
                         menu.slug || menu.key
                       )}
-                      className="relative px-3 py-2 text-[18px] font-medium font-['Inter'] text-gray-800"
+                      onMouseEnter={() => {
+                        const parts = (menu.slug || menu.key || "").split("/").filter(Boolean);
+                        const itemSlug = parts.pop();
+                        if (itemSlug) prefetchPage(itemSlug);
+                      }}
+                      className="relative px-2 py-1 text-[17px] font-medium font-['Inter'] text-gray-800 transition-colors duration-150 hover:text-black"
                     >
 
                       {menu.title}
 
-                      <span className="absolute left-0 bottom-0 h-[2px] w-0 bg-[#C89B2F] transition-all duration-300 hover:w-full" />
+                      <span className="absolute left-0 bottom-0 h-[2px] w-0 bg-[#C89B2F] transition-[width] duration-200 ease-out hover:w-full" />
 
                     </Link>
 
                   )}
 
-                  {/* DROPDOWN */}
+                  {/* DROPDOWN - POSITIONED BY JS */}
                   {hasChildren && (
-
                     <div
-                      ref={(el) =>
-                        (dropdownRefs.current[index] =
-                          el)
-                      }
+                      ref={(el) => (dropdownRefs.current[index] = el)}
                       className="
-                        absolute top-full z-50
-                        opacity-0 translate-y-3
-                        pointer-events-none
-                        group-hover:opacity-100
-                        group-hover:translate-y-0
-                        group-hover:pointer-events-auto
-                        transition-all duration-200
+                        absolute top-full z-50 pt-2
+                        opacity-0 pointer-events-none translate-y-1.5
+                        group-hover:opacity-100 group-hover:pointer-events-auto group-hover:translate-y-0
+                        transition-all duration-150 ease-out transform-gpu
                       "
                     >
+                      <div className="dropdown-card bg-white border border-[#E5E5E5] shadow-[0_15px_35px_rgba(0,0,0,0.08)] rounded-2xl p-5 w-[760px] max-w-[calc(100vw-32px)] whitespace-normal">
 
-                      <div className="mt-4 bg-white border border-[#E5E5E5] shadow-[0_25px_60px_rgba(0,0,0,0.12)] rounded-xl p-6 w-[820px] max-w-[90vw]">
+                        <div className="grid grid-cols-3 gap-2.5">
 
-                        {isAbout ? (
+                          {menu.items.map((item) => {
 
-                          <div className="grid grid-cols-3 gap-6">
+                            const Icon =
+                              Icons[item.icon] || null;
 
-                            {menu.items.map((item) => {
+                            const itemSlug = item.slug ? item.slug.split("/").filter(Boolean).pop() : null;
 
-                              const Icon =
-                                Icons[item.icon] || null;
+                            return (
+                              <Link
+                                key={item._id}
+                                to={buildPath(item.slug)}
+                                onMouseEnter={() => {
+                                  if (itemSlug) prefetchPage(itemSlug);
+                                }}
+                                className="flex items-center gap-3 p-2.5 rounded-xl transition-colors duration-150 hover:bg-[#F8F6F1]/60 min-w-0"
+                              >
 
-                              return (
-                                <Link
-                                  key={item._id}
-                                  to={buildPath(item.slug)}
-                                  className="flex gap-3"
-                                >
+                                <div className="w-8 h-8 bg-[#FFF4D6] rounded-lg flex items-center justify-center text-[#C89B2F] shrink-0 transition-colors">
 
-                                  <div className="w-8 h-8 bg-[#FFF4D6] rounded-full flex items-center justify-center text-[#C89B2F]">
+                                  {Icon && (
+                                    <Icon size={16} />
+                                  )}
 
-                                    {Icon && (
-                                      <Icon size={16} />
-                                    )}
+                                </div>
 
-                                  </div>
+                                <div className="min-w-0 flex-1">
 
-                                  <div>
+                                  <h4 className="text-[13.5px] font-semibold text-gray-800 transition-colors duration-150 hover:text-[#C89B2F] leading-snug break-words whitespace-normal">
+                                    {item.label}
+                                  </h4>
 
-                                    <h4 className="text-sm font-medium">
-                                      {item.label}
-                                    </h4>
+                                  <p className="text-[11.5px] text-gray-400 whitespace-normal">
+                                    View details
+                                  </p>
 
-                                    <p className="text-xs text-gray-500">
-                                      View details
-                                    </p>
+                                </div>
 
-                                  </div>
+                              </Link>
+                            );
+                          })}
 
-                                </Link>
-                              );
-                            })}
-
-                          </div>
-
-                        ) : (
-
-                          <div className="grid grid-cols-3 gap-6">
-
-                            {menu.items.map((item) => {
-
-                              const Icon =
-                                Icons[item.icon] || null;
-
-                              return (
-                                <Link
-                                  key={item._id}
-                                  to={buildPath(item.slug)}
-                                  className="flex gap-3"
-                                >
-
-                                  <div className="w-8 h-8 bg-[#FFF4D6] rounded-full flex items-center justify-center text-[#C89B2F]">
-
-                                    {Icon && (
-                                      <Icon size={16} />
-                                    )}
-
-                                  </div>
-
-                                  <div>
-
-                                    <h4 className="text-sm font-medium">
-                                      {item.label}
-                                    </h4>
-
-                                    <p className="text-xs text-gray-500">
-                                      View details
-                                    </p>
-
-                                  </div>
-
-                                </Link>
-                              );
-                            })}
-
-                          </div>
-
-                        )}
+                        </div>
 
                       </div>
 
@@ -479,9 +413,6 @@ const Navbar = () => {
 
               {menus.map((menu, index) => {
 
-                const isAbout =
-                  menu.title === "About Us";
-
                 const hasChildren =
                   menu.items &&
                   menu.items.length > 0;
@@ -563,9 +494,9 @@ const Navbar = () => {
 
                                   </div>
 
-                                  <div>
+                                  <div className="min-w-0 flex-1">
 
-                                    <h4 className="text-[14px] font-medium text-gray-800">
+                                    <h4 className="text-[14px] font-medium text-gray-800 leading-snug break-words">
                                       {item.label}
                                     </h4>
 

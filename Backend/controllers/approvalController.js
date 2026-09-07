@@ -1,7 +1,11 @@
 import ApprovalRequest from "../models/ApprovalRequest.js";
 import AuditLog from "../models/AuditLog.js";
+import User from "../models/User.js";
 import { applyApprovedChange } from "../services/approvalApplyService.js";
-
+import {
+  sendApprovalNotificationToUser,
+  sendRejectionNotificationToUser,
+} from "../services/emailService.js";
 
 /* ==========================================
    GET APPROVALS (with optional status filter)
@@ -29,14 +33,8 @@ export const getApprovals = async (req, res) => {
 
     const [approvals, total] = await Promise.all([
       ApprovalRequest.find(filter)
-        .populate(
-          "submittedBy",
-          "name email role department"
-        )
-        .populate(
-          "reviewedBy",
-          "name email role"
-        )
+        .populate("submittedBy", "name email role department")
+        .populate("reviewedBy", "name email role department")
         .populate("auditLog")
         .sort({ createdAt: -1 })
         .skip(skip)
@@ -57,11 +55,7 @@ export const getApprovals = async (req, res) => {
     });
 
   } catch (error) {
-    console.error(
-      "GET APPROVALS ERROR:",
-      error
-    );
-
+    console.error("GET APPROVALS ERROR:", error);
     return res.status(500).json({
       success: false,
       message: "Failed to fetch approvals.",
@@ -69,26 +63,16 @@ export const getApprovals = async (req, res) => {
   }
 };
 
-
 /* ==========================================
    GET SINGLE APPROVAL
 ========================================== */
 
 export const getApprovalById = async (req, res) => {
   try {
-    const approval =
-      await ApprovalRequest.findById(
-        req.params.id
-      )
-        .populate(
-          "submittedBy",
-          "name email role department"
-        )
-        .populate(
-          "reviewedBy",
-          "name email role department"
-        )
-        .populate("auditLog");
+    const approval = await ApprovalRequest.findById(req.params.id)
+      .populate("submittedBy", "name email role department")
+      .populate("reviewedBy", "name email role department")
+      .populate("auditLog");
 
     if (!approval) {
       return res.status(404).json({
@@ -103,11 +87,7 @@ export const getApprovalById = async (req, res) => {
     });
 
   } catch (error) {
-    console.error(
-      "GET APPROVAL ERROR:",
-      error
-    );
-
+    console.error("GET APPROVAL ERROR:", error);
     return res.status(500).json({
       success: false,
       message: "Failed to fetch approval request.",
@@ -115,19 +95,16 @@ export const getApprovalById = async (req, res) => {
   }
 };
 
-
 /* ==========================================
-   APPROVE REQUEST
+   APPROVE REQUEST (FIRST DECISION WINS / ATOMIC)
 ========================================== */
 
 export const approveRequest = async (req, res) => {
   try {
-
     const { id } = req.params;
 
-
     /* ------------------------------------------
-       AUTHORIZATION
+       AUTHORIZATION CHECK
     ------------------------------------------ */
 
     if (
@@ -136,120 +113,128 @@ export const approveRequest = async (req, res) => {
     ) {
       return res.status(403).json({
         success: false,
-        message:
-          "Only Admin or Super Admin can approve requests.",
+        message: "Only Admin or Super Admin can approve requests.",
       });
     }
 
-
     /* ------------------------------------------
-       FIND REQUEST
+       PRE-CHECK SEPARATION OF DUTIES
     ------------------------------------------ */
 
-    const approval =
-      await ApprovalRequest.findById(id);
+    const existingBefore = await ApprovalRequest.findById(id);
 
-    if (!approval) {
+    if (!existingBefore) {
       return res.status(404).json({
         success: false,
-        message:
-          "Approval request not found.",
+        message: "Approval request not found.",
       });
     }
 
+    if (
+      existingBefore.submittedBy?.toString() === req.authUser._id.toString() &&
+      req.authUser.role !== "super_admin"
+    ) {
+      return res.status(403).json({
+        success: false,
+        message: "You cannot approve your own submission. Another administrator must review this request.",
+      });
+    }
 
     /* ------------------------------------------
-       CHECK STATUS
+       ATOMIC STATE TRANSITION (FIRST DECISION WINS)
     ------------------------------------------ */
 
-    if (approval.status !== "pending") {
+    const reviewComment = req.body?.comment?.trim() || "";
+
+    const approval = await ApprovalRequest.findOneAndUpdate(
+      {
+        _id: id,
+        status: "pending",
+      },
+      {
+        $set: {
+          status: "approved",
+          reviewedBy: req.authUser._id,
+          reviewedByRole: req.authUser.role,
+          reviewedAt: new Date(),
+          reviewComment,
+        },
+      },
+      { new: true }
+    );
+
+    if (!approval) {
+      const alreadyReviewed = await ApprovalRequest.findById(id).populate("reviewedBy", "name email role");
+      if (!alreadyReviewed) {
+        return res.status(404).json({
+          success: false,
+          message: "Approval request not found.",
+        });
+      }
+
       return res.status(409).json({
         success: false,
-        message:
-          "This approval request has already been reviewed.",
+        message: `This approval request has already been ${alreadyReviewed.status} by ${alreadyReviewed.reviewedBy?.name || alreadyReviewed.reviewedByRole || "an administrator"}.`,
+        status: alreadyReviewed.status,
+        reviewedBy: alreadyReviewed.reviewedBy?.name || alreadyReviewed.reviewedByRole,
+        reviewedAt: alreadyReviewed.reviewedAt,
       });
     }
 
-
     /* ------------------------------------------
-       APPLY CHANGE
+       APPLY APPROVED CHANGE
     ------------------------------------------ */
 
-    const appliedResource =
-      await applyApprovedChange(
-        approval
-      );
-
+    const appliedResource = await applyApprovedChange(approval);
 
     /* ------------------------------------------
-       UPDATE APPROVAL
-    ------------------------------------------ */
-
-    approval.status = "approved";
-
-    approval.reviewedBy =
-      req.authUser._id;
-
-    approval.reviewedByRole =
-      req.authUser.role;
-
-    approval.reviewedAt =
-      new Date();
-
-    approval.reviewComment =
-      req.body?.comment?.trim() || "";
-
-    await approval.save();
-
-
-    /* ------------------------------------------
-       UPDATE AUDIT LOG
+       UPDATE LINKED AUDIT LOG
     ------------------------------------------ */
 
     if (approval.auditLog) {
-
-      await AuditLog.findByIdAndUpdate(
-        approval.auditLog,
-        {
-          approvalStatus: "approved",
-        }
-      );
+      await AuditLog.findByIdAndUpdate(approval.auditLog, {
+        approvalStatus: "approved",
+      });
     }
 
-
     /* ------------------------------------------
-       RESPONSE
+       ASYNC USER NOTIFICATION (NON-BLOCKING)
     ------------------------------------------ */
+
+    User.findById(approval.submittedBy)
+      .select("name email role")
+      .then((submitterUser) => {
+        if (submitterUser) {
+          sendApprovalNotificationToUser({
+            approvalRequest: approval,
+            submitter: submitterUser,
+            approver: req.authUser,
+          });
+        }
+      })
+      .catch((emailErr) => {
+        console.error("ASYNC APPROVAL EMAIL NOTIFICATION ERROR:", emailErr.message);
+      });
 
     return res.json({
       success: true,
-      message:
-        "Approval request approved and change applied.",
+      message: "Approval request approved and change applied.",
       approval,
       resource: appliedResource,
     });
 
   } catch (error) {
-
-    console.error(
-      "APPROVE REQUEST ERROR:",
-      error
-    );
-
+    console.error("APPROVE REQUEST ERROR:", error);
     return res.status(500).json({
       success: false,
-      message:
-        "Failed to approve request.",
-      error:
-        process.env.NODE_ENV === "development"
-          ? error.message
-          : undefined,
+      message: "Failed to approve request.",
+      error: process.env.NODE_ENV === "development" ? error.message : undefined,
     });
   }
 };
 
 /* ==========================================
-   REJECT REQUEST
+   REJECT REQUEST (FIRST DECISION WINS / ATOMIC)
 ========================================== */
 
 export const rejectRequest = async (req, res) => {
@@ -257,7 +242,7 @@ export const rejectRequest = async (req, res) => {
     const { id } = req.params;
 
     /* ------------------------------------------
-       AUTHORIZATION
+       AUTHORIZATION CHECK
     ------------------------------------------ */
 
     if (
@@ -266,43 +251,12 @@ export const rejectRequest = async (req, res) => {
     ) {
       return res.status(403).json({
         success: false,
-        message:
-          "Only Admin or Super Admin can reject requests.",
+        message: "Only Admin or Super Admin can reject requests.",
       });
     }
 
-
     /* ------------------------------------------
-       FIND REQUEST
-    ------------------------------------------ */
-
-    const approval =
-      await ApprovalRequest.findById(id);
-
-    if (!approval) {
-      return res.status(404).json({
-        success: false,
-        message:
-          "Approval request not found.",
-      });
-    }
-
-
-    /* ------------------------------------------
-       CHECK STATUS
-    ------------------------------------------ */
-
-    if (approval.status !== "pending") {
-      return res.status(409).json({
-        success: false,
-        message:
-          "This approval request has already been reviewed.",
-      });
-    }
-
-
-    /* ------------------------------------------
-       REQUIRE REASON
+       REQUIRED REJECTION REASON VALIDATION
     ------------------------------------------ */
 
     const reason = req.body?.comment?.trim();
@@ -314,60 +268,89 @@ export const rejectRequest = async (req, res) => {
       });
     }
 
-
     /* ------------------------------------------
-       UPDATE APPROVAL
+       ATOMIC STATE TRANSITION (FIRST DECISION WINS)
     ------------------------------------------ */
 
-    approval.status = "rejected";
+    const approval = await ApprovalRequest.findOneAndUpdate(
+      {
+        _id: id,
+        status: "pending",
+      },
+      {
+        $set: {
+          status: "rejected",
+          reviewedBy: req.authUser._id,
+          reviewedByRole: req.authUser.role,
+          reviewedAt: new Date(),
+          reviewComment: reason,
+        },
+      },
+      { new: true }
+    );
 
-    approval.reviewedBy =
-      req.authUser._id;
+    if (!approval) {
+      const alreadyReviewed = await ApprovalRequest.findById(id).populate("reviewedBy", "name email role");
+      if (!alreadyReviewed) {
+        return res.status(404).json({
+          success: false,
+          message: "Approval request not found.",
+        });
+      }
 
-    approval.reviewedByRole =
-      req.authUser.role;
-
-    approval.reviewedAt =
-      new Date();
-
-    approval.reviewComment = reason;
-
-    await approval.save();
-
+      return res.status(409).json({
+        success: false,
+        message: `This approval request has already been ${alreadyReviewed.status} by ${alreadyReviewed.reviewedBy?.name || alreadyReviewed.reviewedByRole || "an administrator"}.`,
+        status: alreadyReviewed.status,
+        reviewedBy: alreadyReviewed.reviewedBy?.name || alreadyReviewed.reviewedByRole,
+        reviewedAt: alreadyReviewed.reviewedAt,
+        reviewComment: alreadyReviewed.reviewComment,
+      });
+    }
 
     /* ------------------------------------------
-       UPDATE AUDIT LOG
+       UPDATE LINKED AUDIT LOG
     ------------------------------------------ */
 
     if (approval.auditLog) {
-
-      await AuditLog.findByIdAndUpdate(
-        approval.auditLog,
-        {
-          approvalStatus: "rejected",
-        }
-      );
+      await AuditLog.findByIdAndUpdate(approval.auditLog, {
+        approvalStatus: "rejected",
+        rejectionReason: reason,
+      });
     }
 
+    /* ------------------------------------------
+       ASYNC USER NOTIFICATION (NON-BLOCKING)
+    ------------------------------------------ */
+
+    User.findById(approval.submittedBy)
+      .select("name email role")
+      .then((submitterUser) => {
+        if (submitterUser) {
+          sendRejectionNotificationToUser({
+            approvalRequest: approval,
+            submitter: submitterUser,
+            approver: req.authUser,
+            reason,
+          });
+        }
+      })
+      .catch((emailErr) => {
+        console.error("ASYNC REJECTION EMAIL NOTIFICATION ERROR:", emailErr.message);
+      });
 
     return res.json({
       success: true,
-      message:
-        "Approval request rejected.",
+      message: "Approval request rejected.",
       approval,
     });
 
   } catch (error) {
-
-    console.error(
-      "REJECT REQUEST ERROR:",
-      error
-    );
-
+    console.error("REJECT REQUEST ERROR:", error);
     return res.status(500).json({
       success: false,
-      message:
-        "Failed to reject request.",
+      message: "Failed to reject request.",
+      error: process.env.NODE_ENV === "development" ? error.message : undefined,
     });
   }
 };

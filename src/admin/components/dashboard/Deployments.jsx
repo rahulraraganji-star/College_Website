@@ -1,12 +1,15 @@
 import DashboardCard from "./DashboardCard";
 
-const Deployments = () => {
+const Deployments = ({ stats }) => {
+  const envMode = import.meta.env.MODE === "production" ? "Production" : "Development";
+  const uptime = stats?.server?.uptimeFormatted || "Active";
+
   const deployment = {
-    version: "v2.3.1",
-    environment: "Production",
+    version: "v1.0.0",
+    environment: envMode,
     branch: "main",
-    commit: "a67c2d1",
-    deployed: "5 minutes ago",
+    commit: "HEAD",
+    deployed: uptime,
   };
 
   return (
@@ -18,12 +21,12 @@ const Deployments = () => {
       <div className="space-y-4">
 
         <div>
-          <p className="text-2xl font-semibold text-gray-900">
+          <p className="text-2xl font-semibold text-gray-900 font-mono">
             {deployment.version}
           </p>
 
           <p className="text-xs text-gray-500 mt-1">
-            Current version
+            Build Release
           </p>
         </div>
 
@@ -44,7 +47,7 @@ const Deployments = () => {
               Branch
             </span>
 
-            <span className="font-medium text-gray-900">
+            <span className="font-medium text-gray-900 font-mono text-xs">
               {deployment.branch}
             </span>
           </div>
@@ -61,7 +64,7 @@ const Deployments = () => {
 
           <div className="flex justify-between text-sm">
             <span className="text-gray-500">
-              Last Deploy
+              Server Uptime
             </span>
 
             <span className="font-medium text-gray-900">

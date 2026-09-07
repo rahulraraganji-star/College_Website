@@ -59,6 +59,12 @@ export const sectionTypes = {
     category: "Data",
   },
 
+  organogram: {
+    label: "Organogram",
+    icon: "🏛️",
+    category: "Data",
+  },
+
   embed: {
     label: "Embed",
     icon: "🔗",

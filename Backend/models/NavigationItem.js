@@ -13,6 +13,11 @@ const navigationItemSchema = new mongoose.Schema({
   isActive: Boolean,
 });
 
+/* Indexes for high performance navigation queries */
+navigationItemSchema.index({ isActive: 1, order: 1 });
+navigationItemSchema.index({ menuKey: 1, order: 1 });
+navigationItemSchema.index({ pageId: 1 });
+
 export default mongoose.model(
   "NavigationItem",
   navigationItemSchema,

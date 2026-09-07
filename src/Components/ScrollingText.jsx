@@ -54,7 +54,7 @@ const EventsMarquee = ({ data }) => {
   const getIsBold = (originalIndex) => (originalIndex * 37) % 5 === 0;
 
   return (
-    <section className="mt-48 w-full overflow-hidden bg-white py-4">
+    <section className="mt-6 md:mt-10 mb-6 md:mb-10 w-full overflow-hidden bg-white py-6 md:py-8">
       <div
         ref={trackRef}
         className="flex w-max items-center whitespace-nowrap"

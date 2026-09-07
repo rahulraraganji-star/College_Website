@@ -1,29 +1,35 @@
-import { Route, Navigate } from "react-router-dom";
+import { lazy, Suspense } from "react";
+import { Route } from "react-router-dom";
 
 import AdminLayout from "../layouts/AdminLayout";
-
-import Dashboard from "../pages/Dashboard";
-import WorkspaceDashboard from "../pages/WorkspaceDashboard";
-import HomePageEditor from "../pages/HomePageEditor";
-import Pages from "../pages/Pages";
-import NavigationManager from "../pages/NavigationManager";
-import Media from "../pages/Media";
-import CreatePage from "../pages/CreatePage";
-import EditPage from "../pages/EditPage";
-
-import Users from "../pages/Users";
-import CreateUser from "../pages/CreateUser";
-import EditUser from "../pages/EditUser";
-
-import Roles from "../pages/Roles";
-import EditRole from "../pages/EditRole";
-
-import Approvals from "../pages/Approvals";
-import AuditLogs from "../pages/AuditLogs";
-
-import Login from "../pages/Login";
-
 import ProtectedRoute from "../auth/ProtectedRoute";
+import LoadingScreen from "../../Components/LoadingScreen";
+
+const Dashboard = lazy(() => import("../pages/Dashboard"));
+const WorkspaceDashboard = lazy(() => import("../pages/WorkspaceDashboard"));
+const HomePageEditor = lazy(() => import("../pages/HomePageEditor"));
+const Pages = lazy(() => import("../pages/Pages"));
+const NavigationManager = lazy(() => import("../pages/NavigationManager"));
+const Media = lazy(() => import("../pages/Media"));
+const LinkManager = lazy(() => import("../pages/LinkManager"));
+const OrganogramManager = lazy(() => import("../pages/OrganogramManager"));
+const HeaderManager = lazy(() => import("../pages/HeaderManager"));
+const FooterManager = lazy(() => import("../pages/FooterManager"));
+const CreatePage = lazy(() => import("../pages/CreatePage"));
+const EditPage = lazy(() => import("../pages/EditPage"));
+
+const Users = lazy(() => import("../pages/Users"));
+const CreateUser = lazy(() => import("../pages/CreateUser"));
+const EditUser = lazy(() => import("../pages/EditUser"));
+
+const Roles = lazy(() => import("../pages/Roles"));
+const EditRole = lazy(() => import("../pages/EditRole"));
+
+const Approvals = lazy(() => import("../pages/Approvals"));
+const AuditLogs = lazy(() => import("../pages/AuditLogs"));
+const Account = lazy(() => import("../pages/Account"));
+
+const Login = lazy(() => import("../pages/Login"));
 
 const AdminRoutes = (
   <>
@@ -33,7 +39,11 @@ const AdminRoutes = (
 
     <Route
       path="/admin/login"
-      element={<Login />}
+      element={
+        <Suspense fallback={<LoadingScreen fullScreen={true} text="Loading admin..." />}>
+          <Login />
+        </Suspense>
+      }
     />
 
     {/* ==========================================
@@ -62,15 +72,21 @@ const AdminRoutes = (
           element={<WorkspaceDashboard />}
         />
 
+        {/* MY ACCOUNT / PROFILE / PASSWORD (All authenticated users) */}
+        <Route
+          path="account"
+          element={<Account />}
+        />
+
         {/* CONTENT */}
-        <Route element={<ProtectedRoute permission="pages.edit" />}>
+        <Route element={<ProtectedRoute anyPermission={["pages.view", "pages.edit"]} />}>
           <Route
             path="home"
             element={<HomePageEditor />}
           />
         </Route>
 
-        <Route element={<ProtectedRoute permission="pages.view" />}>
+        <Route element={<ProtectedRoute anyPermission={["pages.view", "pages.edit", "pages.create", "pages.delete"]} />}>
           <Route
             path="pages"
             element={<Pages />}
@@ -84,29 +100,58 @@ const AdminRoutes = (
           />
         </Route>
 
-        <Route element={<ProtectedRoute permission="pages.view" />}>
+        <Route element={<ProtectedRoute anyPermission={["pages.view", "pages.edit"]} />}>
           <Route
             path="pages/:id"
             element={<EditPage />}
           />
         </Route>
 
-        <Route element={<ProtectedRoute permission="navigation.view" />}>
+        <Route element={<ProtectedRoute anyPermission={["navigation.view", "navigation.edit"]} />}>
           <Route
             path="navigation"
             element={<NavigationManager />}
           />
         </Route>
 
-        <Route element={<ProtectedRoute permission="media.view" />}>
+        <Route element={<ProtectedRoute anyPermission={["media.view", "media.upload", "media.edit", "media.delete"]} />}>
           <Route
             path="media"
             element={<Media />}
           />
         </Route>
 
+        <Route element={<ProtectedRoute anyPermission={["organogram.view", "organogram.create", "organogram.edit", "organogram.delete"]} />}>
+          <Route
+            path="organogram"
+            element={<OrganogramManager />}
+          />
+        </Route>
+
+        <Route element={<ProtectedRoute anyPermission={["link_manager.view", "link_manager.create", "link_manager.edit", "link_manager.delete"]} />}>
+          <Route
+            path="link-manager"
+            element={<LinkManager />}
+          />
+        </Route>
+
+        {/* WEBSITE */}
+        <Route element={<ProtectedRoute anyPermission={["settings.view", "settings.edit"]} />}>
+          <Route
+            path="header"
+            element={<HeaderManager />}
+          />
+        </Route>
+
+        <Route element={<ProtectedRoute anyPermission={["settings.view", "settings.edit"]} />}>
+          <Route
+            path="footer"
+            element={<FooterManager />}
+          />
+        </Route>
+
         {/* USERS & ACCESS */}
-        <Route element={<ProtectedRoute permission="users.view" />}>
+        <Route element={<ProtectedRoute anyPermission={["users.view", "users.edit", "users.create", "users.delete"]} />}>
           <Route
             path="users"
             element={<Users />}
@@ -127,7 +172,7 @@ const AdminRoutes = (
           />
         </Route>
 
-        <Route element={<ProtectedRoute permission="roles.view" />}>
+        <Route element={<ProtectedRoute anyPermission={["roles.view", "roles.edit", "roles.create", "roles.delete"]} />}>
           <Route
             path="roles"
             element={<Roles />}
@@ -142,7 +187,7 @@ const AdminRoutes = (
         </Route>
 
         {/* WORKFLOWS */}
-        <Route element={<ProtectedRoute permission="approvals.view" />}>
+        <Route element={<ProtectedRoute anyPermission={["approvals.view", "approvals.approve", "approvals.reject", "approvals.submit"]} />}>
           <Route
             path="approvals"
             element={<Approvals />}

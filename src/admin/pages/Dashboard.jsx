@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import DashboardHeader from "../components/dashboard/DashboardHeader";
 import WebsiteHealth from "../components/dashboard/WebsiteHealth";
 import ContentOverview from "../components/dashboard/ContentOverview";
@@ -18,13 +18,18 @@ import QuickActions from "../components/dashboard/QuickActions";
 import Shortcuts from "../components/dashboard/Shortcuts";
 import Deployments from "../components/dashboard/Deployments";
 import UpcomingEvents from "../components/dashboard/UpcomingEvents";
-import CreateUserOverlay from "../components/dashboard/CreateUserOverlay";
-import UserManagementOverlay from "../components/dashboard/UserManagementOverlay.jsx";
+import CalendarOverlay from "../components/dashboard/CalendarOverlay";
 import { useAuth } from "../auth/AuthContext";
+
+const API_URL = "/api";
 
 const Dashboard = () => {
   const [activeOverlay, setActiveOverlay] = useState(null);
-  
+  const [stats, setStats] = useState(null);
+  const [statsLoading, setStatsLoading] = useState(true);
+  const [statsError, setStatsError] = useState("");
+  const [eventsRefreshKey, setEventsRefreshKey] = useState(0);
+
   const {
     user,
     loading,
@@ -32,24 +37,38 @@ const Dashboard = () => {
     hasPageAccess,
   } = useAuth();
 
-  console.log("CURRENT USER:", user);
-  console.log(
-    "CAN EDIT PAGES:",
-    hasPermission("pages.edit")
-  );
-  console.log(
-    "CAN ACCESS LIBRARY:",
-    hasPageAccess("library")
-  );
+  const fetchStats = useCallback(async () => {
+    try {
+      const res = await fetch(`${API_URL}/dashboard/stats`, {
+        credentials: "include",
+      });
+      const data = await res.json();
+      if (data.success && data.stats) {
+        setStats(data.stats);
+      }
+    } catch (err) {
+      console.error("Failed to fetch dashboard stats:", err);
+      setStatsError(err.message);
+    } finally {
+      setStatsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchStats();
+    // Auto-refresh metrics every 45 seconds
+    const timer = setInterval(fetchStats, 45000);
+    return () => clearInterval(timer);
+  }, [fetchStats]);
 
   return (
-    <div className="max-w-[1400px] mx-auto px-6 lg:px-8 py-8">
+    <div className="max-w-[1400px] mx-auto px-6 lg:px-8 py-8 font-admin-sans" style={{ fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" }}>
       {/* HEADER */}
       <DashboardHeader />
 
       {/* WEBSITE HEALTH */}
       <div className="space-y-6">
-        <WebsiteHealth />
+        <WebsiteHealth stats={stats} loading={statsLoading} />
       </div>
 
       {/* ==========================================
@@ -57,7 +76,7 @@ const Dashboard = () => {
           CONTENT OVERVIEW + ACTIVITY
       ========================================== */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mt-6">
-        <ContentOverview />
+        <ContentOverview stats={stats} loading={statsLoading} />
         <ActivityCard
           onOpenOverlay={() => setActiveOverlay("activity")}
         />
@@ -68,9 +87,10 @@ const Dashboard = () => {
           STORAGE + SERVER + APPROVALS
       ========================================== */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mt-5">
-        <StorageCard />
-        <ServerStatus />
+        <StorageCard stats={stats} loading={statsLoading} />
+        <ServerStatus stats={stats} loading={statsLoading} />
         <ApprovalQueue
+          stats={stats}
           onOpen={() => setActiveOverlay("approvals")}
         />
       </div>
@@ -82,8 +102,8 @@ const Dashboard = () => {
       <div className="grid grid-cols-1 lg:grid-cols-[0.85fr_1.15fr] gap-5 mt-5">
         <SiteStructure />
         <div className="space-y-5">
-          <LargestContent />
-          <Problems />
+          <LargestContent stats={stats} loading={statsLoading} />
+          <Problems stats={stats} loading={statsLoading} />
         </div>
       </div>
 
@@ -93,8 +113,8 @@ const Dashboard = () => {
       ========================================== */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mt-5">
         <VisitorsCard />
-        <DatabaseCard />
-        <SystemInfo />
+        <DatabaseCard stats={stats} loading={statsLoading} />
+        <SystemInfo stats={stats} loading={statsLoading} />
       </div>
 
       {/* ==========================================
@@ -103,25 +123,38 @@ const Dashboard = () => {
       ========================================== */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mt-5">
         <QuickActions
-          onCreateUser={() => setActiveOverlay("create-user")}
-          onManageUsers={() => setActiveOverlay("manage-users")}
+          onOpenCalendar={() => setActiveOverlay("calendar")}
         />
         <Shortcuts />
-        <Deployments />
+        <Deployments stats={stats} />
       </div>
 
       {/* ==========================================
           ROW 6
-          UPCOMING EVENTS
+          UPCOMING EVENTS & COLLEGE CALENDAR
       ========================================== */}
       <div className="mt-5">
-        <UpcomingEvents />
+        <UpcomingEvents
+          key={eventsRefreshKey}
+          onOpenCalendar={() => setActiveOverlay("calendar")}
+        />
       </div>
 
       {/* ==========================================
           OVERLAYS
       ========================================== */}
       
+      {/* COLLEGE CALENDAR & REMINDERS OVERLAY */}
+      {activeOverlay === "calendar" && (
+        <CalendarOverlay
+          onClose={() => setActiveOverlay(null)}
+          onEventUpdated={() => {
+            setEventsRefreshKey((prev) => prev + 1);
+            fetchStats();
+          }}
+        />
+      )}
+
       {/* ACTIVITY OVERLAY */}
       {activeOverlay === "activity" && (
         <ActivityOverlay
@@ -132,21 +165,10 @@ const Dashboard = () => {
       {/* APPROVAL OVERLAY */}
       {activeOverlay === "approvals" && (
         <ApprovalOverlay
-          onClose={() => setActiveOverlay(null)}
-        />
-      )}
-
-      {/* CREATE USER OVERLAY */}
-      {activeOverlay === "create-user" && (
-        <CreateUserOverlay
-          onClose={() => setActiveOverlay(null)}
-        />
-      )}
-
-      {/* MANAGE USERS OVERLAY */}
-      {activeOverlay === "manage-users" && (
-        <UserManagementOverlay
-          onClose={() => setActiveOverlay(null)}
+          onClose={() => {
+            setActiveOverlay(null);
+            fetchStats();
+          }}
         />
       )}
     </div>

@@ -48,6 +48,23 @@ export const requireAuth = async (req, res, next) => {
 
 
     /* ==========================================
+       TOKEN VERSION / SESSION INVALIDATION CHECK
+       If password was changed or sessions revoked,
+       tokenVersion will have been incremented.
+    ========================================== */
+
+    const userTokenVersion = user.tokenVersion || 0;
+    const decodedTokenVersion = decoded.tokenVersion ?? 0;
+
+    if (decodedTokenVersion !== userTokenVersion) {
+      return res.status(401).json({
+        success: false,
+        message: "Session expired or password was changed. Please log in again.",
+      });
+    }
+
+
+    /* ==========================================
        ACCOUNT STATUS
     ========================================== */
 
@@ -67,10 +84,6 @@ export const requireAuth = async (req, res, next) => {
          admin        → user.permissions (set at
                         create/update time from role)
          dept_editor  → user.permissions (same)
-       
-       We compute once here so every middleware
-       downstream can read req.authUser.permissions
-       without re-querying.
     ========================================== */
 
     let effectivePermissions;
@@ -82,22 +95,16 @@ export const requireAuth = async (req, res, next) => {
       effectiveAllowedPages = ["*"];
 
     } else {
-      // For admin and dept_editor:
-      // Use user's own permissions (copied from role at
-      // create/update time). Fall back to role permissions
-      // for legacy accounts that were created before
-      // the copy-on-assign pattern was introduced.
       const userPerms = user.permissions || [];
       const rolePerms = user.roleId?.permissions || [];
-
-      effectivePermissions =
-        userPerms.length > 0 ? userPerms : rolePerms;
-
       const userPages = user.allowedPages || [];
       const rolePages = user.roleId?.allowedPages || [];
 
+      effectivePermissions =
+        user.roleId ? (rolePerms.length > 0 ? rolePerms : userPerms) : userPerms;
+
       effectiveAllowedPages =
-        userPages.length > 0 ? userPages : rolePages;
+        user.roleId ? (rolePages.length > 0 ? rolePages : userPages) : userPages;
     }
 
     // Attach everything to req for downstream middleware
@@ -107,14 +114,26 @@ export const requireAuth = async (req, res, next) => {
     req.authUser.permissions = effectivePermissions;
     req.authUser.allowedPages = effectiveAllowedPages;
 
-    // Super Admin has no roleId — synthesize a virtual role so
-    // canGrantScope/canGrantPermission/canCreateRole helpers work correctly.
+    // Synthesize a virtual role for system roles if roleId is null
     if (user.role === "super_admin") {
       req.authRole = {
+        name: "Super Admin",
+        slug: "super-admin",
         systemRole: "super_admin",
         isSystemRole: true,
         permissions: ["*"],
         allowedPages: ["*"],
+        role: "super_admin",
+      };
+    } else if (user.role === "admin" && !user.roleId) {
+      req.authRole = {
+        name: "Admin",
+        slug: "admin",
+        systemRole: "admin",
+        isSystemRole: true,
+        permissions: effectivePermissions,
+        allowedPages: effectiveAllowedPages,
+        role: "admin",
       };
     } else {
       req.authRole = user.roleId || null;
@@ -123,7 +142,6 @@ export const requireAuth = async (req, res, next) => {
     next();
 
   } catch (error) {
-
     console.error(
       "AUTH MIDDLEWARE ERROR:",
       error

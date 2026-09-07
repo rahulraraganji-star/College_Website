@@ -18,9 +18,20 @@ const PageSchema = new mongoose.Schema(
       default: null,
     },
 
+    template: {
+      type: String,
+      default: "default",
+      enum: ["default", "courses"],
+    },
+
     sections: {
       type: mongoose.Schema.Types.Mixed,
       default: {},
+    },
+
+    courseData: {
+      type: mongoose.Schema.Types.Mixed,
+      default: null,
     },
 
     content: {

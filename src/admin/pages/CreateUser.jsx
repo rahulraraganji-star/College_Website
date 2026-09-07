@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import CreateRoleModal from "../components/CreateRoleModal";
+import { useAuth } from "../auth/AuthContext";
 
-const API_URL = "http://localhost:5000/api";
+const API_URL = "/api";
 
 const CreateUser = () => {
   const navigate = useNavigate();
+  const { user: currentUser } = useAuth();
 
   // ==========================================
   // USER DETAILS
@@ -145,11 +147,11 @@ const CreateUser = () => {
         >
           ← Users
         </button>
-        <p className="text-xs uppercase tracking-[0.2em] text-gray-400">
+        <p className="text-xs font-semibold uppercase tracking-[0.15em] text-neutral-400 mb-1">
           Users & Access
         </p>
-        <h1 className="mt-2 text-2xl font-semibold text-gray-900">Create User</h1>
-        <p className="mt-1 text-sm text-gray-500">
+        <h1 className="text-[28px] font-extrabold text-black tracking-tight">Create User</h1>
+        <p className="text-[14px] text-neutral-500 mt-1.5">
           Create a CMS user and assign them a role.
         </p>
       </div>
@@ -248,12 +250,19 @@ const CreateUser = () => {
                   className={inputClass}
                 >
                   <option value="">Select a role...</option>
-                  {roles.map((role) => (
-                    <option key={role._id} value={role._id}>
-                      {role.name}
-                      {role.isSystemRole ? " (System)" : ""}
-                    </option>
-                  ))}
+                  {roles
+                    .filter((r) => {
+                      if (currentUser?.role !== "super_admin") {
+                        return r.systemRole !== "super_admin" && r.slug !== "super-admin";
+                      }
+                      return true;
+                    })
+                    .map((role) => (
+                      <option key={role._id} value={role._id}>
+                        {role.name}
+                        {role.isSystemRole ? " (System Role)" : ""}
+                      </option>
+                    ))}
                 </select>
               )}
             </FormField>

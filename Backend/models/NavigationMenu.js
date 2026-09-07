@@ -8,6 +8,10 @@ const navigationMenuSchema = new mongoose.Schema({
   showInNavbar: Boolean,
 });
 
+/* Indexes for high performance navigation queries */
+navigationMenuSchema.index({ key: 1 }, { unique: true });
+navigationMenuSchema.index({ isActive: 1, showInNavbar: 1, order: 1 });
+
 export default mongoose.model(
   "NavigationMenu",
   navigationMenuSchema,

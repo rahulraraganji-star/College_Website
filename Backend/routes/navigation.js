@@ -17,6 +17,7 @@ import { requireAuth } from "../middleware/authMiddleware.js";
 
 import {
   requirePermission,
+  requireAnyPermission,
 } from "../middleware/permissionMiddleware.js";
 
 
@@ -50,7 +51,7 @@ router.get(
 router.get(
   "/admin",
   requireAuth,
-  requirePermission("navigation.view"),
+  requireAnyPermission("navigation.view", "pages.view", "pages.edit", "pages.create"),
   getAdminNavigation
 );
 
