@@ -1,0 +1,30 @@
+---
+deployment:
+  tasks:
+    - export DEPLOYPATH=/home/fac/test/college_Website
+    - export BACKENDPATH=/home/fac/test/college_Website/Backend
+    - export NODEBIN=/home/fac/nodevenv/test/college_Website/Backend/20/bin
+
+    # Use cPanel's Node.js 20 environment
+    - export PATH=$NODEBIN:$PATH
+
+    # Build the frontend
+    - npm ci
+    - npm run build
+
+    # Update the main application files
+    # Server-only files are intentionally excluded
+    - /bin/rsync -a --exclude='.git/' --exclude='.env' --exclude='Backend/' --exclude='dist/' --exclude='node_modules/' ./ $DEPLOYPATH/
+
+    # Deploy the new frontend build
+    - /bin/rsync -a ./dist/ $DEPLOYPATH/dist/
+
+    # Deploy backend source
+    # NEVER overwrite uploads, environment files, or node_modules
+    - /bin/rsync -a --exclude='.env' --exclude='.env.production' --exclude='uploads/' --exclude='node_modules/' ./Backend/ $BACKENDPATH/
+
+    # Install production backend dependencies
+    - cd $BACKENDPATH && npm install --omit=dev --no-audit --no-fund
+
+    # Restart the cPanel Node.js application
+    - /usr/bin/touch $BACKENDPATH/tmp/restart.txt
