@@ -613,15 +613,15 @@ const NavigationManager = () => {
                         menu.children.map((child, index) => (
                           <div
                             key={child._id}
-                            className="flex items-center justify-between px-6 py-4 border-b border-neutral-100 last:border-b-0 hover:bg-neutral-50 transition-colors"
+                            className="flex items-center justify-between px-6 py-4 border-b border-neutral-100 last:border-b-0 hover:bg-neutral-50 transition-colors gap-4"
                           >
-                            <div className="min-w-0">
-                              <h3 className="font-semibold text-black text-[15px]">
+                            <div className="min-w-0 flex-1 pr-2">
+                              <h3 className="font-semibold text-black text-[15px] truncate">
                                 {child.label}
                               </h3>
 
                               <p
-                                className="text-[12.5px] text-neutral-400 mt-0.5"
+                                className="text-[12.5px] text-neutral-400 mt-0.5 truncate"
                                 style={{ fontFamily: "'IBM Plex Mono', monospace" }}
                               >
                                 {child.slug}

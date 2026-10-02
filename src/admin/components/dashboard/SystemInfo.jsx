@@ -29,13 +29,13 @@ const SystemInfo = ({ stats, loading }) => {
             key={label}
             className="flex items-center gap-3"
           >
-            <span className="text-sm text-gray-500 font-medium">
+            <span className="text-sm text-gray-500 font-medium shrink-0">
               {label}
             </span>
 
-            <div className="flex-1 border-t border-dotted border-gray-300" />
+            <div className="flex-1 border-t border-dotted border-gray-300 min-w-[8px]" />
 
-            <span className="text-sm font-semibold text-gray-900 font-mono">
+            <span className="text-sm font-semibold text-gray-900 font-mono shrink-0">
               {loading ? "..." : value}
             </span>
           </div>

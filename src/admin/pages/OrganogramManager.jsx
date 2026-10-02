@@ -336,18 +336,18 @@ const OrganogramManager = () => {
           className={`group relative z-10 w-80 rounded-2xl border transition-all duration-200 shadow-sm hover:shadow-md ${
             node.isActive === false
               ? "bg-neutral-50 border-neutral-300 opacity-70"
-              : "bg-white border-neutral-200 hover:border-amber-400"
+              : "bg-white border-neutral-200 hover:border-black"
           }`}
         >
           {/* Top Banner accent */}
           <div
             className={`h-1.5 w-full rounded-t-2xl ${
               level === 0
-                ? "bg-amber-600"
+                ? "bg-black"
                 : level === 1
-                ? "bg-amber-500"
+                ? "bg-neutral-800"
                 : level === 2
-                ? "bg-blue-500"
+                ? "bg-neutral-600"
                 : "bg-neutral-400"
             }`}
           />
@@ -366,7 +366,7 @@ const OrganogramManager = () => {
                     }}
                   />
                 ) : (
-                  <div className="h-12 w-12 rounded-xl bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-700 font-bold text-base">
+                  <div className="h-12 w-12 rounded-xl bg-neutral-100 border border-neutral-200 flex items-center justify-center text-neutral-800 font-bold text-base">
                     {node.name
                       ? node.name
                           .split(" ")
@@ -387,12 +387,12 @@ const OrganogramManager = () => {
 
               {/* Text Info */}
               <div className="min-w-0 flex-1">
-                <h4 className="font-semibold text-neutral-900 text-[14.5px] leading-tight truncate">
-                  {node.name}
-                </h4>
-                <p className="text-[12.5px] font-medium text-amber-700 leading-snug mt-0.5">
+                <p className="text-xs font-bold text-black uppercase tracking-wider line-clamp-1">
                   {node.designation}
                 </p>
+                <h4 className="font-semibold text-neutral-900 text-[14.5px] leading-tight truncate mt-0.5">
+                  {node.name}
+                </h4>
                 {node.department && (
                   <span className="inline-block mt-1.5 text-[11px] px-2 py-0.5 rounded-md bg-neutral-100 text-neutral-600 font-medium truncate max-w-full">
                     {node.department}
@@ -431,7 +431,7 @@ const OrganogramManager = () => {
                     type="button"
                     onClick={() => handleOpenAddModal(node._id)}
                     title="Add reporting sub-position"
-                    className="p-1.5 text-neutral-600 hover:text-amber-700 hover:bg-amber-50 rounded-lg transition-colors"
+                    className="p-1.5 text-neutral-600 hover:text-black hover:bg-neutral-100 rounded-lg transition-colors"
                   >
                     <Plus size={14} />
                   </button>
@@ -442,7 +442,7 @@ const OrganogramManager = () => {
                     type="button"
                     onClick={() => handleOpenEditModal(node)}
                     title="Edit position"
-                    className="p-1.5 text-neutral-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors"
+                    className="p-1.5 text-neutral-600 hover:text-black hover:bg-neutral-100 rounded-lg transition-colors"
                   >
                     <Pencil size={14} />
                   </button>
@@ -467,7 +467,7 @@ const OrganogramManager = () => {
             <button
               type="button"
               onClick={() => toggleCollapse(node._id)}
-              className="absolute -bottom-3.5 left-1/2 -translate-x-1/2 z-20 flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-white border border-neutral-300 text-[11px] font-bold text-neutral-700 shadow-sm hover:bg-neutral-50 hover:border-amber-400 transition-all"
+              className="absolute -bottom-3.5 left-1/2 -translate-x-1/2 z-20 flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-white border border-neutral-300 text-[11px] font-bold text-neutral-700 shadow-sm hover:bg-neutral-50 hover:border-black transition-all"
             >
               <span>{node.children.length}</span>
               {isCollapsed ? <ChevronRight size={12} /> : <ChevronDown size={12} />}
@@ -477,31 +477,35 @@ const OrganogramManager = () => {
 
         {/* Child Subtree Branches with Connectors */}
         {hasChildren && !isCollapsed && (
-          <div className="relative pt-8 flex flex-col items-center">
+          <div className="relative pt-6 flex flex-col items-center w-full">
             {/* Vertical connector down from parent */}
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-0.5 h-8 bg-neutral-300" />
+            <div className="w-0.5 h-6 bg-neutral-300" />
 
-            <div className="flex items-start justify-center gap-8 relative">
-              {/* Horizontal crossbar connecting siblings */}
-              {node.children.length > 1 && (
-                <div
-                  className="absolute top-0 h-0.5 bg-neutral-300"
-                  style={{
-                    left: "50%",
-                    right: "50%",
-                    marginLeft: `-${(node.children.length - 1) * 160}px`,
-                    marginRight: `-${(node.children.length - 1) * 160}px`,
-                  }}
-                />
-              )}
+            <div className="flex flex-row items-start justify-center relative">
+              {node.children.map((childNode, idx) => {
+                const isOnly = node.children.length === 1;
+                const isFirst = idx === 0;
+                const isLast = idx === node.children.length - 1;
 
-              {node.children.map((childNode) => (
-                <div key={childNode._id} className="relative flex flex-col items-center">
-                  {/* Vertical connector up to horizontal bar */}
-                  <div className="w-0.5 h-6 bg-neutral-300 -mt-6 mb-2" />
-                  <TreeNodeItem node={childNode} level={level + 1} />
-                </div>
-              ))}
+                return (
+                  <div key={childNode._id} className="relative flex flex-col items-center px-4">
+                    {/* Horizontal crossbar connecting siblings */}
+                    {!isOnly && (
+                      <div
+                        className={`absolute top-0 h-0.5 bg-neutral-300 ${
+                          isFirst
+                            ? "left-1/2 right-0"
+                            : isLast
+                            ? "left-0 right-1/2"
+                            : "left-0 right-0"
+                        }`}
+                      />
+                    )}
+                    <div className="w-0.5 h-6 bg-neutral-300 relative z-0" />
+                    <TreeNodeItem node={childNode} level={level + 1} />
+                  </div>
+                );
+              })}
             </div>
           </div>
         )}
@@ -524,7 +528,7 @@ const OrganogramManager = () => {
       <div className="bg-white rounded-2xl border border-neutral-200 p-6 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2.5">
-            <div className="h-9 w-9 rounded-xl bg-amber-500/10 text-amber-600 flex items-center justify-center">
+            <div className="h-9 w-9 rounded-xl bg-neutral-100 text-black flex items-center justify-center font-bold">
               <Network size={20} />
             </div>
             <h1 className="text-[28px] font-extrabold text-black tracking-tight">
@@ -559,7 +563,7 @@ const OrganogramManager = () => {
             <button
               type="button"
               onClick={() => handleOpenAddModal("")}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-sm font-semibold transition-colors shadow-sm"
+              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-black hover:bg-neutral-800 text-white text-sm font-semibold transition-colors shadow-sm"
             >
               <Plus size={16} />
               <span>Add Position</span>
@@ -570,11 +574,11 @@ const OrganogramManager = () => {
 
       {/* Approval Notice for Non-Admins */}
       {requiresApproval && (
-        <div className="rounded-2xl border border-amber-200 bg-amber-50/80 p-4 flex items-start gap-3 text-amber-900 text-sm">
-          <AlertTriangle size={18} className="text-amber-600 shrink-0 mt-0.5" />
+        <div className="rounded-2xl border border-neutral-300 bg-neutral-50 p-4 flex items-start gap-3 text-neutral-800 text-sm">
+          <AlertTriangle size={18} className="text-neutral-700 shrink-0 mt-0.5" />
           <div>
             <p className="font-semibold">Administrator Approval Workflow Active</p>
-            <p className="text-amber-800 text-xs mt-0.5 leading-relaxed">
+            <p className="text-neutral-600 text-xs mt-0.5 leading-relaxed">
               Your role requires Super Admin / Admin review. Additions, modifications, and deletions will be held in <strong>Pending</strong> state until approved. Live public organogram data remains untouched until approval.
             </p>
           </div>
@@ -595,7 +599,7 @@ const OrganogramManager = () => {
               placeholder="Search position, name, or unit..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-3 py-1.5 text-sm rounded-xl border border-neutral-300 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
+              className="w-full pl-9 pr-3 py-1.5 text-sm rounded-xl border border-neutral-300 focus:outline-none focus:ring-2 focus:ring-neutral-200 focus:border-black"
             />
           </div>
 
@@ -603,7 +607,7 @@ const OrganogramManager = () => {
             <select
               value={selectedDept}
               onChange={(e) => setSelectedDept(e.target.value)}
-              className="px-3 py-1.5 text-sm rounded-xl border border-neutral-300 bg-white focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
+              className="px-3 py-1.5 text-sm rounded-xl border border-neutral-300 bg-white focus:outline-none focus:ring-2 focus:ring-neutral-200 focus:border-black"
             >
               <option value="all">All Departments ({nodes.length})</option>
               {departments.map((dept) => (
@@ -622,7 +626,7 @@ const OrganogramManager = () => {
             onClick={() => setViewMode("tree")}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
               viewMode === "tree"
-                ? "bg-white text-neutral-900 shadow-sm"
+                ? "bg-black text-white shadow-sm"
                 : "text-neutral-500 hover:text-neutral-800"
             }`}
           >
@@ -635,7 +639,7 @@ const OrganogramManager = () => {
             onClick={() => setViewMode("list")}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
               viewMode === "list"
-                ? "bg-white text-neutral-900 shadow-sm"
+                ? "bg-black text-white shadow-sm"
                 : "text-neutral-500 hover:text-neutral-800"
             }`}
           >
@@ -648,7 +652,7 @@ const OrganogramManager = () => {
       {/* Main View Area */}
       {loading ? (
         <div className="py-24 text-center bg-white rounded-2xl border border-neutral-200">
-          <RefreshCw className="animate-spin text-amber-600 mx-auto mb-3" size={28} />
+          <RefreshCw className="animate-spin text-black mx-auto mb-3" size={28} />
           <p className="text-sm font-medium text-neutral-500">Loading organogram structure...</p>
         </div>
       ) : nodes.length === 0 ? (
@@ -662,7 +666,7 @@ const OrganogramManager = () => {
             <button
               type="button"
               onClick={() => handleOpenAddModal("")}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-600 text-white text-sm font-semibold hover:bg-amber-700 shadow-sm"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-black text-white text-sm font-semibold hover:bg-neutral-800 shadow-sm"
             >
               <Plus size={16} />
               <span>Add Apex / Root Position</span>
@@ -711,7 +715,7 @@ const OrganogramManager = () => {
                               className="h-10 w-10 rounded-xl object-cover border border-neutral-200 shrink-0"
                             />
                           ) : (
-                            <div className="h-10 w-10 rounded-xl bg-amber-50 text-amber-700 font-bold flex items-center justify-center shrink-0 text-xs">
+                            <div className="h-10 w-10 rounded-xl bg-neutral-100 text-neutral-800 font-bold flex items-center justify-center shrink-0 text-xs">
                               {node.name.slice(0, 2).toUpperCase()}
                             </div>
                           )}
@@ -719,7 +723,7 @@ const OrganogramManager = () => {
                             <p className="font-semibold text-neutral-900 leading-tight">
                               {node.name}
                             </p>
-                            <p className="text-xs text-amber-700 font-medium">
+                            <p className="text-xs text-neutral-600 font-medium">
                               {node.designation}
                             </p>
                           </div>
@@ -731,7 +735,7 @@ const OrganogramManager = () => {
                       <td className="px-4 py-3.5 text-xs font-medium text-neutral-700">
                         {node.parent?.name ? (
                           <span className="inline-flex items-center gap-1.5 text-neutral-900">
-                            <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+                            <span className="w-1.5 h-1.5 rounded-full bg-black" />
                             <span>{node.parent.name}</span>
                             <span className="text-neutral-400 text-[11px]">
                               ({node.parent.designation})
@@ -769,7 +773,7 @@ const OrganogramManager = () => {
                               type="button"
                               onClick={() => handleOpenAddModal(node._id)}
                               title="Add child position"
-                              className="p-1.5 text-neutral-600 hover:text-amber-700 hover:bg-amber-50 rounded-lg transition-colors"
+                              className="p-1.5 text-neutral-600 hover:text-black hover:bg-neutral-100 rounded-lg transition-colors"
                             >
                               <Plus size={15} />
                             </button>
@@ -779,7 +783,7 @@ const OrganogramManager = () => {
                               type="button"
                               onClick={() => handleOpenEditModal(node)}
                               title="Edit position"
-                              className="p-1.5 text-neutral-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors"
+                              className="p-1.5 text-neutral-600 hover:text-black hover:bg-neutral-100 rounded-lg transition-colors"
                             >
                               <Pencil size={15} />
                             </button>
@@ -814,10 +818,10 @@ const OrganogramManager = () => {
             {/* Modal Header */}
             <div className="flex items-center justify-between p-5 border-b border-neutral-100 sticky top-0 bg-white z-10">
               <div className="flex items-center gap-2.5">
-                <div className="h-8 w-8 rounded-lg bg-amber-500/10 text-amber-600 flex items-center justify-center">
+                <div className="h-8 w-8 rounded-lg bg-neutral-100 text-black flex items-center justify-center font-bold">
                   {editingNode ? <Pencil size={16} /> : <Plus size={16} />}
                 </div>
-                <h3 className="text-lg font-bold text-neutral-900 font-['Fraunces']">
+                <h3 className="text-base font-bold text-neutral-900">
                   {editingNode ? "Edit Position Details" : "Add Organizational Position"}
                 </h3>
               </div>
@@ -863,7 +867,7 @@ const OrganogramManager = () => {
                     onChange={(e) =>
                       setFormData((prev) => ({ ...prev, name: e.target.value }))
                     }
-                    className="w-full px-3.5 py-2 text-sm rounded-xl border border-neutral-300 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 font-medium"
+                    className="w-full px-3.5 py-2 text-sm rounded-xl border border-neutral-300 focus:outline-none focus:border-black font-medium"
                   />
                 </div>
 
@@ -882,7 +886,7 @@ const OrganogramManager = () => {
                         designation: e.target.value,
                       }))
                     }
-                    className="w-full px-3.5 py-2 text-sm rounded-xl border border-neutral-300 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 font-medium"
+                    className="w-full px-3.5 py-2 text-sm rounded-xl border border-neutral-300 focus:outline-none focus:border-black font-medium"
                   />
                 </div>
               </div>
@@ -903,7 +907,7 @@ const OrganogramManager = () => {
                         department: e.target.value,
                       }))
                     }
-                    className="w-full px-3.5 py-2 text-sm rounded-xl border border-neutral-300 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 font-medium"
+                    className="w-full px-3.5 py-2 text-sm rounded-xl border border-neutral-300 focus:outline-none focus:border-black font-medium"
                   />
                 </div>
 
@@ -916,7 +920,7 @@ const OrganogramManager = () => {
                     onChange={(e) =>
                       setFormData((prev) => ({ ...prev, parent: e.target.value }))
                     }
-                    className="w-full px-3.5 py-2 text-sm rounded-xl border border-neutral-300 bg-white focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 font-medium"
+                    className="w-full px-3.5 py-2 text-sm rounded-xl border border-neutral-300 bg-white focus:outline-none focus:border-black font-medium"
                   >
                     <option value="">(None — Top-level Governance / Apex Body)</option>
                     {nodes
@@ -949,7 +953,7 @@ const OrganogramManager = () => {
                     onChange={(e) =>
                       setFormData((prev) => ({ ...prev, email: e.target.value }))
                     }
-                    className="w-full px-3.5 py-2 text-sm rounded-xl border border-neutral-300 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
+                    className="w-full px-3.5 py-2 text-sm rounded-xl border border-neutral-300 focus:outline-none focus:border-black"
                   />
                 </div>
 
@@ -964,7 +968,7 @@ const OrganogramManager = () => {
                     onChange={(e) =>
                       setFormData((prev) => ({ ...prev, phone: e.target.value }))
                     }
-                    className="w-full px-3.5 py-2 text-sm rounded-xl border border-neutral-300 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
+                    className="w-full px-3.5 py-2 text-sm rounded-xl border border-neutral-300 focus:outline-none focus:border-black"
                   />
                 </div>
               </div>
@@ -984,7 +988,7 @@ const OrganogramManager = () => {
                         order: parseInt(e.target.value) || 0,
                       }))
                     }
-                    className="w-full px-3.5 py-2 text-sm rounded-xl border border-neutral-300 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
+                    className="w-full px-3.5 py-2 text-sm rounded-xl border border-neutral-300 focus:outline-none focus:border-black"
                   />
                 </div>
 
@@ -999,7 +1003,7 @@ const OrganogramManager = () => {
                         isActive: e.target.checked,
                       }))
                     }
-                    className="h-4 w-4 rounded border-neutral-300 text-amber-600 focus:ring-amber-500"
+                    className="h-4 w-4 rounded border-neutral-300 text-black focus:ring-black"
                   />
                   <label
                     htmlFor="isActiveToggle"
@@ -1022,7 +1026,7 @@ const OrganogramManager = () => {
                   onChange={(e) =>
                     setFormData((prev) => ({ ...prev, bio: e.target.value }))
                   }
-                  className="w-full px-3.5 py-2 text-sm rounded-xl border border-neutral-300 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
+                  className="w-full px-3.5 py-2 text-sm rounded-xl border border-neutral-300 focus:outline-none focus:border-black"
                 />
               </div>
 
@@ -1038,7 +1042,7 @@ const OrganogramManager = () => {
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="px-5 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-sm font-semibold transition-colors shadow-sm disabled:opacity-50"
+                  className="px-5 py-2 rounded-xl bg-black hover:bg-neutral-800 text-white text-sm font-semibold transition-colors shadow-sm disabled:opacity-50"
                 >
                   {submitting
                     ? "Saving..."

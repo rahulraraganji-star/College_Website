@@ -1,5 +1,5 @@
 import { Routes, Route, Navigate } from "react-router-dom";
-import ExaminationLayout from "../layouts/ExaminationLayout";
+import ExaminationLayout from "../Layouts/ExaminationLayout";
 
 import Committee from "../Pages/Examination/Committee";
 import Ordinances from "../Pages/Examination/Ordinances";

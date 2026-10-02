@@ -34,7 +34,6 @@ const STATUS_BADGE = {
 const LinkManager = () => {
   const { hasPermission } = useAuth();
 
-  const canView = hasPermission("link_manager.view");
   const canCreate = hasPermission("link_manager.create");
   const canEdit = hasPermission("link_manager.edit");
   const canDelete = hasPermission("link_manager.delete");

@@ -1,10 +1,12 @@
 import fs from "fs";
 import path from "path";
 import dotenv from "dotenv";
-import { EJSON } from "bson";
+import mongoose from "mongoose";
 
 import connectDB from "../database/connect.js";
-import Page from "../models/Page.js";
+import Page from "../models/page.js";
+
+const { EJSON } = mongoose.mongo.BSON;
 
 dotenv.config();
 

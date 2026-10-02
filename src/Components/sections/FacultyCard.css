@@ -30,8 +30,8 @@
   --fc-border-hover: rgba(201, 165, 85, 0.45);
 
   position: relative;
-  width: 340px;
-  height: 500px;
+  width: 100%;
+  height: 440px;
   overflow: hidden;
   border-radius: 20px;
   border: 1px solid var(--fc-border);
@@ -45,8 +45,13 @@
     border-color 0.5s ease;
   pointer-events: auto;
   touch-action: auto;
+  cursor: default;
   isolation: isolate;
   will-change: transform;
+}
+
+.faculty-card.has-overlay {
+  cursor: pointer;
 }
 
 .faculty-card:hover {
@@ -150,9 +155,9 @@
 
 .faculty-face {
   position: absolute;
-  left: 24px;
-  right: 24px;
-  bottom: 24px;
+  left: 20px;
+  right: 20px;
+  bottom: 20px;
   color: var(--fc-ivory);
   transition:
     opacity 0.45s cubic-bezier(0.22, 1, 0.36, 1),
@@ -181,8 +186,8 @@
 .faculty-name {
   margin: 8px 0 0;
   font-family: "Fraunces", Georgia, serif;
-  font-size: 1.62rem;
-  line-height: 1.18;
+  font-size: 1.45rem;
+  line-height: 1.2;
   font-weight: 500;
   letter-spacing: -0.015em;
   color: #faf8f5;
@@ -225,7 +230,7 @@
   box-shadow:
     0 -8px 24px rgba(35, 30, 24, 0.08),
     0 -1px 0 rgba(201, 165, 85, 0.3) inset;
-  padding: 22px 20px 20px;
+  padding: 18px 16px 16px;
   opacity: 0;
   transform: translateY(100%);
   transition:
@@ -234,7 +239,7 @@
   z-index: 3;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
   pointer-events: none;
   will-change: transform, opacity;
 }
@@ -366,15 +371,72 @@
   white-space: nowrap;
 }
 
+/* Click to View Profile Hint */
+.faculty-click-hint {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 6px;
+  padding: 6px 10px;
+  background: rgba(201, 165, 85, 0.12);
+  border: 1px solid rgba(201, 165, 85, 0.28);
+  border-radius: 8px;
+  font-family: var(--mono, "IBM Plex Mono", monospace);
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--fc-gold-deep);
+  transition: all 0.25s ease;
+}
+
+.faculty-card:hover .faculty-click-hint {
+  background: var(--fc-gold-deep);
+  color: #ffffff;
+  border-color: var(--fc-gold-deep);
+}
+
+.faculty-hint-arrow {
+  width: 12px;
+  height: 12px;
+  transition: transform 0.25s ease;
+}
+
+.faculty-card:hover .faculty-hint-arrow {
+  transform: translateX(3px);
+}
+
 /* =========================================================
-   FACULTY CAROUSEL / SIDE-BY-SIDE ROW SYSTEM
+   FACULTY DIRECTORY & GRID SYSTEM
    ========================================================= */
 
+.faculty-grid-layout {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+  gap: 28px;
+
+  padding: 12px 0 28px;
+  box-sizing: border-box;
+}
+
+/* Individual card wrapper in the grid */
+.faculty-slide {
+  width: 100%;
+  height: 440px;
+  display: flex;
+  box-sizing: border-box;
+}
+
+/* Backward compatibility */
 .faculty-list-wrapper {
   width: 100%;
   max-width: 100%;
   min-width: 0;
-  overflow: hidden;
   position: relative;
 }
 
@@ -383,119 +445,35 @@
   max-width: 100%;
   min-width: 0;
 
-  display: flex;
-  flex-direction: row;
-  flex-wrap: nowrap;
-  align-items: stretch;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
   gap: 28px;
 
-  overflow-x: auto;
-  overflow-y: hidden;
-
-  padding: 12px 4px 28px;
-
+  padding: 12px 0 28px;
   box-sizing: border-box;
-
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-
-  scroll-behavior: smooth;
-  scroll-snap-type: x proximity;
-
-  /* Prevent overscroll bounce from taking over page */
-  overscroll-behavior-x: contain;
-  overscroll-behavior-y: auto;
-
-  /* Cursor feedback */
-  cursor: grab;
-  /* Ensure touch & mouse events work */
-  touch-action: pan-x pan-y;
-}
-
-.faculty-list:focus-visible {
-  outline: none;
-}
-
-.faculty-list.is-dragging {
-  cursor: grabbing !important;
-  user-select: none;
-  scroll-behavior: auto !important;
-  scroll-snap-type: none !important;
-}
-
-.faculty-list.is-dragging * {
-  user-select: none !important;
-  pointer-events: none;
-}
-
-.faculty-list:active {
-  cursor: grabbing;
-}
-
-.faculty-list::-webkit-scrollbar {
-  display: none;
-}
-
-/* Individual card wrapper */
-.faculty-slide {
-  width: 340px;
-  min-width: 340px;
-  max-width: 340px;
-  height: 500px;
-  display: flex;
-  flex-shrink: 0;
-  scroll-snap-align: start;
 }
 
 /* =========================================================
-   MOBILE
-   One horizontal row with touch snap
+   RESPONSIVE SPACING & ADAPTATION
    ========================================================= */
 
-@media (max-width: 768px) {
-  .faculty-list-wrapper {
-    width: 100%;
-    max-width: 100%;
-    min-width: 0;
-    overflow: hidden;
+@media (max-width: 640px) {
+  .faculty-grid-layout,
+  .faculty-list {
+    grid-template-columns: 1fr;
+    gap: 20px;
+    padding: 8px 0 20px;
   }
 
-  .faculty-list {
-    width: 100%;
-    max-width: 100%;
-    min-width: 0;
-
-    display: flex;
-    flex-direction: row;
-    flex-wrap: nowrap;
-    align-items: stretch;
-    gap: 18px;
-
-    overflow-x: auto;
-    overflow-y: hidden;
-
-    padding: 8px 16px 20px 4px;
-
-    scroll-snap-type: x mandatory;
-
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-
-    overscroll-behavior-x: contain;
-    overscroll-behavior-y: auto;
-
-    -webkit-overflow-scrolling: touch;
-
-    /* Important for mobile horizontal carousel */
-    touch-action: pan-x pan-y;
+  .faculty-card {
+    height: 420px;
+    max-width: 340px;
+    margin: 0 auto;
   }
 
   .faculty-slide {
-    width: 310px;
-    min-width: 310px;
-    max-width: 310px;
-    height: 480px;
-    flex-shrink: 0;
-    scroll-snap-align: start;
+    height: 420px;
+    max-width: 340px;
+    margin: 0 auto;
   }
 }

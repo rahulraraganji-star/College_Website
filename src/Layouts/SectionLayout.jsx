@@ -1,52 +1,24 @@
 import { Outlet, useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 
-// Global client-side sidebar cache
-export const sidebarCache = new Map();
-
-/**
- * Prefetches sidebar nav items into memory
- * @param {string} parentSlug
- */
-export const prefetchSidebar = (parentSlug) => {
-  if (!parentSlug || sidebarCache.has(parentSlug)) return;
-
-  fetch(`/api/pages/sidebar/${parentSlug}`)
-    .then((res) => (res.ok ? res.json() : null))
-    .then((data) => {
-      if (Array.isArray(data)) {
-        const items = data.map((page) => ({
-          to: `/${parentSlug}/${page.slug}`,
-          label: page.title,
-        }));
-        sidebarCache.set(parentSlug, items);
-      }
-    })
-    .catch(() => {});
-};
+import { sidebarCache } from "../utils/sidebarCache";
 
 const SectionLayout = () => {
   const { parentSlug } = useParams();
+  const [prevSlug, setPrevSlug] = useState(parentSlug);
   const [navItems, setNavItems] = useState(() => sidebarCache.get(parentSlug) || []);
   const [loading, setLoading] = useState(() => !sidebarCache.has(parentSlug));
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    if (!parentSlug) {
-      setNavItems([]);
-      setLoading(false);
-      setError(null);
-      return;
-    }
-
-    if (sidebarCache.has(parentSlug)) {
-      setNavItems(sidebarCache.get(parentSlug));
-      setLoading(false);
-    } else {
-      setLoading(true);
-    }
-
+  if (parentSlug !== prevSlug) {
+    setPrevSlug(parentSlug);
+    setNavItems(sidebarCache.get(parentSlug) || []);
+    setLoading(!sidebarCache.has(parentSlug));
     setError(null);
+  }
+
+  useEffect(() => {
+    if (!parentSlug) return;
 
     let isCurrent = true;
 

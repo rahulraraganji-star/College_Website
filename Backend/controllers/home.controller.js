@@ -17,6 +17,7 @@ export const clearHomeCache = () => {
 
 export const getHome = async (req, res) => {
   try {
+    res.set("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
     if (cachedHome) {
       return res.status(200).json(cachedHome);
     }
@@ -32,8 +33,76 @@ export const getHome = async (req, res) => {
       });
     }
 
-    cachedHome = home;
-    return res.status(200).json(home);
+    let enrichedSections = home.sections || {};
+
+    if (!enrichedSections.principalMessage || !enrichedSections.principalMessage.name) {
+      try {
+        const pmPage = await Page.findOne({
+          slug: { $in: ["principal-s-message", "principals-message"] },
+        }).lean();
+
+        let defaultPm = null;
+        if (pmPage && Array.isArray(pmPage.sections)) {
+          const gallerySec = pmPage.sections.find((s) => s.type === "gallery");
+          const pmBlock = gallerySec?.galleries?.find((g) => g.type === "principalMessage");
+          if (pmBlock) {
+            let excerpt = pmBlock.message || "";
+            const paras = excerpt.split(/\n+/).map((p) => p.trim()).filter(Boolean);
+            if (paras.length > 1 && paras[0].length < 150) {
+              excerpt = `${paras[0]}\n\n${paras[1]}`;
+            } else if (paras.length > 0) {
+              excerpt = paras[0];
+            }
+
+            defaultPm = {
+              tag: "INSTITUTIONAL LEADERSHIP",
+              title: pmBlock.title || "Principal’s Message",
+              name: pmBlock.name || "Prof.(Dr.) Annie Rajan",
+              designation: pmBlock.designation || "Principal",
+              message: excerpt,
+              image: pmBlock.media || null,
+              buttonText: "Read Principal’s Message",
+              buttonLink: `/${pmPage.parentSlug ? pmPage.parentSlug + "/" : ""}${pmPage.slug}`,
+            };
+          }
+        }
+
+        if (!defaultPm) {
+          defaultPm = {
+            tag: "INSTITUTIONAL LEADERSHIP",
+            title: "Principal’s Message",
+            name: "Prof.(Dr.) Annie Rajan",
+            designation: "Principal",
+            message:
+              "I extend a hearty welcome to you for seeking admission in this institution of higher learning. You are now at the crucial phase of your life when you have to opt for a course that matches the best with your dreams and your future career planning.",
+            image: {
+              url: "/uploads/media/images/1790087827760-975692188.jpg",
+              alt: "Prof.(Dr.) Annie Rajan - Principal",
+            },
+            buttonText: "Read Principal’s Message",
+            buttonLink: "/about/principal-s-message",
+          };
+        }
+
+        enrichedSections = {
+          ...enrichedSections,
+          principalMessage: {
+            ...defaultPm,
+            ...(enrichedSections.principalMessage || {}),
+          },
+        };
+      } catch (pmErr) {
+        console.error("Principal Message fallback error:", pmErr);
+      }
+    }
+
+    const responseHome = {
+      ...home,
+      sections: enrichedSections,
+    };
+
+    cachedHome = responseHome;
+    return res.status(200).json(responseHome);
 
   } catch (error) {
     console.error("GET HOME ERROR:", error);

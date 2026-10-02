@@ -8,6 +8,7 @@ import CollectionEditor from "../editors/CollectionEditor";
 import MediaPicker from "../media/components/MediaPicker";
 import SectionCard from "../components/SectionCard";
 import IconPicker from "../components/IconPicker"; // Import IconPicker
+import { clearClientHomeCache } from "../../utils/homeCache";
 
 const inputClass =
   "w-full border border-gray-300 rounded-lg px-3.5 py-2.5 text-sm outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900 transition-colors";
@@ -20,6 +21,7 @@ const HomePageEditor = () => {
   const [home, setHome] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [syncingPm, setSyncingPm] = useState(false);
 
   // Section access helpers
   const canEditSection = (sectionKey) =>
@@ -71,6 +73,21 @@ const HomePageEditor = () => {
             ],
             notices: [],
           },
+
+          principalMessage: homeData.sections?.principalMessage || {
+            tag: "INSTITUTIONAL LEADERSHIP",
+            title: "Principal’s Message",
+            name: "Prof.(Dr.) Annie Rajan",
+            designation: "Principal",
+            message:
+              "I extend a hearty welcome to you for seeking admission in this institution of higher learning. You are now at the crucial phase of your life when you have to opt for a course that matches the best with your dreams and your future career planning. Besides your pursuit of academic excellence, a lot of emphasis is laid on personality development and holistic growth.",
+            image: {
+              url: "/uploads/media/images/1790087827760-975692188.jpg",
+              alt: "Prof.(Dr.) Annie Rajan - Principal",
+            },
+            buttonText: "Read Principal’s Message",
+            buttonLink: "/about/principal-s-message",
+          },
         },
       };
 
@@ -102,11 +119,13 @@ const HomePageEditor = () => {
     setSaving(true);
 
     try {
-      const res = await axios.put("/api/home", home);
+      const res = await axios.put("/api/home", home, { withCredentials: true });
       console.log(res.data);
-      alert("Saved");
+      clearClientHomeCache?.();
+      alert("Saved successfully!");
     } catch (err) {
-      console.error(err);
+      console.error("Save Home Error:", err);
+      alert(err.response?.data?.message || err.message || "Failed to save");
     } finally {
       setSaving(false);
     }
@@ -119,21 +138,63 @@ const HomePageEditor = () => {
     }));
   };
 
+  const handleSyncPrincipalMessage = async () => {
+    try {
+      setSyncingPm(true);
+      const res = await axios.get("/api/pages/principal-s-message");
+      const pageData = res.data;
+      if (pageData && Array.isArray(pageData.sections)) {
+        const gallerySec = pageData.sections.find((s) => s.type === "gallery");
+        const pmBlock = gallerySec?.galleries?.find((g) => g.type === "principalMessage");
+        if (pmBlock) {
+          let excerpt = pmBlock.message || "";
+          const paras = excerpt.split(/\n+/).map((p) => p.trim()).filter(Boolean);
+          if (paras.length > 1 && paras[0].length < 150) {
+            excerpt = `${paras[0]}\n\n${paras[1]}`;
+          } else if (paras.length > 0) {
+            excerpt = paras[0];
+          }
+
+          updateSection("principalMessage", {
+            ...home.sections?.principalMessage,
+            title: pmBlock.title || "Principal’s Message",
+            name: pmBlock.name || "",
+            designation: pmBlock.designation || "Principal",
+            message: excerpt,
+            image: pmBlock.media || null,
+            buttonText: home.sections?.principalMessage?.buttonText || "Read Principal’s Message",
+            buttonLink: `/${pageData.parentSlug ? pageData.parentSlug + "/" : ""}${pageData.slug}`,
+          });
+          alert("Synced successfully from Principal’s Message page!");
+          return;
+        }
+      }
+      alert("No Principal’s Message block found on the page.");
+    } catch (err) {
+      console.error(err);
+      alert("Failed to sync from Principal’s Message page.");
+    } finally {
+      setSyncingPm(false);
+    }
+  };
+
+  const SECTION_INDICES = [0, 1, 5, 6, 2, 3, 4];
+
   const toggleAll = () => {
-    const allCollapsed = [0, 1, 2, 3, 4, 5].every(
+    const allCollapsed = SECTION_INDICES.every(
       (index) => collapsedSections[index] === true
     );
 
     const newState = {};
 
-    [0, 1, 2, 3, 4, 5].forEach((index) => {
+    SECTION_INDICES.forEach((index) => {
       newState[index] = !allCollapsed;
     });
 
     setCollapsedSections(newState);
   };
 
-  const allCollapsed = [0, 1, 2, 3, 4, 5].every(
+  const allCollapsed = SECTION_INDICES.every(
     (index) => collapsedSections[index] === true
   );
 
@@ -422,6 +483,171 @@ const HomePageEditor = () => {
         </SectionCard>
 
         {/* ==========================================
+              PRINCIPAL'S MESSAGE
+        ========================================== */}
+        <SectionCard
+          title="principalMessage"
+          editable={false}
+          showNumber={false}
+          index={6}
+          isCollapsed={collapsedSections[6] || false}
+          onToggleCollapse={toggleCollapse}
+        >
+          {canEditSection("principalMessage") ? (
+            <>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 mb-6 border-b border-gray-100">
+                <p className="text-xs text-gray-500">
+                  Feature an excerpt from the Principal, official portrait, and a button linking to the full message page.
+                </p>
+                <button
+                  type="button"
+                  disabled={syncingPm}
+                  onClick={handleSyncPrincipalMessage}
+                  className="text-xs font-medium text-gray-700 hover:text-black bg-gray-100 hover:bg-gray-200 px-3 py-1.5 rounded-md transition disabled:opacity-50 shrink-0 self-start sm:self-auto flex items-center gap-1.5"
+                  title="Sync details from the existing Principal's Message page"
+                >
+                  {syncingPm ? "Syncing..." : "↻ Sync from Principal’s Page"}
+                </button>
+              </div>
+
+              <div className="grid md:grid-cols-2 gap-5 mb-6">
+                <div>
+                  <label className={labelClass}>Tag / Eyebrow</label>
+                  <input
+                    type="text"
+                    value={home.sections.principalMessage?.tag || ""}
+                    onChange={(e) =>
+                      updateSection("principalMessage", {
+                        ...home.sections.principalMessage,
+                        tag: e.target.value,
+                      })
+                    }
+                    placeholder="INSTITUTIONAL LEADERSHIP"
+                    className={inputClass}
+                  />
+                </div>
+
+                <div>
+                  <label className={labelClass}>Section Title</label>
+                  <input
+                    type="text"
+                    value={home.sections.principalMessage?.title || ""}
+                    onChange={(e) =>
+                      updateSection("principalMessage", {
+                        ...home.sections.principalMessage,
+                        title: e.target.value,
+                      })
+                    }
+                    placeholder="Principal’s Message"
+                    className={inputClass}
+                  />
+                </div>
+
+                <div>
+                  <label className={labelClass}>Principal Name</label>
+                  <input
+                    type="text"
+                    value={home.sections.principalMessage?.name || ""}
+                    onChange={(e) =>
+                      updateSection("principalMessage", {
+                        ...home.sections.principalMessage,
+                        name: e.target.value,
+                      })
+                    }
+                    placeholder="Prof.(Dr.) Annie Rajan"
+                    className={inputClass}
+                  />
+                </div>
+
+                <div>
+                  <label className={labelClass}>Designation</label>
+                  <input
+                    type="text"
+                    value={home.sections.principalMessage?.designation || ""}
+                    onChange={(e) =>
+                      updateSection("principalMessage", {
+                        ...home.sections.principalMessage,
+                        designation: e.target.value,
+                      })
+                    }
+                    placeholder="Principal"
+                    className={inputClass}
+                  />
+                </div>
+
+                <div className="md:col-span-2">
+                  <label className={labelClass}>Message / Short Excerpt</label>
+                  <textarea
+                    rows={4}
+                    value={home.sections.principalMessage?.message || ""}
+                    onChange={(e) =>
+                      updateSection("principalMessage", {
+                        ...home.sections.principalMessage,
+                        message: e.target.value,
+                      })
+                    }
+                    placeholder="A concise welcome message excerpt for the homepage..."
+                    className={inputClass}
+                  />
+                  <p className="text-[11px] text-gray-400 mt-1">
+                    This excerpt is displayed on the home page. The full message remains on the dedicated Principal’s Message page.
+                  </p>
+                </div>
+
+                <div>
+                  <label className={labelClass}>Button Text</label>
+                  <input
+                    type="text"
+                    value={home.sections.principalMessage?.buttonText || ""}
+                    onChange={(e) =>
+                      updateSection("principalMessage", {
+                        ...home.sections.principalMessage,
+                        buttonText: e.target.value,
+                      })
+                    }
+                    placeholder="Read Principal’s Message"
+                    className={inputClass}
+                  />
+                </div>
+
+                <div>
+                  <label className={labelClass}>Button Link</label>
+                  <input
+                    type="text"
+                    value={home.sections.principalMessage?.buttonLink || ""}
+                    onChange={(e) =>
+                      updateSection("principalMessage", {
+                        ...home.sections.principalMessage,
+                        buttonLink: e.target.value,
+                      })
+                    }
+                    placeholder="/about/principal-s-message"
+                    className={inputClass}
+                  />
+                </div>
+
+                <div className="md:col-span-2">
+                  <label className={labelClass}>Principal Photograph</label>
+                  <MediaPicker
+                    type="image"
+                    multiple={false}
+                    value={home.sections.principalMessage?.image || null}
+                    onChange={(media) =>
+                      updateSection("principalMessage", {
+                        ...home.sections.principalMessage,
+                        image: media,
+                      })
+                    }
+                  />
+                </div>
+              </div>
+            </>
+          ) : (
+            <LockedSection label="Principal's Message" />
+          )}
+        </SectionCard>
+
+        {/* ==========================================
               LEARNING SPACES
         ========================================== */}
         <SectionCard
@@ -597,7 +823,7 @@ const HomePageEditor = () => {
 const LockedSection = ({ label }) => (
   <div className="py-4 px-1">
     <p className="text-sm text-gray-500">
-      You don't have access to this section. Please contact your Admin or Super Admin to request access.
+      You don't have access to {label ? `the "${label}"` : "this"} section. Please contact your Admin or Super Admin to request access.
     </p>
   </div>
 );

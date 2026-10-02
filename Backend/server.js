@@ -77,13 +77,36 @@ app.use(express.json());
 
 app.use(cookieParser());
 
+// Smart WebP negotiation & static uploads serving with immutable caching
+app.use("/uploads", (req, res, next) => {
+  const accept = req.headers.accept || "";
+  if (accept.includes("image/webp")) {
+    const ext = path.extname(req.path).toLowerCase();
+    if (ext === ".jpg" || ext === ".jpeg" || ext === ".png") {
+      const webpRelative = req.path.replace(/\.(jpe?g|png)$/i, ".webp");
+      const webpAbsolute = path.join(__dirname, "uploads", webpRelative);
+      if (fs.existsSync(webpAbsolute)) {
+        res.set("Content-Type", "image/webp");
+        res.set("Vary", "Accept");
+        res.set("Cache-Control", "no-cache, must-revalidate");
+        return res.sendFile(webpAbsolute);
+      }
+    }
+  }
+  next();
+});
+
 app.use(
   "/uploads",
   express.static(
     path.join(__dirname, "uploads"),
     {
-      maxAge: "7d",
+      maxAge: 0,
       etag: true,
+      lastModified: true,
+      setHeaders: (res) => {
+        res.set("Cache-Control", "no-cache, must-revalidate");
+      }
     }
   )
 );

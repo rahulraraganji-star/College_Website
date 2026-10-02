@@ -3,7 +3,7 @@ import express from "express";
 import {
   getHome,
   updateHome,
-} from "../controllers/home.Controller.js";
+} from "../controllers/home.controller.js";
 
 import { requireAuth } from "../middleware/authMiddleware.js";
 import { requirePermission } from "../middleware/permissionMiddleware.js";

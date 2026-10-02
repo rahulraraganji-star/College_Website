@@ -43,8 +43,7 @@ const ProtectedRoute = ({ permission = null, anyPermission = null, roles = null 
 
   // Any permission check
   if (anyPermission && Array.isArray(anyPermission) && anyPermission.length > 0) {
-    const hasAny = anyPermission.some((perm) => hasPermission(perm));
-    if (!hasAny) {
+    if (!hasAnyPermission(anyPermission)) {
       return <AccessDenied />;
     }
   }

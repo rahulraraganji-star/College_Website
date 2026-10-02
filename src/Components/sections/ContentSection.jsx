@@ -1,4 +1,6 @@
 import Reveal from "./Reveal";
+import RichTextRenderer from "./RichTextRenderer";
+import { Quote } from "lucide-react";
 
 const ContentSection = ({
   number,
@@ -12,124 +14,63 @@ const ContentSection = ({
 
   return (
     <Reveal>
-      <section className="relative px-6 md:px-0 pb-16 md:pb-20">
+      <section className="relative px-4 sm:px-6 md:px-0 pb-12 md:pb-16">
         <div className="w-full max-w-3xl">
-          {/* Kicker */}
+          {/* Editorial Kicker */}
           {(number || kicker) && (
-            <div
-              className="
-                mb-4
-                font-['Inter']
-                text-[13px]
-                font-semibold
-                uppercase
-                tracking-[0.14em]
-                text-[#8A6B3F]
-              "
-            >
+            <div className="mb-4 flex items-center gap-2 font-['IBM_Plex_Mono'] text-[11px] sm:text-xs font-semibold uppercase tracking-[0.2em] text-[#8A6B3F]">
               {number && <span>{number}</span>}
-              {number && kicker && <span className="mx-2 text-[#8A6B3F]/50">—</span>}
+              {number && kicker && <span className="text-[#8A6B3F]/40">—</span>}
               {kicker && <span>{kicker}</span>}
             </div>
           )}
 
-          {/* Heading */}
+          {/* Section Heading */}
           {heading && (
-            <h2
-              className="
-                mb-8
-                font-['Fraunces']
-                italic
-                text-[32px]
-                md:text-[38px]
-                font-medium
-                leading-[1.1]
-                tracking-[-0.01em]
-                text-[#2A2623]
-              "
-              style={{ fontVariationSettings: "'wght' 500, 'SOFT' 40, 'WONK' 0" }}
-            >
-              {heading}
-            </h2>
+            <div className="mb-8">
+              <div className="flex items-center gap-3 mb-3">
+                <span className="h-[2px] w-8 bg-[#C9A555] rounded-full" />
+              </div>
+              <h2
+                className="font-['Fraunces'] text-[28px] sm:text-[34px] md:text-[38px] font-medium leading-[1.18] tracking-[-0.015em] text-[#2A2623]"
+                style={{ fontVariationSettings: "'wght' 500, 'SOFT' 30, 'WONK' 0" }}
+              >
+                {heading}
+              </h2>
+            </div>
           )}
 
-          {/* Body content */}
-          {blocks.map((block, index) => {
-            const paragraphs = (block.content || "")
-              .split(/\n+/)
-              .filter((p) => p.trim());
+          {/* Body content with RichTextRenderer */}
+          {blocks.map((block, index) => (
+            <div key={block.id || index} className="mb-8 last:mb-0">
+              <RichTextRenderer
+                content={block.content}
+                isFirstBlock={index === 0 && !heading}
+              />
+            </div>
+          ))}
 
-            return (
-              <div key={index} className="mb-6 space-y-6 last:mb-0">
-                {paragraphs.map((paragraph, i) => (
-                  <p
-                    key={i}
-                    className="
-                      whitespace-pre-wrap
-                      font-['Inter']
-                      text-[16px]
-                      md:text-[17px]
-                      leading-8
-                      font-normal
-                      text-[#5C554C]
-                    "
-                  >
-                    {paragraph}
-                  </p>
-                ))}
-              </div>
-            );
-          })}
-
-          {/* Quote */}
+          {/* Editorial Quote */}
           {quote && (
-            <blockquote
-              className="
-                mt-10
-                mb-10
-                border-l-2
-                border-[#C9A555]
-                pl-6
-                font-['Fraunces']
-                italic
-                text-[19px]
-                md:text-[21px]
-                leading-[1.5]
-                text-[#2A2623]
-              "
-            >
-              "{quote}"
-            </blockquote>
+            <div className="mt-10 mb-10 relative overflow-hidden rounded-2xl bg-[#FBF9F5] border-l-4 border-[#C9A555] p-6 sm:p-8 shadow-sm">
+              <div className="absolute top-4 right-5 opacity-10 pointer-events-none text-[#8A6B3F]">
+                <Quote size={56} />
+              </div>
+              <blockquote className="font-['Fraunces'] italic text-[19px] sm:text-[21px] md:text-[22px] leading-[1.6] text-[#2A2623] relative z-10">
+                "{quote}"
+              </blockquote>
+            </div>
           )}
 
           {/* Stats row */}
           {stats.length > 0 && (
-            <div className="mt-10 flex flex-wrap gap-x-12 gap-y-8">
+            <div className="mt-10 grid grid-cols-2 sm:grid-cols-3 gap-6 pt-6 border-t border-[#E6DED3]">
               {stats.map((stat, index) => (
-                <div key={index}>
-                  <div
-                    className="
-                      font-['Fraunces']
-                      text-[30px]
-                      md:text-[34px]
-                      font-medium
-                      leading-none
-                      text-[#2A2623]
-                    "
-                  >
+                <div key={index} className="p-4 rounded-xl bg-white/60 border border-[#E6DED3]/80">
+                  <div className="font-['Fraunces'] text-[28px] md:text-[32px] font-medium leading-none text-[#2A2623]">
                     {stat.value}
                   </div>
-                  <div
-                    className="
-                      mt-2
-                      font-['Inter']
-                      text-[11px]
-                      font-semibold
-                      uppercase
-                      tracking-[0.12em]
-                      text-[#8A6B3F]
-                    "
-                  >
+                  <div className="mt-2 font-['IBM_Plex_Mono'] text-[11px] font-semibold uppercase tracking-[0.14em] text-[#8A6B3F]">
                     {stat.label}
                   </div>
                 </div>

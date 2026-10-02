@@ -73,7 +73,7 @@ export const normalizePath = (rawPath) => {
       cleaned = parsedUrl.pathname;
     } catch {
       // Fallback: strip scheme and host
-      cleaned = cleaned.replace(/^https?:\/\/[^\/]+/i, "");
+      cleaned = cleaned.replace(/^https?:\/\/[^/]+/i, "");
     }
   }
 

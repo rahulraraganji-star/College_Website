@@ -1,301 +1,363 @@
 import { useEffect, useState } from "react";
-import PageKicker from "./PageKicker";
+import { getCleanImageUrl } from "../../utils/imageUrl";
+import {
+  Calendar,
+  FileText,
+  Users,
+  Download,
+  Clock,
+  MapPin,
+  Award,
+  BookOpen,
+  GraduationCap,
+  Sparkles,
+  CheckCircle,
+  Globe,
+  Building,
+  Mail,
+  Phone,
+  Layers,
+  FileCheck,
+  FileDown,
+  Star,
+  Shield,
+  Bookmark,
+  BadgeCheck,
+  Briefcase,
+} from "lucide-react";
 
-const HERO_HEIGHT_CLASSES = {
-  small: "min-h-[42vh]",
-  medium: "min-h-[56vh]",
-  large: "min-h-[68vh]",
-  fullscreen: "min-h-screen",
+const ICON_MAP = {
+  calendar: Calendar,
+  filetext: FileText,
+  document: FileText,
+  users: Users,
+  people: Users,
+  download: Download,
+  filedown: FileDown || Download,
+  clock: Clock,
+  duration: Clock,
+  time: Clock,
+  mappin: MapPin,
+  location: MapPin,
+  award: Award,
+  bookopen: BookOpen,
+  curriculum: BookOpen,
+  graduationcap: GraduationCap,
+  graduation: GraduationCap,
+  sparkles: Sparkles,
+  checkcircle: CheckCircle,
+  globe: Globe,
+  building: Building,
+  mail: Mail,
+  phone: Phone,
+  layers: Layers,
+  filecheck: FileCheck,
+  star: Star,
+  shield: Shield,
+  bookmark: Bookmark,
+  badgecheck: BadgeCheck,
+  briefcase: Briefcase,
 };
 
-const HeroSection = ({ section, pageTitle }) => {
-  const [loaded, setLoaded] = useState(false);
+const DynamicHeroIcon = ({ name, className, size = 26 }) => {
+  const key = (name || "").toLowerCase().replace(/[^a-z]/g, "");
+  const IconComponent = ICON_MAP[key] || Calendar;
+  return <IconComponent size={size} strokeWidth={1.4} className={className} />;
+};
 
-  console.log("HeroSection props:", section);
+const HeroSection = ({ section = {}, pageTitle = "" }) => {
+  const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
     const frame = requestAnimationFrame(() => setLoaded(true));
     return () => cancelAnimationFrame(frame);
   }, []);
 
-  const hasContent = section.heading || section.subheading;
-
-  if (!hasContent) return null;
-
   const hasImage = Boolean(section.background?.url);
+  const alignment = section.alignment || "left"; // "left" | "center" | "right"
 
-  const heightClass =
-    HERO_HEIGHT_CLASSES[section.height] ?? HERO_HEIGHT_CLASSES.medium;
+  // User content - NO hardcoded fake placeholders
+  const headingText = section.heading || pageTitle || "";
+  const subheadingText = section.subheading || "";
+  const eyebrowText = section.eyebrow || section.kicker || "";
+
+  // Quick info items - only render what the user actually configures, NO forced dummy items
+  const quickInfoItems = Array.isArray(section.quickInfo) && section.quickInfo.length > 0
+    ? section.quickInfo
+    : Array.isArray(section.highlights) && section.highlights.length > 0
+    ? section.highlights
+    : Array.isArray(section.stats) && section.stats.length > 0
+    ? section.stats
+    : [];
+
+  // Watermark Motto (shown on left alignment if enabled)
+  const showWatermark = section.showWatermark !== false && alignment === "left";
+  const taglineRaw = section.watermarkTagline || "LEARN\nGROW\nBELONG";
+  const mottoLines = taglineRaw.split("\n").filter(Boolean);
+
+  if (!headingText && !subheadingText && !eyebrowText && quickInfoItems.length === 0) {
+    return null;
+  }
 
   const revealClass = `
     transition-all
-    duration-1000
+    duration-700
     ease-out
-    ${
-      loaded
-        ? "opacity-100 translate-y-0"
-        : "opacity-0 translate-y-8"
-    }
+    ${loaded ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"}
   `;
 
   return (
-    <section
-      className={`
-        relative
-        isolate
-        overflow-hidden
-        ${heightClass}
-      `}
-      style={
-        hasImage
-          ? undefined
-          : {
-              background:
-                "linear-gradient(180deg,#25211D 0%,#1A1816 100%)",
-            }
-      }
-    >
-      {/* ---------------- Background Image ---------------- */}
-      {hasImage && (
-        <img
-          src={section.background.url}
-          alt={section.background.alt || ""}
-          className="
-            absolute
-            inset-0
-            h-full
-            w-full
-            object-cover
-            scale-105
-          "
-         style={{
-  objectPosition: "center",
-}}
-        />
-      )}
-
-      {/* ---------------- Main Editorial Overlay ---------------- */}
-      <div
-        className="absolute inset-0"
-        style={{
-          background: `
-            linear-gradient(
-              180deg,
-              rgba(18,18,18,.55) 0%,
-              rgba(20,20,20,.70) 45%,
-              rgba(14,14,14,.88) 100%
-            )
-          `,
-        }}
-      />
-
-      {/* ---------------- Vignette ---------------- */}
-      <div
-        className="absolute inset-0"
-        style={{
-          boxShadow: "inset 0 0 180px rgba(0,0,0,.45)",
-        }}
-      />
-
-      {/* ---------------- Editorial Grid ---------------- */}
-      <div
-        className="absolute inset-0 opacity-[0.045]"
-        style={{
-          backgroundImage: `
-            linear-gradient(rgba(255,255,255,.12) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(255,255,255,.12) 1px, transparent 1px)
-          `,
-          backgroundSize: "96px 96px",
-        }}
-      />
-
-      {/* ---------------- Top Noise Gradient ---------------- */}
-      <div
-        className="absolute inset-0"
-        style={{
-          background:
-            "radial-gradient(circle at top, rgba(255,255,255,.08), transparent 55%)",
-        }}
-      />
-
-      {/* ---------------- Corner Accent ---------------- */}
-      <div className="absolute top-8 left-8 h-8 w-8 border-l border-t border-white/20" />
-
-      {/* ---------------- Main Content ---------------- */}
-      <div className="absolute inset-0 z-10 flex items-center justify-center">
-        <div
-          className={`
-            mx-auto
-            flex
-            w-full
-            max-w-[1700px]
-            flex-col
-            items-center
-            justify-center
-            px-6
-            text-center
-            lg:px-10
-            ${revealClass}
-          `}
-        >
-          {/* ---------- Gold Divider ---------- */}
-          <div className="mb-6 h-[2px] w-16 rounded-full bg-[#C9A555]" />
-
-          {/* ---------- Heading ---------- */}
-          {section.heading && (
-            <h1
-              className="
-                max-w-5xl
-                font-['Fraunces']
-                text-[40px]
-                font-medium
-                italic
-                leading-[0.95]
-                tracking-[-0.04em]
-                text-[#F8F5F0]
-                md:text-[56px]
-                lg:text-[64px]
-                xl:text-[72px]
-              "
-              style={{
-                textShadow: "0 12px 40px rgba(0,0,0,.35)",
-              }}
-            >
-              {section.heading}
-            </h1>
-          )}
-
-          {/* ---------- Description ---------- */}
-          {section.subheading && (
-            <p
-              className="
-                mt-6
-                max-w-2xl
-                font-['Inter']
-                text-[16px]
-                font-normal
-                leading-8
-                text-white/75
-                md:text-[18px]
-              "
-            >
-              {section.subheading}
-            </p>
-          )}
-
-          {/* ---------- Optional Stats / Programme Bar (Course Variant) ---------- */}
-          {Array.isArray(section.stats) && section.stats.length > 0 && (
-            <div className="mt-10 w-full max-w-4xl border-t border-white/15 pt-7 pb-2">
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 text-center sm:text-left divide-y sm:divide-y-0 sm:divide-x divide-white/10">
-                {section.stats.map((stat, sIdx) => (
-                  <div key={sIdx} className={sIdx > 0 ? "pt-4 sm:pt-0 sm:pl-6" : ""}>
-                    <p className="font-['Inter'] text-[11px] font-semibold uppercase tracking-[0.2em] text-white/50 mb-1">
-                      {stat.label}
-                    </p>
-                    <p className="font-['Inter'] text-base md:text-lg font-medium text-[#F8F5F0]">
-                      {stat.value}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-{/* ---------- CTA Buttons ---------- */}
-
-{(section.primaryButtonText || section.secondaryButtonText) && (
-
-  <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
-
-    {section.primaryButtonText && (
-
-      <a
-        href={section.primaryButtonLink || "#"}
-        className="
-          inline-flex
-          items-center
-          justify-center
-          rounded-full
-          bg-[#C9A555]
-          px-7
-          py-3
-          font-['Inter']
-          text-sm
-          font-semibold
-          text-white
-          transition-all
-          duration-300
-          hover:bg-[#B7923E]
-          hover:-translate-y-0.5
-        "
-      >
-        {section.primaryButtonText}
-      </a>
-
-    )}
-
-    {section.secondaryButtonText && (
-
-      <a
-        href={section.secondaryButtonLink || "#"}
-        className="
-          inline-flex
-          items-center
-          justify-center
-          rounded-full
+    <div className="w-full">
+      {/* ---------------- Main Hero Banner Card ---------------- */}
+      <section
+        className={`
+          relative
+          isolate
+          overflow-hidden
+          rounded-none
           border
-          border-white/40
-          px-7
-          py-3
-          font-['Inter']
-          text-sm
-          font-semibold
+          border-[#2b2b2b]
+          bg-[#171717]
           text-white
-          transition-all
-          duration-300
-          hover:bg-white
-          hover:text-[#1E1E1E]
-        "
+          p-[35px_25px]
+          sm:p-[50px_45px]
+          md:p-[80px_90px]
+          min-h-[500px]
+          md:min-h-[520px]
+          flex
+          flex-col
+          justify-between
+          shadow-2xl
+        `}
       >
-        {section.secondaryButtonText}
-      </a>
+        {/* ---------------- Background Image (if configured) ---------------- */}
+        {hasImage && (
+          <>
+            <img
+              src={getCleanImageUrl(section.background.url)}
+              alt={section.background.alt || ""}
+              className="absolute inset-0 h-full w-full object-cover"
+              style={{
+                objectPosition: "center",
+                opacity: (100 - (section.overlay ?? 50)) / 100,
+              }}
+              onError={(e) => {
+                if (!e.currentTarget.dataset.retried) {
+                  e.currentTarget.dataset.retried = "true";
+                  e.currentTarget.src = "/uploads/hero1.jpg";
+                }
+              }}
+            />
+            <div
+              className="absolute inset-0 bg-[#171717]/85 pointer-events-none"
+            />
+          </>
+        )}
 
-    )}
-
-  </div>
-
-)}
-          
-
-          {/* ---------- Bottom Divider ---------- */}
-          {!section.stats && (
-            <div className="mt-10 h-px w-full max-w-md bg-white/15" />
-          )}
-
-          {/* ---------- Scroll Indicator ---------- */}
-          <div className="mt-6 flex flex-col items-center">
-            <svg
-              width="18"
-              height="18"
-              viewBox="0 0 18 18"
-              fill="none"
-              className="text-white/40"
+        {/* ---------------- Main Top/Middle Content ---------------- */}
+        <div className={`relative z-10 w-full ${revealClass}`}>
+          <div
+            className={`
+              flex
+              items-start
+              justify-between
+              gap-8
+              ${alignment === "center" ? "flex-col items-center text-center" : alignment === "right" ? "flex-row-reverse" : "flex-row"}
+            `}
+          >
+            {/* Main Content Area */}
+            <div
+              className={`
+                flex-1
+                min-w-0
+                ${alignment === "center" ? "flex flex-col items-center text-center mx-auto" : alignment === "right" ? "flex flex-col items-end text-right" : "flex flex-col items-start text-left"}
+              `}
             >
-              <path
-                d="M3 6L9 12L15 6"
-                stroke="currentColor"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
+              {/* ---------- Eyebrow with Gold Accent Rule ---------- */}
+              {eyebrowText && (
+                <div
+                  className={`
+                    flex
+                    items-center
+                    gap-3.5
+                    mb-4
+                    sm:mb-5
+                    ${alignment === "center" ? "justify-center" : alignment === "right" ? "justify-end" : "justify-start"}
+                  `}
+                >
+                  {alignment === "center" && (
+                    <span className="h-[1px] w-10 bg-[#C5A880] shrink-0 opacity-90" />
+                  )}
+                  {alignment === "right" && (
+                    <span className="h-[1px] w-12 bg-[#C5A880] shrink-0 opacity-90" />
+                  )}
+
+                  <span className="font-['Inter',_sans-serif] text-[12px] font-medium tracking-[0.16em] uppercase text-[#C5A880]">
+                    {eyebrowText}
+                  </span>
+
+                  {alignment !== "right" && (
+                    <span className="h-[1px] w-12 bg-[#C5A880] shrink-0 opacity-90" />
+                  )}
+                </div>
+              )}
+
+              {/* ---------- Heading (Course Detail Serif Style) ---------- */}
+              {headingText && (
+                <h1
+                  className={`
+                    font-['Playfair_Display',_serif]
+                    text-[clamp(44px,6.5vw,86px)]
+                    font-normal
+                    leading-[0.96]
+                    tracking-[-0.04em]
+                    text-white
+                    ${alignment === "center" ? "max-w-[1050px]" : "max-w-[1050px]"}
+                  `}
+                >
+                  {headingText}
+                </h1>
+              )}
+
+              {/* ---------- Subtitle / Description ---------- */}
+              {subheadingText && (
+                <p
+                  className={`
+                    mt-[26px]
+                    font-['Inter',_sans-serif]
+                    text-[16px]
+                    md:text-[17px]
+                    leading-relaxed
+                    text-[#BDBDBD]
+                    ${alignment === "center" ? "max-w-[720px] text-center mx-auto" : alignment === "right" ? "max-w-[720px] text-right" : "max-w-[720px] text-left"}
+                  `}
+                >
+                  {subheadingText}
+                </p>
+              )}
+
+              {/* ---------- CTA Buttons (if configured) ---------- */}
+              {(section.primaryButtonText || section.secondaryButtonText) && (
+                <div
+                  className={`
+                    mt-8
+                    flex
+                    flex-wrap
+                    items-center
+                    gap-4
+                    ${alignment === "center" ? "justify-center" : alignment === "right" ? "justify-end" : "justify-start"}
+                  `}
+                >
+                  {section.primaryButtonText && (
+                    <a
+                      href={section.primaryButtonLink || "#"}
+                      className="
+                        inline-flex
+                        items-center
+                        justify-center
+                        rounded-none
+                        bg-[#C5A880]
+                        px-7
+                        py-3
+                        font-['Inter']
+                        text-xs
+                        font-semibold
+                        tracking-wider
+                        uppercase
+                        text-[#171717]
+                        transition-all
+                        duration-300
+                        hover:bg-[#d6bca0]
+                      "
+                    >
+                      {section.primaryButtonText}
+                    </a>
+                  )}
+
+                  {section.secondaryButtonText && (
+                    <a
+                      href={section.secondaryButtonLink || "#"}
+                      className="
+                        inline-flex
+                        items-center
+                        justify-center
+                        rounded-none
+                        border
+                        border-white/30
+                        px-7
+                        py-3
+                        font-['Inter']
+                        text-xs
+                        font-semibold
+                        tracking-wider
+                        uppercase
+                        text-white
+                        transition-all
+                        duration-300
+                        hover:bg-white
+                        hover:text-black
+                      "
+                    >
+                      {section.secondaryButtonText}
+                    </a>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* ---------- Right Column: Motto (Left Alignment Mode) ---------- */}
+            {showWatermark && mottoLines.length > 0 && (
+              <div className="hidden lg:flex items-center shrink-0 select-none pl-6 pr-2 pt-2">
+                {/* Vertical Motto Column */}
+                <div className="flex flex-col text-[10px] tracking-[0.28em] text-[#707070] font-['Inter'] font-medium uppercase space-y-1.5 pl-1">
+                  {mottoLines.map((line, idx) => (
+                    <span key={idx}>{line}</span>
+                  ))}
+                  <span className="w-4 h-[1.5px] bg-[#8E7245] mt-1 opacity-80" />
+                </div>
+              </div>
+            )}
           </div>
         </div>
-      </div>
 
-      {/* ---------------- Bottom Hairline ---------------- */}
-      <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-px bg-white/10" />
-    </section>
+        {/* ---------------- Horizontal Divider & Quick Info Strip (Matching Course Detail Meta) ---------------- */}
+        {quickInfoItems.length > 0 && (
+          <div className="relative z-10 mt-12 md:mt-[60px] pt-7 md:pt-[30px] border-t border-[#3a3a3a]">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8 items-center">
+              {quickInfoItems.map((item, idx) => {
+                const isNotLast = idx < quickInfoItems.length - 1;
+                return (
+                  <div
+                    key={idx}
+                    className={`
+                      flex
+                      items-center
+                      gap-4
+                      ${isNotLast ? "lg:border-r lg:border-[#2f2f2f] lg:pr-6" : ""}
+                    `}
+                  >
+                    {/* Outline Icon in Gold */}
+                    <div className="shrink-0 text-[#C5A880]">
+                      <DynamicHeroIcon name={item.icon} size={26} />
+                    </div>
+
+                    {/* Metadata Label & Value */}
+                    <div className="min-w-0">
+                      <span className="block font-['Inter',_sans-serif] text-[11px] font-semibold uppercase tracking-[0.16em] text-[#8e8e8e] mb-1">
+                        {item.label}
+                      </span>
+                      <span className="block font-['Inter',_sans-serif] text-[15px] font-medium text-[#f0f0f0] leading-snug">
+                        {item.value}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+      </section>
+    </div>
   );
 };
 

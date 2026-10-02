@@ -98,6 +98,7 @@ export default defineConfig({
   },
 
   build: {
+    chunkSizeWarningLimit: 750,
     rollupOptions: {
       output: {
         manualChunks(id) {
@@ -116,6 +117,15 @@ export default defineConfig({
           }
           if (id.includes("node_modules/yet-another-react-lightbox/")) {
             return "lightbox";
+          }
+          if (
+            id.includes("node_modules/react-icons/") ||
+            id.includes("node_modules/@heroicons/")
+          ) {
+            return "icons";
+          }
+          if (id.includes("node_modules/lucide-react/")) {
+            return "lucide";
           }
         },
       },

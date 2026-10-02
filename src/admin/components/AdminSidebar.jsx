@@ -169,7 +169,7 @@ const AdminSidebar = () => {
 
   return (
     <aside
-      className="w-64 min-h-screen bg-black text-neutral-300 flex flex-col antialiased overflow-hidden"
+      className="w-64 shrink-0 h-full bg-black text-neutral-300 flex flex-col antialiased overflow-hidden"
       style={{
         fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
       }}

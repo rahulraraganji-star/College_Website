@@ -1,6 +1,10 @@
+import { useState } from "react";
+import FacultyOverlay from "./FacultyOverlay";
 import "./FacultyCard.css";
 
 const FacultyCard = ({ member }) => {
+  const [isOverlayOpen, setIsOverlayOpen] = useState(false);
+
   const {
     media,
     name,
@@ -14,18 +18,62 @@ const FacultyCard = ({ member }) => {
     phone,
   } = member;
 
+  const photoUrl =
+    (typeof media === "object" ? media?.url : media) ||
+    (typeof member.photo === "object" ? member.photo?.url : member.photo) ||
+    (typeof member.image === "object" ? member.image?.url : member.image) ||
+    null;
+
+  // Only enable overlay if at least one extended detail is actually filled in
+  const hasOverlayDetails = Boolean(
+    member?.officeLocation?.trim() ||
+    member?.officeHours?.trim() ||
+    member?.linkedin?.trim() ||
+    member?.googleScholar?.trim() ||
+    member?.website?.trim() ||
+    member?.education?.trim() ||
+    member?.researchInterests?.trim() ||
+    member?.publications?.trim() ||
+    member?.coursesTaught?.trim() ||
+    member?.awards?.trim()
+  );
+
   return (
-    <article className="faculty-card">
+    <>
+      <article
+        className={`faculty-card ${hasOverlayDetails ? "has-overlay" : ""}`}
+        onClick={hasOverlayDetails ? () => setIsOverlayOpen(true) : undefined}
+        role={hasOverlayDetails ? "button" : undefined}
+        tabIndex={hasOverlayDetails ? 0 : undefined}
+        onKeyDown={
+          hasOverlayDetails
+            ? (e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  setIsOverlayOpen(true);
+                }
+              }
+            : undefined
+        }
+        title={hasOverlayDetails ? `Click to view full profile of ${name}` : undefined}
+      >
 
       {/* IMAGE */}
       <div className="faculty-media">
-        {media?.url ? (
+        {photoUrl ? (
           <img
-            src={media.url}
-            alt={media.alt || name}
+            src={photoUrl}
+            alt={media?.alt || name}
             loading="lazy"
             decoding="async"
             className="faculty-image"
+            onError={(e) => {
+              e.currentTarget.style.display = "none";
+              const nextEl = e.currentTarget.nextElementSibling;
+              if (nextEl && nextEl.classList.contains("faculty-placeholder")) {
+                nextEl.style.display = "flex";
+              }
+            }}
           />
         ) : (
           <div className="faculty-placeholder">
@@ -110,7 +158,14 @@ const FacultyCard = ({ member }) => {
         {(email || phone) && (
           <div className="faculty-contact">
             {email && (
-              <p className="faculty-contact-row" title={email}>
+              <p
+                className="faculty-contact-row"
+                title={email}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  window.location.href = `mailto:${email}`;
+                }}
+              >
                 <svg
                   className="faculty-contact-svg"
                   viewBox="0 0 24 24"
@@ -127,7 +182,14 @@ const FacultyCard = ({ member }) => {
               </p>
             )}
             {phone && (
-              <p className="faculty-contact-row" title={phone}>
+              <p
+                className="faculty-contact-row"
+                title={phone}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  window.location.href = `tel:${phone}`;
+                }}
+              >
                 <svg
                   className="faculty-contact-svg"
                   viewBox="0 0 24 24"
@@ -145,9 +207,38 @@ const FacultyCard = ({ member }) => {
           </div>
         )}
 
+        {/* VIEW FULL PROFILE PROMPT - ONLY WHEN OVERLAY DETAILS ARE GIVEN */}
+        {hasOverlayDetails && (
+          <div className="faculty-click-hint">
+            <span>View Detailed Profile</span>
+            <svg
+              className="faculty-hint-arrow"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M5 12h14" />
+              <path d="m12 5 7 7-7 7" />
+            </svg>
+          </div>
+        )}
+
       </div>
 
     </article>
+
+    {/* OVERLAY MODAL - ONLY WHEN OVERLAY DETAILS ARE GIVEN */}
+    {hasOverlayDetails && (
+      <FacultyOverlay
+        member={member}
+        isOpen={isOverlayOpen}
+        onClose={() => setIsOverlayOpen(false)}
+      />
+    )}
+  </>
   );
 };
 

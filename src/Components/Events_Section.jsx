@@ -1,6 +1,7 @@
 import { useLayoutEffect, useRef } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { getCleanImageUrl } from "../utils/imageUrl";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -11,7 +12,7 @@ const getEventImage = (event) => {
     event?.photo ||
     event?.thumbnail;
 
-  return image?.url || image || "";
+  return getCleanImageUrl(image?.url || image || "");
 };
 
 const getEventTitle = (event) => event?.title || event?.name || "";
@@ -34,14 +35,15 @@ const Events_Section = ({ data }) => {
 
   const events = data?.events || data?.items || data?.cards || [];
   const visibleEvents = events.slice(0, 3);
-  const frontImage =
+  const frontImage = getCleanImageUrl(
     data?.frontImage?.url ||
     data?.frontImage ||
     data?.coverImage?.url ||
     data?.coverImage ||
     data?.image?.url ||
     data?.image ||
-    getEventImage(visibleEvents[0]);
+    getEventImage(visibleEvents[0])
+  );
 
   // ONLY DESKTOP GSAP ANIMATION - UNTOUCHED
   useLayoutEffect(() => {
@@ -185,13 +187,18 @@ const Events_Section = ({ data }) => {
             snap-mandatory
             pb-4
             scrollbar-hide
+            -mx-5
+            px-5
           "
         >
           {visibleEvents.map((event, i) => (
             <div
               key={event._id || event.id || i}
               className="
-                min-w-[86%]
+                w-[86%]
+                max-w-[360px]
+                sm:max-w-[400px]
+                shrink-0
                 snap-center
                 overflow-hidden
                 rounded-[24px]
@@ -201,51 +208,59 @@ const Events_Section = ({ data }) => {
                 flex-col
               "
             >
-              {/* Image Section - Fixed height */}
-              <div className="relative h-[230px] w-full">
+              {/* Image Section - Exact same height across all cards on every screen */}
+              <div className="relative h-[230px] sm:h-[240px] w-full overflow-hidden rounded-t-[24px] bg-[#EAE4D9]">
                 <img
                   src={getEventImage(event)}
                   alt={getEventTitle(event)}
-                  className="absolute inset-0 h-full w-full object-cover"
+                  className="absolute inset-0 h-full w-full object-cover transition-opacity duration-300"
                   loading="lazy"
+                  onError={(e) => {
+                    if (!e.currentTarget.dataset.retried) {
+                      e.currentTarget.dataset.retried = "true";
+                      e.currentTarget.src = "/uploads/event1.jpg";
+                    }
+                  }}
                 />
 
-                <div className="absolute inset-0 bg-black/20" />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/25 to-transparent" />
+                <div className="absolute inset-0 bg-black/20 pointer-events-none" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-black/20 pointer-events-none" />
 
-                <div className="absolute top-4 left-4 right-4 flex items-center justify-between">
-                  <span className="px-3 py-1 rounded-full text-xs font-semibold bg-white/90 text-gray-900 border border-black/5">
+                <div className="absolute top-4 left-4 right-4 z-10 flex items-center justify-between gap-2">
+                  <span className="px-3 py-1 rounded-full text-xs font-semibold bg-white/90 text-gray-900 border border-black/5 max-w-[75%] truncate">
                     {getEventDepartment(event)}
                   </span>
 
-                  <span className="h-9 w-9 rounded-full bg-white/15 border border-white/25 backdrop-blur-md flex items-center justify-center">
+                  <span className="h-9 w-9 shrink-0 rounded-full bg-white/15 border border-white/25 backdrop-blur-md flex items-center justify-center">
                     <span className="h-2 w-2 rounded-full bg-amber-400" />
                   </span>
                 </div>
 
-                <div className="absolute bottom-4 left-4 right-4">
-                  <h3 className="text-white text-[26px] leading-tight font-semibold">
+                <div className="absolute bottom-4 left-4 right-4 z-10">
+                  <h3 className="text-white text-[21px] sm:text-[23px] leading-tight font-semibold line-clamp-2">
                     {getEventTitle(event)}
                   </h3>
-                  <p className="mt-1 text-sm text-white/85">
-                    {getEventLocation(event)}
-                  </p>
+                  {getEventLocation(event) && (
+                    <p className="mt-1 text-sm text-white/85 truncate">
+                      {getEventLocation(event)}
+                    </p>
+                  )}
                 </div>
               </div>
 
               {/* Content Section */}
-              <div className="flex-1 p-6 flex flex-col justify-between bg-white">
+              <div className="flex-1 p-5 sm:p-6 flex flex-col justify-between bg-white">
                 <div>
-                  {/* UPDATED: Card description */}
-                  <p className="text-[14px] leading-6 text-[#5E5E5E]">
+                  {/* Card description */}
+                  <p className="text-[14px] leading-6 text-[#5E5E5E] line-clamp-3 break-words">
                     {getEventDescription(event)}
                   </p>
 
-                  {/* UPDATED: Bottom information box */}
-                  <div className="mt-5 flex items-center justify-between rounded-2xl bg-[#FAF6EF] border border-[#E9DFD0] px-4 py-3">
-                    <div className="flex items-center gap-3">
-                      {/* UPDATED: Icon box */}
-                      <span className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-[#FFFDF9] border border-[#E9DFD0]">
+                  {/* Bottom information box - flex-wrap and min-w-0 prevent overlapping */}
+                  <div className="mt-5 flex items-center justify-between gap-3 rounded-2xl bg-[#FAF6EF] border border-[#E9DFD0] px-4 py-3 min-w-0">
+                    <div className="flex items-center gap-3 min-w-0 flex-1">
+                      {/* Icon box */}
+                      <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#FFFDF9] border border-[#E9DFD0]">
                         <svg
                           viewBox="0 0 24 24"
                           className="h-5 w-5 text-gray-800"
@@ -261,49 +276,53 @@ const Events_Section = ({ data }) => {
                         </svg>
                       </span>
 
-                      <div className="text-left">
-                        {/* UPDATED: Organised by text */}
+                      <div className="text-left min-w-0 flex-1">
+                        {/* Organised by text */}
                         <p className="text-[11px] uppercase tracking-wide text-[#7A7A7A]">
                           Organised by
                         </p>
-                        {/* UPDATED: Department */}
-                        <p className="text-[18px] font-semibold text-[#171717]">
+                        {/* Department */}
+                        <p className="text-[16px] sm:text-[18px] font-semibold text-[#171717] truncate">
                           {getEventDepartment(event)}
                         </p>
                       </div>
                     </div>
 
-                    {/* UPDATED: Updated text */}
-                    <span className="text-[13px] font-medium text-[#8D6B32]">
-                      {getEventUpdated(event)}
-                    </span>
+                    {/* Updated text */}
+                    {getEventUpdated(event) && (
+                      <span className="text-[12px] sm:text-[13px] font-medium text-[#8D6B32] shrink-0 whitespace-nowrap">
+                        {getEventUpdated(event)}
+                      </span>
+                    )}
                   </div>
                 </div>
 
-                <div className="pt-3 text-center text-xs text-gray-500">
-                  {data?.footerText}
-                </div>
+                {data?.footerText && (
+                  <div className="pt-3 text-center text-xs text-gray-500">
+                    {data?.footerText}
+                  </div>
+                )}
               </div>
             </div>
           ))}
         </div>
       </div>
 
-      {/* ================= DESKTOP LAYOUT (100% UNTOUCHED) ================= */}
+      {/* ================= DESKTOP LAYOUT ================= */}
       <div className="hidden lg:block">
         <section
           ref={sectionRef}
           className="relative min-h-[240vh] bg-[#F1EEE8]"
         >
           <div className="sticky top-0 h-screen flex items-center justify-center">
-            <div className="absolute top-[18%] left-1/2 -translate-x-1/2 text-center z-20">
+            <div className="absolute top-6 lg:top-[6%] xl:top-[9%] 2xl:top-[12%] left-1/2 -translate-x-1/2 text-center z-20">
               <h1
                 ref={headerRef}
-                className="text-5xl mb-4 font-serif text-gray-900"
+                className="text-4xl xl:text-5xl mb-3 xl:mb-4 font-serif text-gray-900"
               >
                 {data?.title}
               </h1>
-              <p ref={subTextRef} className="text-lg text-gray-600 mb-6">
+              <p ref={subTextRef} className="text-base xl:text-lg text-gray-600 mb-4 xl:mb-6">
                 {data?.subtitle || data?.description}
               </p>
               <a
@@ -350,7 +369,7 @@ const Events_Section = ({ data }) => {
                   >
                     <div className="absolute inset-0 backface-hidden overflow-hidden">
                       <div
-                        className="absolute inset-0 bg-gray-200"
+                        className="absolute inset-0 bg-[#EAE4D9]"
                         style={{
                           backgroundImage: frontImage ? `url(${frontImage})` : undefined,
                           backgroundSize: "300% 100%",
@@ -360,46 +379,52 @@ const Events_Section = ({ data }) => {
                     </div>
 
                     <div className="absolute inset-0 rotate-y-180 backface-hidden bg-white border shadow-xl flex flex-col overflow-hidden rounded-2xl ring-1 ring-black/5">
-                      <div className="relative h-[58%] w-full">
+                      <div className="relative h-[50%] w-full shrink-0 bg-[#EAE4D9] overflow-hidden">
                         <img
                           src={getEventImage(event)}
                           alt={getEventTitle(event)}
-                          className="absolute inset-0 h-full w-full object-cover"
+                          className="absolute inset-0 h-full w-full object-cover transition-opacity duration-300"
                           loading="lazy"
+                          onError={(e) => {
+                            if (!e.currentTarget.dataset.retried) {
+                              e.currentTarget.dataset.retried = "true";
+                              e.currentTarget.src = "/uploads/event1.jpg";
+                            }
+                          }}
                         />
 
                         <div className="absolute inset-0 bg-black/20" />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/25 to-transparent" />
 
                         <div className="absolute top-4 left-4 right-4 flex items-center justify-between">
-                          <span className="px-3 py-1 rounded-full text-xs font-semibold bg-white/90 text-gray-900 border border-black/5">
+                          <span className="px-3 py-1 rounded-full text-xs font-semibold bg-white/90 text-gray-900 border border-black/5 max-w-[75%] truncate">
                             {getEventDepartment(event)}
                           </span>
 
-                          <span className="h-9 w-9 rounded-full bg-white/15 border border-white/25 backdrop-blur-md flex items-center justify-center">
+                          <span className="h-9 w-9 shrink-0 rounded-full bg-white/15 border border-white/25 backdrop-blur-md flex items-center justify-center">
                             <span className="h-2 w-2 rounded-full bg-amber-400" />
                           </span>
                         </div>
 
                         <div className="absolute bottom-4 left-4 right-4">
-                          <h3 className="text-white text-[26px] leading-tight font-semibold">
+                          <h3 className="text-white text-[22px] xl:text-[24px] 2xl:text-[26px] leading-tight font-semibold line-clamp-2">
                             {getEventTitle(event)}
                           </h3>
-                          <p className="mt-1 text-sm text-white/85">
+                          <p className="mt-1 text-sm text-white/85 truncate">
                             {getEventLocation(event)}
                           </p>
                         </div>
                       </div>
 
-                      <div className="flex-1 p-6 flex flex-col justify-between bg-white">
-                        <div>
-                          <p className="text-gray-700 leading-relaxed">
+                      <div className="flex-1 p-4 xl:p-5 flex flex-col justify-between bg-white min-h-0">
+                        <div className="flex flex-col justify-between flex-1 min-h-0">
+                          <p className="text-gray-700 leading-relaxed text-[13px] xl:text-[14px] line-clamp-3">
                             {getEventDescription(event)}
                           </p>
 
-                          <div className="mt-5 flex items-center justify-between rounded-2xl bg-gray-50 border border-black/5 px-4 py-3">
-                            <div className="flex items-center gap-3">
-                              <span className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-white border border-black/5">
+                          <div className="mt-3 xl:mt-4 flex items-center justify-between rounded-2xl bg-gray-50 border border-black/5 px-3.5 py-2.5 xl:px-4 xl:py-3 min-w-0">
+                            <div className="flex items-center gap-3 min-w-0 flex-1">
+                              <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white border border-black/5">
                                 <svg
                                   viewBox="0 0 24 24"
                                   className="h-5 w-5 text-gray-800"
@@ -415,23 +440,27 @@ const Events_Section = ({ data }) => {
                                 </svg>
                               </span>
 
-                              <div className="text-left">
+                              <div className="text-left min-w-0 flex-1">
                                 <p className="text-xs text-gray-500">Organised by</p>
-                                <p className="text-sm font-semibold text-gray-900">
+                                <p className="text-xs xl:text-sm font-semibold text-gray-900 truncate">
                                   {getEventDepartment(event)}
                                 </p>
                               </div>
                             </div>
 
-                            <span className="text-xs font-medium text-gray-600">
-                              {getEventUpdated(event)}
-                            </span>
+                            {getEventUpdated(event) && (
+                              <span className="text-xs font-medium text-gray-600 shrink-0 ml-2 whitespace-nowrap">
+                                {getEventUpdated(event)}
+                              </span>
+                            )}
                           </div>
                         </div>
 
-                        <div className="pt-3 text-center text-xs text-gray-500">
-                          {data?.footerText}
-                        </div>
+                        {data?.footerText && (
+                          <div className="pt-2 text-center text-xs text-gray-500">
+                            {data?.footerText}
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>

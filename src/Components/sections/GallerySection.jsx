@@ -3,6 +3,8 @@ import SectionHeading from "./SectionHeading";
 import { useInView } from "../hooks/useInView";
 import Lightbox from "yet-another-react-lightbox";
 import "yet-another-react-lightbox/styles.css";
+import PrincipalMessageBlock from "./PrincipalMessageBlock";
+import { getCleanImageUrl } from "../../utils/imageUrl";
 
 const GalleryImage = ({ image, index, onClick }) => {
   const [ref, inView] = useInView();
@@ -26,11 +28,17 @@ const GalleryImage = ({ image, index, onClick }) => {
         onClick={() => onClick(index)}
       >
         <img
-          src={image.media.url}
+          src={getCleanImageUrl(image.media.url)}
           alt={image.alt || image.media?.alt || ""}
           loading="lazy"
           decoding="async"
           className="w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.04]"
+          onError={(e) => {
+            if (!e.currentTarget.dataset.retried) {
+              e.currentTarget.dataset.retried = "true";
+              e.currentTarget.src = "/uploads/event1.jpg";
+            }
+          }}
         />
       </div>
 
@@ -63,11 +71,17 @@ const GalleryGrid = ({ images, onImageClick }) => {
           onClick={() => onImageClick(i)}
         >
           <img
-            src={image.media?.url}
+            src={getCleanImageUrl(image.media?.url)}
             alt={image.alt || image.media?.alt || ""}
             loading="lazy"
             decoding="async"
             className="w-full h-80 lg:h-96 object-cover transition-transform duration-700 ease-out group-hover:scale-[1.04]"
+            onError={(e) => {
+              if (!e.currentTarget.dataset.retried) {
+                e.currentTarget.dataset.retried = "true";
+                e.currentTarget.src = "/uploads/event1.jpg";
+              }
+            }}
           />
           {(image.caption || image.alt) && (
             <div className="p-4">
@@ -101,9 +115,15 @@ const GallerySlider = ({ images, onImageClick }) => {
           >
             <div className="overflow-hidden rounded-2xl bg-[#2A2623]/5">
               <img
-                src={image.media?.url}
+                src={getCleanImageUrl(image.media?.url)}
                 alt={image.alt || image.media?.alt || ""}
                 className="w-full h-72 object-cover transition-transform duration-700 ease-out group-hover:scale-[1.04]"
+                onError={(e) => {
+                  if (!e.currentTarget.dataset.retried) {
+                    e.currentTarget.dataset.retried = "true";
+                    e.currentTarget.src = "/uploads/event1.jpg";
+                  }
+                }}
               />
             </div>
             {(image.caption || image.alt) && (
@@ -138,25 +158,30 @@ const GalleryMasonry = ({ images, onImageClick }) => {
 };
 
 const GallerySection = ({ section }) => {
-  
-  const galleries = section.galleries || [];
-  
-  // Filter out empty galleries before rendering
-  const nonEmptyGalleries = galleries.filter(
-    (gallery) => gallery.images?.length > 0
-  );
-  
-  if (nonEmptyGalleries.length === 0) return null;
-
   // Lightbox state
   const [slides, setSlides] = useState([]);
   const [open, setOpen] = useState(false);
   const [index, setIndex] = useState(0);
 
+  const rawItems = section.galleries || [];
+
+  // Filter valid items: either a principal message block or an album with images
+  const validItems = rawItems.filter(
+    (item) =>
+      (item.type === "principalMessage" &&
+        (item.message || item.name || item.media || item.title)) ||
+      (Array.isArray(item.images) && item.images.length > 0)
+  );
+
+  if (validItems.length === 0) return null;
+
+  const hasAlbums = validItems.some((item) => item.type !== "principalMessage");
+  const isOnlyPrincipalMessage = !hasAlbums;
+
   const handleImageClick = (images, clickedIndex) => {
     setSlides(
       (images || []).map((img) => ({
-        src: img.media?.url,
+        src: getCleanImageUrl(img.media?.url),
         alt: img.alt || img.media?.alt || "",
       }))
     );
@@ -166,7 +191,7 @@ const GallerySection = ({ section }) => {
 
   const renderGallery = (gallery) => {
     const galleryImages = gallery.images || [];
-    
+
     switch (gallery.layout) {
       case "slider":
         return (
@@ -194,30 +219,57 @@ const GallerySection = ({ section }) => {
   };
 
   return (
-    <section className="pt-20 md:pt-24 border-t border-[#2A2623]/10">
-      <SectionHeading eyebrow="Gallery" title={section.title} />
-      
-      <div className="space-y-20">
-        {nonEmptyGalleries.map((gallery, index) => (
-          <div
-            key={index}
-            className="pb-20 border-b border-[#2A2623]/10 last:border-none"
-          >
-            <h3 className="font-['Fraunces'] text-3xl md:text-4xl text-[#2A2623]">
-              {gallery.title}
-            </h3>
+    <section
+      className={
+        isOnlyPrincipalMessage
+          ? "pt-0 border-none"
+          : "pt-16 md:pt-20 border-t border-[#2A2623]/10"
+      }
+    >
+      {/* If only principal message, render SectionHeading only if custom section.title is set */}
+      {(!isOnlyPrincipalMessage || section.title) && (
+        <SectionHeading
+          eyebrow={isOnlyPrincipalMessage ? "Leadership" : "Gallery"}
+          title={section.title}
+        />
+      )}
 
-            {gallery.description && (
-              <p className="mt-4 max-w-2xl text-[#2A2623]/70 leading-7">
-                {gallery.description}
-              </p>
-            )}
+      <div className={isOnlyPrincipalMessage ? "space-y-6" : "space-y-16"}>
+        {validItems.map((item, index) => {
+          if (item.type === "principalMessage") {
+            return (
+              <div
+                key={item.id || index}
+                className={
+                  isOnlyPrincipalMessage
+                    ? ""
+                    : "pb-12 border-b border-[#2A2623]/10 last:border-none"
+                }
+              >
+                <PrincipalMessageBlock item={item} />
+              </div>
+            );
+          }
 
-            <div className="mt-8">
-              {renderGallery(gallery)}
+          return (
+            <div
+              key={index}
+              className="pb-20 border-b border-[#2A2623]/10 last:border-none"
+            >
+              <h3 className="font-['Fraunces'] text-3xl md:text-4xl text-[#2A2623]">
+                {item.title}
+              </h3>
+
+              {item.description && (
+                <p className="mt-4 max-w-2xl text-[#2A2623]/70 leading-7">
+                  {item.description}
+                </p>
+              )}
+
+              <div className="mt-8">{renderGallery(item)}</div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       <Lightbox

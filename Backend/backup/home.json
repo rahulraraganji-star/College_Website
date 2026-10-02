@@ -437,6 +437,19 @@
         }
       ],
       "type": "notices"
+    },
+    "principalMessage": {
+      "tag": "INSTITUTIONAL LEADERSHIP",
+      "title": "Principal’s Message",
+      "name": "Prof.(Dr.) Annie Rajan",
+      "designation": "Principal",
+      "message": "I extend a hearty welcome to you for seeking admission in this institution of higher learning. You are now at the crucial phase of your life when you have to opt for a course that matches the best with your dreams and your future career planning. Besides your pursuit of academic excellence, a lot of emphasis is laid on personality development and holistic growth.",
+      "image": {
+        "url": "/uploads/media/images/1790087827760-975692188.jpg",
+        "alt": "Prof.(Dr.) Annie Rajan - Principal"
+      },
+      "buttonText": "Read Principal’s Message",
+      "buttonLink": "/about/principal-s-message"
     }
   },
   "pageType": "home",

@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <link rel="icon" type="image/svg+xml" href="/logo.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <!-- Google Fonts -->
@@ -10,11 +10,48 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 
     <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=IBM+Plex+Mono:wght@400;500;600;700&family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@400;500;600&family=Jaini&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700;9..144,800;9..144,900&family=Inter:wght@400;500;600;700;800;900&family=IBM+Plex+Mono:wght@400;500;600;700&family=DM+Sans:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&family=Playfair+Display:wght@400;500;600;700;800;900&family=Montserrat:wght@500;600;700;800&family=Cinzel:wght@600;700;800&family=Manrope:wght@500;600;700;800&family=Jaini&display=swap"
       rel="stylesheet"
     />
 
-    <title>ll</title>
+    <title>Fr. Agnel College of Arts & Commerce</title>
+
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-D8PRGJKBW6"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-D8PRGJKBW6');
+    </script>
+    <!-- Instant Hero Image Preloader (Frame 0 Network Discovery) -->
+    <script>
+      (function () {
+        try {
+          var c = localStorage.getItem("college_home_cache_v2");
+          if (c) {
+            var data = JSON.parse(c);
+            var heroImg =
+              data &&
+              data.sections &&
+              data.sections.hero &&
+              data.sections.hero.slides &&
+              data.sections.hero.slides[0] &&
+              ((data.sections.hero.slides[0].image &&
+                data.sections.hero.slides[0].image.url) ||
+                data.sections.hero.slides[0].image);
+            if (heroImg) {
+              var l = document.createElement("link");
+              l.rel = "preload";
+              l.as = "image";
+              l.href = heroImg;
+              l.fetchPriority = "high";
+              document.head.appendChild(l);
+            }
+          }
+        } catch (e) {}
+      })();
+    </script>
   </head>
   <body>
     <div id="root">

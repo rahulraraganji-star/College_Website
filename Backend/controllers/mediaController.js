@@ -1,5 +1,6 @@
 import fs from "fs";
 import path from "path";
+import sharp from "sharp";
 
 import Media from "../models/Media.js";
 import Folder from "../models/Folder.js";
@@ -52,6 +53,46 @@ export const uploadMedia = async (
 
     }
 
+    let finalWidth = req.body.width || null;
+    let finalHeight = req.body.height || null;
+    let finalSize = file.size;
+
+    if (type === "image" && file.path && fs.existsSync(file.path)) {
+      try {
+        let pipeline = sharp(file.path).rotate();
+        const metadata = await sharp(file.path).rotate().metadata();
+        finalWidth = metadata.width || null;
+        finalHeight = metadata.height || null;
+
+        if (metadata.width && metadata.width > 1920) {
+          pipeline = pipeline.resize({ width: 1920, withoutEnlargement: true });
+        }
+
+        const ext = path.extname(file.path).toLowerCase();
+        if (ext === ".png") {
+          pipeline = pipeline.png({ quality: 82, compressionLevel: 9 });
+        } else if (ext === ".webp") {
+          pipeline = pipeline.webp({ quality: 80 });
+        } else {
+          pipeline = pipeline.jpeg({ quality: 82, mozjpeg: true, progressive: true });
+        }
+
+        const tempPath = file.path + ".tmp";
+        await pipeline.toFile(tempPath);
+        fs.renameSync(tempPath, file.path);
+
+        const stat = fs.statSync(file.path);
+        finalSize = stat.size;
+
+        const webpPath = file.path.replace(/\.(jpe?g|png)$/i, ".webp");
+        if (!fs.existsSync(webpPath)) {
+          await sharp(file.path).webp({ quality: 80 }).toFile(webpPath).catch(() => {});
+        }
+      } catch (sharpErr) {
+        console.warn("Image optimization fallback, using original file:", sharpErr.message);
+      }
+    }
+
     const media = await Media.create({
 
       filename: file.filename,
@@ -69,15 +110,11 @@ export const uploadMedia = async (
         file.originalname
       ),
 
-      size: file.size,
+      size: finalSize,
 
-      // TODO:
-      // Replace with Sharp metadata extraction.
+      width: finalWidth,
 
-      width: req.body.width || null,
-
-      height:
-        req.body.height || null,
+      height: finalHeight,
 
       alt: req.body.alt || "",
 

@@ -4,6 +4,34 @@ import { useState } from "react";
 import ImagePreview from "./ImagePreview";
 import MediaModal from "../pages/MediaModal";
 
+const getDocumentName = (media) => {
+  if (!media) return "";
+  if (typeof media === "object") {
+    return (
+      media.originalName ||
+      media.filename ||
+      media.name ||
+      (typeof media.url === "string" ? media.url.split("/").pop() : "Document")
+    );
+  }
+  if (typeof media === "string") {
+    const filename = media.split("/").pop();
+    return filename ? decodeURIComponent(filename) : media;
+  }
+  return "Document";
+};
+
+const getDocumentSize = (media) => {
+  if (!media || typeof media !== "object" || !media.size || isNaN(media.size)) {
+    return null;
+  }
+  const mb = media.size / (1024 * 1024);
+  if (mb < 0.1) {
+    return `${(media.size / 1024).toFixed(1)} KB`;
+  }
+  return `${mb.toFixed(2)} MB`;
+};
+
 const MediaPicker = ({
   value,
   label = "Image",
@@ -72,23 +100,23 @@ const MediaPicker = ({
       {/* Preview - Multiple */}
       {Array.isArray(value) ? (
         <div className="space-y-4">
-          <div className="grid grid-cols-3 md:grid-cols-5 gap-4">
-            {value.map((media) => (
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+            {value.map((media, idx) => (
               type === "image" ? (
                 <img
-                  key={media._id}
+                  key={media._id || media.url || `media_img_${idx}`}
                   src={media.url}
                   alt=""
-                  className="h-28 w-full rounded-xl object-cover border"
+                  className="h-36 w-full rounded-xl object-cover border"
                 />
               ) : (
                 <div
-                  key={media._id}
-                  className="border rounded-xl p-4 flex flex-col items-center justify-center h-28"
+                  key={media._id || media.url || `media_doc_${idx}`}
+                  className="border rounded-xl p-4 flex flex-col items-center justify-center h-36"
                 >
                   <FileText className="w-8 h-8 text-gray-500" />
-                  <p className="mt-2 text-xs text-center truncate w-full">
-                    {media.originalName}
+                  <p className="mt-2 text-xs text-center truncate w-full" title={getDocumentName(media)}>
+                    {getDocumentName(media)}
                   </p>
                 </div>
               )
@@ -124,17 +152,19 @@ const MediaPicker = ({
             />
           ) : (
             <div className="border rounded-xl p-4 flex justify-between items-center">
-              <div className="flex items-center gap-3">
-                <FileText className="w-8 h-8 text-gray-500" />
-                <div>
-                  <p className="font-medium">{value.originalName}</p>
+              <div className="flex items-center gap-3 min-w-0">
+                <FileText className="w-8 h-8 text-gray-500 flex-shrink-0" />
+                <div className="min-w-0">
+                  <p className="font-medium truncate max-w-[280px]" title={getDocumentName(value)}>
+                    {getDocumentName(value)}
+                  </p>
                   <p className="text-sm text-gray-500">
-                    {(value.size / 1024 / 1024).toFixed(2)} MB
+                    {getDocumentSize(value) || "PDF Document"}
                   </p>
                 </div>
               </div>
 
-              <div className="flex gap-3">
+              <div className="flex gap-3 flex-shrink-0">
                 <button
                   type="button"
                   onClick={() => setOpen(true)}

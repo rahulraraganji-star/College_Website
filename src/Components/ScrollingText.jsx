@@ -1,15 +1,23 @@
 import { useEffect, useRef } from "react";
 import gsap from "gsap";
 
+const getItemText = (item) => {
+  if (!item) return "";
+  if (typeof item === "string") return item;
+  return item.label || item.text || item.title || "";
+};
+
 const EventsMarquee = ({ data }) => {
   const trackRef = useRef(null);
 
   const items = data?.items || [];
+  const itemsContentKey = items.map((item) => getItemText(item)).join("|");
 
   useEffect(() => {
     if (!items.length) return;
 
     const track = trackRef.current;
+    if (!track) return;
     let tween;
 
     const setupMarquee = () => {
@@ -42,7 +50,7 @@ const EventsMarquee = ({ data }) => {
     }
 
     return () => tween && tween.kill();
-  }, [items.length]);
+  }, [items.length, itemsContentKey]);
 
   if (!items.length) return null;
 
@@ -61,6 +69,7 @@ const EventsMarquee = ({ data }) => {
       >
         {[...items, ...items, ...items].map((item, i) => {
           const originalIndex = i % items.length;
+          const displayText = getItemText(item);
           return (
             <span
               key={i}
@@ -70,7 +79,7 @@ const EventsMarquee = ({ data }) => {
                 fontWeight: getIsBold(originalIndex) ? 700 : 500,
               }}
             >
-              {item.text}
+              {displayText}
             </span>
           );
         })}

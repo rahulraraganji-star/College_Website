@@ -330,15 +330,15 @@ const handleTogglePublish = async (page) => {
                     {items.map((page) => (
                       <div
                         key={page._id}
-                        className="flex items-center justify-between px-6 py-4 border-b border-neutral-100 last:border-b-0 hover:bg-neutral-50 transition-colors"
+                        className="flex items-center justify-between px-6 py-4 border-b border-neutral-100 last:border-b-0 hover:bg-neutral-50 transition-colors gap-4"
                       >
-                        <div>
-                          <h3 className="font-semibold text-black text-[15px]">
+                        <div className="min-w-0 flex-1 pr-2">
+                          <h3 className="font-semibold text-black text-[15px] truncate">
                             {page.title}
                           </h3>
 
                           <p
-                            className="text-[12.5px] text-neutral-400 mt-0.5"
+                            className="text-[12.5px] text-neutral-400 mt-0.5 truncate"
                             style={{ fontFamily: "'IBM Plex Mono', monospace" }}
                           >
                             /{page.parentSlug
@@ -348,7 +348,7 @@ const handleTogglePublish = async (page) => {
                           </p>
                         </div>
 
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-3 shrink-0">
                           {page.template === "courses" && (
                             <span className="inline-flex items-center rounded-full bg-neutral-100 border border-neutral-200 px-2.5 py-1 text-[11px] font-semibold text-neutral-800">
                               Courses
@@ -393,6 +393,12 @@ const handleTogglePublish = async (page) => {
           })}
         </div>
       )}
+
+      <Toast
+        open={toast.open}
+        type={toast.type}
+        message={toast.message}
+      />
 
       <ConfirmModal
         open={showDeleteModal}

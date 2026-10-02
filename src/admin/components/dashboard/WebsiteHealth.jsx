@@ -26,15 +26,18 @@ const HealthItem = ({
   );
 };
 
-const WebsiteHealth = ({ stats, loading }) => {
+const WebsiteHealth = ({ stats }) => {
   const [secondsAgo, setSecondsAgo] = useState(0);
 
   useEffect(() => {
-    setSecondsAgo(0);
+    const start = Date.now();
     const interval = setInterval(() => {
-      setSecondsAgo((prev) => prev + 1);
+      setSecondsAgo(Math.floor((Date.now() - start) / 1000));
     }, 1000);
-    return () => clearInterval(interval);
+    return () => {
+      clearInterval(interval);
+      setSecondsAgo(0);
+    };
   }, [stats]);
 
   const health = stats?.health || {
@@ -56,7 +59,7 @@ const WebsiteHealth = ({ stats, loading }) => {
 
   return (
     <DashboardCard className="p-6">
-      <div className="flex flex-col lg:flex-row lg:items-center gap-7">
+      <div className="flex flex-col xl:flex-row xl:items-center gap-6 xl:gap-8">
 
         {/* Score */}
         <div className="shrink-0 flex items-center gap-5">

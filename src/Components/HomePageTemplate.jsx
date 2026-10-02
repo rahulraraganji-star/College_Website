@@ -6,22 +6,22 @@ import CoreStrengths from "./CoreStrengths";
 import ScrollingText from "./ScrollingText";
 import LearningSpacesCarousel from "./LearningSpacesCarousel";
 import NoticesSection from "./NoticesSection";
+import PrincipalMessageSection from "./PrincipalMessageSection";
 import LoadingScreen from "./LoadingScreen";
-
-let clientHomeCache = null;
+import { getClientHomeCache, setClientHomeCache } from "../utils/homeCache";
 
 const HomePageTemplate = () => {
-  const [data, setData] = useState(() => clientHomeCache || null);
-  const [loading, setLoading] = useState(() => !clientHomeCache);
+  const [data, setData] = useState(() => getClientHomeCache() || null);
+  const [loading, setLoading] = useState(() => !getClientHomeCache());
 
   useEffect(() => {
     let isCurrent = true;
-    fetch("/api/home")
+    fetch("/api/home", { cache: "no-store" })
       .then((res) => res.json())
       .then((resData) => {
         if (!isCurrent) return;
         const normalized = Array.isArray(resData) ? resData[0] : resData;
-        clientHomeCache = normalized;
+        setClientHomeCache(normalized);
         setData(normalized);
         setLoading(false);
       })
@@ -63,6 +63,11 @@ const HomePageTemplate = () => {
       {/* NOTICES */}
       {sections.notices && (
         <NoticesSection data={sections.notices} />
+      )}
+
+      {/* PRINCIPAL'S MESSAGE */}
+      {sections.principalMessage && (
+        <PrincipalMessageSection data={sections.principalMessage} />
       )}
 
       {/* LEARNING SPACES */}

@@ -29,6 +29,7 @@ const CreatePage = () => {
     isPublished: true,
     sections: [],
     courseData: {
+      categories: [],
       courses: [],
     },
   });

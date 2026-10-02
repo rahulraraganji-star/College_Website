@@ -1,6 +1,6 @@
 import NavigationMenu from "../models/NavigationMenu.js";
 import NavigationItem from "../models/NavigationItem.js";
-import Page from "../models/Page.js";
+import Page from "../models/page.js";
 
 // In-Memory Fast Cache for public navigation
 let serverNavCache = null;

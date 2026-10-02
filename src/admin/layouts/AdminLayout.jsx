@@ -9,10 +9,10 @@ const AdminLayout = () => {
     <div className="flex h-screen bg-gray-100 font-admin-sans" style={{ fontFamily: "var(--sans)" }}>
       <AdminSidebar />
 
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         <AdminTopbar />
 
-        <main className="flex-1 p-6 overflow-y-auto">
+        <main className="flex-1 p-4 md:p-6 lg:p-8 overflow-y-auto min-w-0">
           <Suspense fallback={<LoadingScreen fullScreen={false} text="Loading..." />}>
             <Outlet />
           </Suspense>

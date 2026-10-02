@@ -10,18 +10,12 @@ import { useEffect, useRef, useState } from "react";
  */
 export const useInView = (options = {}) => {
   const ref = useRef(null);
-  const [inView, setInView] = useState(false);
+  const [inView, setInView] = useState(() => typeof IntersectionObserver === "undefined");
+  const { threshold = 0.15, rootMargin = "0px 0px -60px 0px" } = options;
 
   useEffect(() => {
     const node = ref.current;
-    if (!node) return;
-
-    // If the browser doesn't support IntersectionObserver, just show
-    // the content immediately rather than leaving it invisible.
-    if (typeof IntersectionObserver === "undefined") {
-      setInView(true);
-      return;
-    }
+    if (!node || typeof IntersectionObserver === "undefined") return;
 
     const observer = new IntersectionObserver(
       ([entry]) => {
@@ -30,12 +24,12 @@ export const useInView = (options = {}) => {
           observer.unobserve(node);
         }
       },
-      { threshold: 0.15, rootMargin: "0px 0px -60px 0px", ...options }
+      { threshold, rootMargin }
     );
 
     observer.observe(node);
     return () => observer.disconnect();
-  }, []);
+  }, [threshold, rootMargin]);
 
   return [ref, inView];
 };

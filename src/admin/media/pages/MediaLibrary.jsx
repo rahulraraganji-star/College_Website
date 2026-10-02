@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo, useRef } from "react";
 import useMediaLibrary from "../hooks/useMediaLibrary";
 import FolderCard from "../components/FolderCard";
 import MediaCard from "../components/MediaCard";
@@ -19,6 +19,7 @@ const MediaLibrary = () => {
   const [path, setPath] = useState([]);
   const [selectedMediaIds, setSelectedMediaIds] = useState([]);
   const [uploading, setUploading] = useState(false);
+  const uploadInputRef = useRef(null);
 
   // Toast state
   const [toast, setToast] = useState({
@@ -50,6 +51,14 @@ const MediaLibrary = () => {
   } = useMediaLibrary();
 
   /* -----------------------------
+      SEARCH
+  ----------------------------- */
+  const handleSearch = (value) => {
+    setSearch(value);
+    setLibrarySearch(value);
+  };
+
+  /* -----------------------------
       TOAST HELPER
   ----------------------------- */
   const showToast = (type, message) => {
@@ -71,15 +80,39 @@ const MediaLibrary = () => {
       UPLOAD
   ----------------------------- */
   const handleUpload = async (files) => {
-    if (!files.length) return;
+    if (!files || !files.length) return;
 
     try {
       setUploading(true);
-      const formData = new FormData();
-      formData.append("file", files[0]);
-      await uploadMedia(formData);
+      let successCount = 0;
+      let errorCount = 0;
 
-      showToast("success", "Media uploaded successfully.");
+      for (const file of files) {
+        const formData = new FormData();
+        formData.append("file", file);
+        if (currentFolder) {
+          formData.append("folder", currentFolder);
+        }
+
+        try {
+          await uploadMedia(formData);
+          successCount++;
+        } catch (err) {
+          console.error("MEDIA UPLOAD ERROR for", file.name, err);
+          errorCount++;
+        }
+      }
+
+      if (successCount > 0 && errorCount === 0) {
+        showToast(
+          "success",
+          `${successCount} ${successCount === 1 ? "media item" : "media items"} uploaded successfully.`
+        );
+      } else if (successCount > 0 && errorCount > 0) {
+        showToast("error", `${successCount} uploaded, ${errorCount} failed.`);
+      } else if (errorCount > 0) {
+        showToast("error", "Failed to upload media.");
+      }
     } catch (error) {
       console.error("MEDIA UPLOAD ERROR:", error);
       showToast("error", error.message || "Failed to upload media.");
@@ -175,6 +208,19 @@ const MediaLibrary = () => {
     setShowDeleteModal(true);
   };
 
+  const handleCreateFolder = async () => {
+    const name = window.prompt("Folder name");
+    if (!name?.trim()) return;
+
+    try {
+      await createFolder({ name: name.trim() });
+      showToast("success", "Folder created successfully.");
+    } catch (err) {
+      console.error("CREATE FOLDER ERROR:", err);
+      showToast("error", err.message || "Failed to create folder.");
+    }
+  };
+
   const confirmDeleteFolder = async () => {
     if (!deleteTarget) return;
 
@@ -193,13 +239,103 @@ const MediaLibrary = () => {
     }
   };
 
-  const handleSearch = (value) => {
-    setSearch(value);
-    setLibrarySearch(value);
+  const isPdfItem = (item) => {
+    return Boolean(
+      item?.type === "pdf" ||
+      item?.mimeType === "application/pdf" ||
+      item?.extension === "pdf" ||
+      (item?.url && item.url.toLowerCase().split("?")[0].endsWith(".pdf")) ||
+      (item?.filename && item.filename.toLowerCase().endsWith(".pdf")) ||
+      (item?.originalName && item.originalName.toLowerCase().endsWith(".pdf"))
+    );
   };
+
+  const isDocumentItem = (item) => {
+    return Boolean(
+      item?.type === "document" ||
+      isPdfItem(item) ||
+      item?.mimeType?.includes("word") ||
+      item?.mimeType?.includes("excel") ||
+      item?.mimeType?.includes("powerpoint") ||
+      item?.mimeType?.startsWith("text/") ||
+      /\.(pdf|doc|docx|xls|xlsx|ppt|pptx|txt|rtf|csv)$/i.test(
+        item?.url || item?.filename || item?.originalName || ""
+      )
+    );
+  };
+
+  const isImageItem = (item) => {
+    return Boolean(
+      item?.type === "image" ||
+      item?.mimeType?.startsWith("image/") ||
+      /\.(jpg|jpeg|png|webp|gif|svg|avif)$/i.test(
+        item?.url || item?.filename || item?.originalName || ""
+      )
+    );
+  };
+
+  const isVideoItem = (item) => {
+    return Boolean(
+      item?.type === "video" ||
+      item?.mimeType?.startsWith("video/") ||
+      /\.(mp4|webm|mov|avi|mkv)$/i.test(
+        item?.url || item?.filename || item?.originalName || ""
+      )
+    );
+  };
+
+  const isAudioItem = (item) => {
+    return Boolean(
+      item?.type === "audio" ||
+      item?.mimeType?.startsWith("audio/") ||
+      /\.(mp3|wav|ogg|m4a|flac)$/i.test(
+        item?.url || item?.filename || item?.originalName || ""
+      )
+    );
+  };
+
+  const filteredMedia = useMemo(() => {
+    let items = [...media];
+
+    if (filter && filter !== "all") {
+      items = items.filter((item) => {
+        if (filter === "pdf") {
+          return isPdfItem(item);
+        }
+        if (filter === "document") {
+          return isDocumentItem(item);
+        }
+        if (filter === "image") {
+          return isImageItem(item);
+        }
+        if (filter === "video") {
+          return isVideoItem(item);
+        }
+        if (filter === "audio") {
+          return isAudioItem(item);
+        }
+        return item.type === filter;
+      });
+    }
+
+    return items;
+  }, [media, filter]);
 
   return (
     <div className="space-y-6">
+      {/* Hidden file input for toolbar upload button */}
+      <input
+        ref={uploadInputRef}
+        type="file"
+        hidden
+        multiple
+        onChange={(e) => {
+          const files = Array.from(e.target.files || []);
+          handleUpload(files);
+          e.target.value = "";
+        }}
+      />
+
       {/* PAGE HEADER */}
       <div className="flex justify-between items-center">
         <div>
@@ -240,12 +376,8 @@ const MediaLibrary = () => {
         onSort={setSort}
         view={view}
         onViewChange={setView}
-        onUpload={() => {}}
-        onNewFolder={async () => {
-          const name = window.prompt("Folder name");
-          if (!name) return;
-          await createFolder({ name });
-        }}
+        onUpload={() => uploadInputRef.current?.click()}
+        onNewFolder={handleCreateFolder}
       />
 
       {/* BREADCRUMB */}
@@ -275,7 +407,7 @@ const MediaLibrary = () => {
 
       {/* CONTENT */}
       {loading ? (
-        <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-6 gap-5">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-4 gap-6">
           {Array.from({ length: 12 }).map((_, index) => (
             <div
               key={index}
@@ -291,7 +423,7 @@ const MediaLibrary = () => {
           {path.length === 0 && folders.length > 0 && (
             <section>
               <h2 className="text-xl font-semibold mb-5">Folders</h2>
-              <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-6 gap-5">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-4 gap-6">
                 {folders.map((folder) => (
                   <FolderCard
                     key={folder._id || folder.id}
@@ -362,11 +494,11 @@ const MediaLibrary = () => {
             <div
               className={
                 view === "grid"
-                  ? `grid grid-cols-2 md:grid-cols-4 xl:grid-cols-6 gap-5`
+                  ? `grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-4 gap-6`
                   : `flex flex-col gap-4`
               }
             >
-              {[...media]
+              {[...filteredMedia]
                 .sort((a, b) => {
                   switch (sort) {
                     case "name":

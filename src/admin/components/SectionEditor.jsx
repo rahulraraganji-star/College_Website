@@ -81,6 +81,14 @@ const SectionEditor = (props) => {
     case "organogram":
       return <OrganogramSectionEditor {...props} />;
 
+    case "notices":
+      return (
+        <CollectionEditor
+          {...props}
+          type="notices"
+        />
+      );
+
     default:
       return null;
 

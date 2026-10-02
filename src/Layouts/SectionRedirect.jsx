@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
-import { Navigate, useParams, useOutletContext } from "react-router-dom";
+import { Navigate, useParams, useOutletContext, useLocation } from "react-router-dom";
 import LoadingScreen from "../Components/LoadingScreen";
-import { sidebarCache } from "./SectionLayout";
+import { sidebarCache } from "../utils/sidebarCache";
 
 const SectionRedirect = () => {
   const { parentSlug } = useParams();
   const outletContext = useOutletContext();
+  const location = useLocation();
   const contextNavItems = outletContext?.navItems;
 
   const getCachedFirstPage = () => {
@@ -23,16 +24,17 @@ const SectionRedirect = () => {
     return null;
   };
 
-  const [firstPage, setFirstPage] = useState(getCachedFirstPage);
-  const [loading, setLoading] = useState(() => !getCachedFirstPage());
+  const cachedPage = getCachedFirstPage();
+  const [firstPage, setFirstPage] = useState(cachedPage);
+  const [loading, setLoading] = useState(() => !cachedPage);
+
+  if (cachedPage && (!firstPage || firstPage.slug !== cachedPage.slug)) {
+    setFirstPage(cachedPage);
+    setLoading(false);
+  }
 
   useEffect(() => {
-    const cached = getCachedFirstPage();
-    if (cached) {
-      setFirstPage(cached);
-      setLoading(false);
-      return;
-    }
+    if (cachedPage) return;
 
     let isCurrent = true;
     fetch(
@@ -55,7 +57,7 @@ const SectionRedirect = () => {
     return () => {
       isCurrent = false;
     };
-  }, [parentSlug, contextNavItems]);
+  }, [parentSlug, cachedPage]);
 
   if (loading) {
     return <LoadingScreen fullScreen={false} text="Loading section..." />;
@@ -71,7 +73,7 @@ const SectionRedirect = () => {
 
   return (
     <Navigate
-      to={`/${parentSlug}/${firstPage.slug}`}
+      to={`/${parentSlug}/${firstPage.slug}${location.search}${location.hash}`}
       replace
     />
   );

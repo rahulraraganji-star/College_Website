@@ -3,9 +3,6 @@ import { useNavigate, useParams } from "react-router-dom";
 
 const API_URL = "/api";
 
-const toSlug = (name) =>
-  name.toLowerCase().trim().replace(/[^a-z0-9\s-]/g, "").replace(/\s+/g, "-").replace(/-+/g, "-");
-
 const EditRole = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -16,7 +13,6 @@ const EditRole = () => {
 
   const [role, setRole] = useState(null);
   const [loadingRole, setLoadingRole] = useState(true);
-  const [scopes, setScopes] = useState([]);
   const [groups, setGroups] = useState([]);
   const [permissionGroups, setPermissionGroups] = useState([]);
   const [loadingAccess, setLoadingAccess] = useState(true);
@@ -80,7 +76,6 @@ const EditRole = () => {
         const res = await fetch(`${API_URL}/access`, { credentials: "include" });
         const data = await res.json();
         if (data.success) {
-          setScopes(data.scopes || []);
           setGroups(data.groups || []);
           setPermissionGroups(data.permissions || []);
           if (data.groups?.length > 0) {

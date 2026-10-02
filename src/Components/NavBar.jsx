@@ -1,12 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
+import { createPortal } from "react-dom";
 import * as Icons from "lucide-react";
 import { Menu, X, ChevronDown } from "lucide-react";
-import { prefetchPage } from "../Pages/DynamicPage";
-import { prefetchSidebar } from "../Layouts/SectionLayout";
+import { prefetchPage } from "../utils/pageCache";
+import { prefetchSidebar } from "../utils/sidebarCache";
+import AccessibilityAudioReader from "./AccessibilityAudioReader";
 
 const Navbar = () => {
-
   const [menus, setMenus] = useState([]);
   const [loading, setLoading] = useState(true);
   const [scrolled, setScrolled] = useState(false);
@@ -121,30 +122,6 @@ const Navbar = () => {
 
   }, []);
 
-  // RECOMPUTE DROPDOWN POSITION ON RESIZE
-  useEffect(() => {
-    const handleResize = () => {
-      menus.forEach((_, index) => positionDropdown(index));
-    };
-    handleResize();
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, [menus]);
-
-  // LOADING
-  if (loading) {
-    return <nav className="h-[90px]" />;
-  }
-
-  // BUILD PATH
-  const buildPath = (slug) => {
-
-    if (!slug) return "/";
-
-    return `/${slug.replace(/^\/+/, "")}`;
-
-  };
-
   // DROPDOWN POSITIONING - instant coordinates without animating left/right
   const positionDropdown = (index) => {
     const el = dropdownRefs.current[index];
@@ -177,6 +154,30 @@ const Navbar = () => {
     el.style.right = "auto";
   };
 
+  // RECOMPUTE DROPDOWN POSITION ON RESIZE
+  useEffect(() => {
+    const handleResize = () => {
+      menus.forEach((_, index) => positionDropdown(index));
+    };
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, [menus]);
+
+  // LOADING
+  if (loading) {
+    return <nav className="h-[90px]" />;
+  }
+
+  // BUILD PATH
+  const buildPath = (slug) => {
+
+    if (!slug) return "/";
+
+    return `/${slug.replace(/^\/+/, "")}`;
+
+  };
+
   const handlePrefetchMenu = (menu) => {
     if (!menu) return;
     if (menu.key) {
@@ -204,7 +205,7 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="sticky top-0 z-50 bg-[#F8F6F1] border-b border-[#E8E2D3]">
+    <nav className="sticky top-0 z-50 bg-[#F8F6F1] border-b border-[#E8E2D3] w-full overflow-x-clip">
 
       <div className="h-[2px] bg-[#C89B2F]" />
 
@@ -216,10 +217,10 @@ const Navbar = () => {
         `}
       >
 
-        <div className="max-w-[1300px] mx-auto w-full px-6 flex items-center justify-between lg:justify-center relative">
+        <div className="max-w-[1440px] min-[1680px]:max-w-[1720px] mx-auto w-full px-4 lg:px-4 xl:px-6 flex items-center justify-between lg:justify-center relative">
 
           {/* DESKTOP NAV */}
-          <ul className="hidden lg:flex items-center justify-center gap-10 whitespace-nowrap">
+          <ul className="hidden lg:flex items-center justify-center gap-2 min-[1060px]:gap-2.5 min-[1120px]:gap-3 min-[1180px]:gap-3.5 min-[1240px]:gap-4.5 min-[1320px]:gap-5.5 min-[1400px]:gap-7 min-[1536px]:gap-9 min-[1680px]:gap-11 whitespace-nowrap shrink-0">
 
             {menus.map((menu, index) => {
 
@@ -240,7 +241,7 @@ const Navbar = () => {
                   {/* TOP ITEM */}
                   {hasChildren ? (
 
-                    <span className="relative px-2 py-1 text-[17px] font-medium font-['Inter'] text-gray-800 cursor-pointer inline-block transition-colors duration-150 group-hover:text-black">
+                    <span className="relative px-1.5 min-[1180px]:px-2 min-[1360px]:px-2.5 min-[1536px]:px-3 py-1.5 text-[14px] min-[1120px]:text-[14.5px] min-[1240px]:text-[15.5px] min-[1340px]:text-[16.5px] min-[1440px]:text-[17.5px] font-semibold font-['Inter'] text-gray-800 cursor-pointer inline-block transition-colors duration-150 group-hover:text-black">
 
                       {menu.title}
 
@@ -259,7 +260,7 @@ const Navbar = () => {
                         const itemSlug = parts.pop();
                         if (itemSlug) prefetchPage(itemSlug);
                       }}
-                      className="relative px-2 py-1 text-[17px] font-medium font-['Inter'] text-gray-800 transition-colors duration-150 hover:text-black"
+                      className="relative px-1.5 min-[1180px]:px-2 min-[1360px]:px-2.5 min-[1536px]:px-3 py-1.5 text-[14px] min-[1120px]:text-[14.5px] min-[1240px]:text-[15.5px] min-[1340px]:text-[16.5px] min-[1440px]:text-[17.5px] font-semibold font-['Inter'] text-gray-800 transition-colors duration-150 hover:text-black"
                     >
 
                       {menu.title}
@@ -312,11 +313,11 @@ const Navbar = () => {
 
                                 <div className="min-w-0 flex-1">
 
-                                  <h4 className="text-[13.5px] font-semibold text-gray-800 transition-colors duration-150 hover:text-[#C89B2F] leading-snug break-words whitespace-normal">
+                                  <h4 className="text-[13.5px] font-bold font-nav text-gray-900 transition-colors duration-150 hover:text-[#C89B2F] leading-snug break-words whitespace-normal">
                                     {item.label}
                                   </h4>
 
-                                  <p className="text-[11.5px] text-gray-400 whitespace-normal">
+                                  <p className="text-[11.5px] font-medium text-gray-500 whitespace-normal">
                                     View details
                                   </p>
 
@@ -340,195 +341,172 @@ const Navbar = () => {
 
           </ul>
 
-          {/* MOBILE BAR — hamburger only, visible below lg */}
+          {/* MOBILE BAR — accessibility toggles placed directly beside menu button */}
           <div className="flex lg:hidden items-center justify-between w-full">
-
-            <span className="text-[17px] font-semibold font-['Inter'] text-gray-800">
-              Menu
-            </span>
 
             <button
               type="button"
               onClick={() => setMobileOpen(true)}
-              aria-label="Open menu"
-              className="p-2 -mr-2 text-gray-800"
+              className="text-[17px] font-semibold font-['Inter'] text-gray-800 cursor-pointer hover:text-[#C89B2F] transition-colors"
             >
-              <Menu size={26} />
-            </button>
-
-          </div>
-
-        </div>
-
-      </div>
-
-      {/* MOBILE OFF-CANVAS PANEL */}
-      <div
-        className={`
-          fixed inset-0 z-[60] lg:hidden
-          transition-opacity duration-300
-          ${mobileOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"}
-        `}
-      >
-
-        {/* BACKDROP */}
-        <div
-          className="absolute inset-0 bg-black/40"
-          onClick={closeMobileMenu}
-        />
-
-        {/* SLIDE-IN DRAWER */}
-        <div
-          className={`
-            absolute top-0 right-0 h-full w-[85%] max-w-[360px]
-            bg-[#F8F6F1] shadow-[0_0_40px_rgba(0,0,0,0.2)]
-            flex flex-col
-            transition-transform duration-300
-            ${mobileOpen ? "translate-x-0" : "translate-x-full"}
-          `}
-        >
-
-          <div className="h-[2px] bg-[#C89B2F]" />
-
-          <div className="flex items-center justify-between px-6 h-[64px] border-b border-[#E8E2D3]">
-
-            <span className="text-[17px] font-semibold font-['Inter'] text-gray-800">
               Menu
-            </span>
-
-            <button
-              type="button"
-              onClick={closeMobileMenu}
-              aria-label="Close menu"
-              className="p-2 -mr-2 text-gray-800"
-            >
-              <X size={24} />
             </button>
 
-          </div>
-
-          <div className="flex-1 overflow-y-auto px-2 py-4">
-
-            <ul className="flex flex-col">
-
-              {menus.map((menu, index) => {
-
-                const hasChildren =
-                  menu.items &&
-                  menu.items.length > 0;
-
-                const isOpen = openMobileIndex === index;
-
-                return (
-                  <li
-                    key={menu._id || index}
-                    className="border-b border-[#E8E2D3] last:border-b-0"
-                  >
-
-                    {hasChildren ? (
-
-                      <button
-                        type="button"
-                        onClick={() => toggleMobileSubmenu(index)}
-                        className="w-full flex items-center justify-between px-4 py-4 text-[16px] font-medium font-['Inter'] text-gray-800"
-                      >
-
-                        {menu.title}
-
-                        <ChevronDown
-                          size={18}
-                          className={`
-                            text-[#C89B2F] transition-transform duration-300
-                            ${isOpen ? "rotate-180" : "rotate-0"}
-                          `}
-                        />
-
-                      </button>
-
-                    ) : (
-
-                      <Link
-                        to={buildPath(menu.slug || menu.key)}
-                        onClick={closeMobileMenu}
-                        className="block px-4 py-4 text-[16px] font-medium font-['Inter'] text-gray-800"
-                      >
-
-                        {menu.title}
-
-                      </Link>
-
-                    )}
-
-                    {/* MOBILE SUBMENU */}
-                    {hasChildren && (
-
-                      <div
-                        className={`
-                          overflow-hidden transition-all duration-300
-                          ${isOpen ? "max-h-[1200px]" : "max-h-0"}
-                        `}
-                      >
-
-                        <div className="pb-4 pl-4 pr-2">
-
-                          <div className="flex flex-col gap-1">
-
-                            {menu.items.map((item) => {
-
-                              const Icon =
-                                Icons[item.icon] || null;
-
-                              return (
-                                <Link
-                                  key={item._id}
-                                  to={buildPath(item.slug)}
-                                  onClick={closeMobileMenu}
-                                  className="flex items-center gap-3 py-2"
-                                >
-
-                                  <div className="w-8 h-8 rounded-full bg-[#FFF4D6] flex items-center justify-center text-[#C89B2F] shrink-0">
-
-                                    {Icon && (
-                                      <Icon size={16} />
-                                    )}
-
-                                  </div>
-
-                                  <div className="min-w-0 flex-1">
-
-                                    <h4 className="text-[14px] font-medium text-gray-800 leading-snug break-words">
-                                      {item.label}
-                                    </h4>
-
-                                    <p className="text-xs text-gray-500">
-                                      View details
-                                    </p>
-
-                                  </div>
-
-                                </Link>
-                              );
-                            })}
-
-                          </div>
-
-                        </div>
-
-                      </div>
-
-                    )}
-
-                  </li>
-                );
-              })}
-
-            </ul>
+            <div className="flex items-center gap-2 sm:gap-2.5">
+              <AccessibilityAudioReader />
+              <button
+                type="button"
+                onClick={() => setMobileOpen(true)}
+                aria-label="Open menu"
+                className="p-2 -mr-2 text-gray-800 cursor-pointer hover:text-[#C89B2F] transition-colors"
+              >
+                <Menu size={26} />
+              </button>
+            </div>
 
           </div>
 
         </div>
 
       </div>
+
+      {/* MOBILE OFF-CANVAS PANEL VIA REACT PORTAL */}
+      {typeof document !== "undefined" &&
+        createPortal(
+          <div
+            className={`
+              fixed inset-0 z-[99999] lg:hidden
+              transition-opacity duration-300
+              ${mobileOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"}
+            `}
+            aria-hidden={!mobileOpen}
+          >
+            {/* BACKDROP */}
+            <div
+              className="fixed inset-0 bg-black/40 transition-opacity"
+              onClick={closeMobileMenu}
+            />
+
+            {/* SLIDE-IN DRAWER */}
+            <div
+              className={`
+                fixed top-0 right-0 h-full w-[80%] max-w-[340px]
+                bg-[#F8F6F1] shadow-[0_0_40px_rgba(0,0,0,0.2)]
+                flex flex-col z-10
+                transition-transform duration-300 ease-out
+                ${mobileOpen ? "translate-x-0" : "translate-x-full"}
+              `}
+            >
+              <div className="h-[2px] bg-[#C89B2F] shrink-0" />
+
+              {/* DRAWER HEADER */}
+              <div className="flex items-center justify-between px-6 h-[64px] border-b border-[#E8E2D3] shrink-0">
+                <span className="text-[17px] font-semibold font-['Inter'] text-gray-800">
+                  Menu
+                </span>
+
+                <button
+                  type="button"
+                  onClick={closeMobileMenu}
+                  aria-label="Close menu"
+                  className="p-2 -mr-2 text-gray-800 hover:text-[#C89B2F] transition-colors cursor-pointer"
+                >
+                  <X size={24} />
+                </button>
+              </div>
+
+              {/* DRAWER BODY (SCROLLABLE LIST OF ALL MENUS & ITEMS) */}
+              <div className="flex-1 overflow-y-auto px-2 py-2">
+                <ul className="flex flex-col">
+                  {menus.map((menu, index) => {
+                    const hasChildren =
+                      menu.items && menu.items.length > 0;
+                    const isOpen = openMobileIndex === index;
+
+                    return (
+                      <li
+                        key={menu._id || index}
+                        className="border-b border-[#E8E2D3] last:border-b-0"
+                      >
+                        {hasChildren ? (
+                          <div>
+                            <button
+                              type="button"
+                              onClick={() => toggleMobileSubmenu(index)}
+                              className="w-full flex items-center justify-between px-4 py-4 text-left text-[16px] font-semibold font-['Inter'] text-gray-800 cursor-pointer hover:text-[#C89B2F] transition-colors"
+                            >
+                              <span>{menu.title}</span>
+
+                              <ChevronDown
+                                size={18}
+                                className={`
+                                  text-[#C89B2F] transition-transform duration-300 shrink-0
+                                  ${isOpen ? "rotate-180" : "rotate-0"}
+                                `}
+                              />
+                            </button>
+
+                            {/* MOBILE SUBMENU ACCORDION */}
+                            <div
+                              className={`
+                                overflow-hidden transition-all duration-300 ease-in-out
+                                ${isOpen ? "max-h-[1600px] opacity-100" : "max-h-0 opacity-0"}
+                              `}
+                            >
+                              <div className="pb-4 pl-4 pr-2">
+                                <div className="flex flex-col gap-1">
+                                  {menu.items.map((item) => {
+                                    const Icon =
+                                      Icons[item.icon] || null;
+
+                                    return (
+                                      <Link
+                                        key={item._id}
+                                        to={buildPath(item.slug)}
+                                        onClick={closeMobileMenu}
+                                        className="flex items-center gap-3 py-2 px-2 rounded-lg hover:bg-[#FFF4D6]/70 transition-colors group"
+                                      >
+                                        <div className="w-8 h-8 rounded-full bg-[#FFF4D6] group-hover:bg-[#C89B2F] group-hover:text-white flex items-center justify-center text-[#C89B2F] shrink-0 transition-colors">
+                                          {Icon ? (
+                                            <Icon size={16} />
+                                          ) : (
+                                            <span className="w-2 h-2 rounded-full bg-[#C89B2F]" />
+                                          )}
+                                        </div>
+
+                                        <div className="min-w-0 flex-1">
+                                          <h4 className="text-[14px] font-medium text-gray-800 group-hover:text-[#9C7624] leading-snug break-words transition-colors">
+                                            {item.label}
+                                          </h4>
+                                          <p className="text-xs font-medium text-gray-500">
+                                            View details
+                                          </p>
+                                        </div>
+                                      </Link>
+                                    );
+                                  })}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        ) : (
+                          <Link
+                            to={buildPath(menu.slug || menu.key)}
+                            onClick={closeMobileMenu}
+                            className="block px-4 py-4 text-[16px] font-semibold font-['Inter'] text-gray-800 hover:text-[#C89B2F] transition-colors"
+                          >
+                            {menu.title}
+                          </Link>
+                        )}
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            </div>
+          </div>,
+          document.body
+        )}
 
     </nav>
   );

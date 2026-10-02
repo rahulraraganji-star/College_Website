@@ -1,6 +1,8 @@
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import Button from "./Button";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { getCleanImageUrl } from "../utils/imageUrl";
 
 const Hero = ({ data }) => {
   const slides = data?.slides || [];
@@ -10,6 +12,10 @@ const Hero = ({ data }) => {
   const imageRefs = useRef([]);
   const contentRef = useRef(null);
   const isAnimating = useRef(false);
+  const activeIndexRef = useRef(activeIndex);
+  useEffect(() => {
+    activeIndexRef.current = activeIndex;
+  }, [activeIndex]);
 
   const AUTOPLAY_INTERVAL = 6500;
 
@@ -18,70 +24,84 @@ const Hero = ({ data }) => {
   };
 
   // CAROUSEL TRANSITION — smooth crossfade only
-  const changeSlide = useCallback(
-    (nextIndex) => {
-      if (isAnimating.current) return;
+  const changeSlide = (nextIndex) => {
+    if (isAnimating.current) return;
 
-      const current = imageRefs.current[activeIndex];
-      const next = imageRefs.current[nextIndex];
+    const current = imageRefs.current[activeIndexRef.current];
+    const next = imageRefs.current[nextIndex];
 
-      if (!current || !next || current === next) return;
+    if (!current || !next || current === next) return;
 
-      isAnimating.current = true;
+    isAnimating.current = true;
 
-      gsap.set(next, { zIndex: 2, opacity: 0 });
-      gsap.set(current, { zIndex: 1 });
+    gsap.set(next, { zIndex: 2, opacity: 0 });
+    gsap.set(current, { zIndex: 1 });
 
-      const tl = gsap.timeline({
-        onComplete: () => {
-          gsap.set(current, { opacity: 0, zIndex: 0 });
-          gsap.set(next, { zIndex: 2, opacity: 1 });
-          setActiveIndex(nextIndex);
-          isAnimating.current = false;
-        },
-      });
+    const tl = gsap.timeline({
+      onComplete: () => {
+        gsap.set(current, { opacity: 0, zIndex: 0 });
+        gsap.set(next, { zIndex: 2, opacity: 1 });
+        setActiveIndex(nextIndex);
+        isAnimating.current = false;
+      },
+    });
 
-      // IMAGE CROSSFADE — smooth, single easing, no scale/rotate/zoom
-      tl.to(
-        next,
-        {
-          opacity: 1,
-          duration: 2,
-          ease: "power2.inOut",
-        },
-        0
-      ).to(
-        current,
-        {
-          opacity: 0,
-          duration: 2,
-          ease: "power2.inOut",
-        },
-        0
-      );
+    // IMAGE CROSSFADE — smooth, single easing, no scale/rotate/zoom
+    tl.to(
+      next,
+      {
+        opacity: 1,
+        duration: 2,
+        ease: "power2.inOut",
+      },
+      0
+    ).to(
+      current,
+      {
+        opacity: 0,
+        duration: 2,
+        ease: "power2.inOut",
+      },
+      0
+    );
 
-      // TEXT — only the elements marked .hero-item change with the image
-      // (title and button are intentionally excluded so they stay put)
-      tl.to(
-        contentRef.current?.querySelectorAll(".hero-item"),
-        {
-          opacity: 0,
-          duration: 0.5,
-          ease: "power1.in",
-        },
-        0
-      ).to(
-        contentRef.current?.querySelectorAll(".hero-item"),
-        {
-          opacity: 1,
-          duration: 0.9,
-          ease: "power1.out",
-        },
-        0.55
-      );
-    },
-    [activeIndex]
-  );
+    // TEXT — only the elements marked .hero-item change with the image
+    // (title and button are intentionally excluded so they stay put)
+    tl.to(
+      contentRef.current?.querySelectorAll(".hero-item"),
+      {
+        opacity: 0,
+        duration: 0.5,
+        ease: "power1.in",
+      },
+      0
+    ).to(
+      contentRef.current?.querySelectorAll(".hero-item"),
+      {
+        opacity: 1,
+        duration: 0.9,
+        ease: "power1.out",
+      },
+      0.55
+    );
+  };
+
+  const handlePrev = () => {
+    if (slides.length <= 1 || isAnimating.current) return;
+    const prev = (activeIndexRef.current - 1 + slides.length) % slides.length;
+    changeSlide(prev);
+  };
+
+  const handleNext = () => {
+    if (slides.length <= 1 || isAnimating.current) return;
+    const next = (activeIndexRef.current + 1) % slides.length;
+    changeSlide(next);
+  };
+
+  const changeSlideRef = useRef(changeSlide);
+  useEffect(() => {
+    changeSlideRef.current = changeSlide;
+  });
 
   // INITIAL LOAD
   useEffect(() => {
@@ -116,11 +136,11 @@ const Hero = ({ data }) => {
 
     const interval = setInterval(() => {
       const next = (activeIndex + 1) % slides.length;
-      changeSlide(next);
+      changeSlideRef.current(next);
     }, AUTOPLAY_INTERVAL);
 
     return () => clearInterval(interval);
-  }, [activeIndex, slides.length, changeSlide]);
+  }, [activeIndex, slides.length]);
 
   if (!slides.length) return null;
 
@@ -153,6 +173,14 @@ const Hero = ({ data }) => {
         md:h-[100svh]
       "
     >
+      {/* AMBIENT WARM SKELETON BACKDROP — renders immediately on frame 0, eliminating harsh black void */}
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          background: "radial-gradient(ellipse at 50% 40%, #2a2318 0%, #15120d 60%, #0a0806 100%)",
+        }}
+      />
+
       {/* IMAGES */}
       {slides.map((slide, i) => (
         <div
@@ -165,11 +193,17 @@ const Hero = ({ data }) => {
           }}
         >
           <img
-            src={slide.image?.url || slide.image}
+            src={getCleanImageUrl(slide.image?.url || slide.image)}
             alt={slide.image?.alt || slide.caption || ""}
             loading={i === 0 ? "eager" : "lazy"}
             fetchPriority={i === 0 ? "high" : "low"}
             decoding={i === 0 ? "sync" : "async"}
+            onError={(e) => {
+              if (!e.currentTarget.dataset.retried) {
+                e.currentTarget.dataset.retried = "true";
+                e.currentTarget.src = "/uploads/hero1.jpg";
+              }
+            }}
             className="
               w-full
               h-[110%]
@@ -177,6 +211,7 @@ const Hero = ({ data }) => {
               object-cover
               object-center
               md:object-[center_40%]
+              transition-opacity duration-500
             "
             draggable={false}
           />
@@ -487,6 +522,61 @@ const Hero = ({ data }) => {
           </div>
         </div>
       </div>
+
+      {/* NAVIGATION ARROWS — minimal, light & subtle */}
+      {slides.length > 1 && (
+        <>
+          <button
+            type="button"
+            onClick={handlePrev}
+            aria-label="Previous slide"
+            className="
+              absolute
+              left-3 sm:left-5 md:left-8
+              top-1/2 -translate-y-1/2
+              z-20
+              w-9 h-9 sm:w-10 sm:h-10 md:w-11 md:h-11
+              rounded-full
+              flex items-center justify-center
+              text-white/70 hover:text-white
+              bg-black/20 hover:bg-black/45 active:bg-black/60
+              border border-white/15 hover:border-white/40
+              backdrop-blur-sm
+              transition-all duration-300
+              hover:scale-105 active:scale-95
+              focus:outline-none focus:ring-1 focus:ring-white/40
+              cursor-pointer
+            "
+          >
+            <ChevronLeft className="w-5 h-5 -translate-x-[0.5px]" strokeWidth={1.5} />
+          </button>
+
+          <button
+            type="button"
+            onClick={handleNext}
+            aria-label="Next slide"
+            className="
+              absolute
+              right-3 sm:right-5 md:right-8
+              top-1/2 -translate-y-1/2
+              z-20
+              w-9 h-9 sm:w-10 sm:h-10 md:w-11 md:h-11
+              rounded-full
+              flex items-center justify-center
+              text-white/70 hover:text-white
+              bg-black/20 hover:bg-black/45 active:bg-black/60
+              border border-white/15 hover:border-white/40
+              backdrop-blur-sm
+              transition-all duration-300
+              hover:scale-105 active:scale-95
+              focus:outline-none focus:ring-1 focus:ring-white/40
+              cursor-pointer
+            "
+          >
+            <ChevronRight className="w-5 h-5 translate-x-[0.5px]" strokeWidth={1.5} />
+          </button>
+        </>
+      )}
     </section>
   );
 };

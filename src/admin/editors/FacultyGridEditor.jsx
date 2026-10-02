@@ -1,9 +1,21 @@
+import { useState } from "react";
 import MediaPicker from "../media/components/MediaPicker";
+import FacultyOverlay from "../../Components/sections/FacultyOverlay";
+import { Eye, ChevronDown, ChevronUp, Sparkles, ArrowUp, ArrowDown } from "lucide-react";
 
 const FacultyGridEditor = ({
   section,
   onChange,
 }) => {
+  const [previewMember, setPreviewMember] = useState(null);
+  const [expandedOverlays, setExpandedOverlays] = useState({});
+
+  const toggleOverlayDetails = (memberId) => {
+    setExpandedOverlays((prev) => ({
+      ...prev,
+      [memberId]: !prev[memberId],
+    }));
+  };
 
   /* ----------------------------------
       UPDATE SECTION
@@ -60,9 +72,10 @@ const FacultyGridEditor = ({
 
   const addMember = (departmentIndex) => {
     const updated = [...section.departments];
+    const newId = crypto.randomUUID();
 
     updated[departmentIndex].members.push({
-      id: crypto.randomUUID(),
+      id: newId,
       media: null,
       name: "",
       designation: "",
@@ -72,8 +85,19 @@ const FacultyGridEditor = ({
       bio: "",
       email: "",
       phone: "",
+      officeLocation: "",
+      officeHours: "",
+      linkedin: "",
+      googleScholar: "",
+      website: "",
+      education: "",
+      researchInterests: "",
+      publications: "",
+      coursesTaught: "",
+      awards: "",
     });
     
+    setExpandedOverlays((prev) => ({ ...prev, [newId]: true }));
     updateSection(updated);
   };
 
@@ -104,6 +128,27 @@ const FacultyGridEditor = ({
     );
     member.id = crypto.randomUUID();
     updated[departmentIndex].members.splice(memberIndex + 1, 0, member);
+    updateSection(updated);
+  };
+
+  const moveMember = (departmentIndex, memberIndex, direction) => {
+    const updated = [...section.departments];
+    const department = updated[departmentIndex];
+    if (!department || !Array.isArray(department.members)) return;
+
+    const members = [...department.members];
+    const targetIndex = direction === "up" ? memberIndex - 1 : memberIndex + 1;
+
+    if (targetIndex < 0 || targetIndex >= members.length) return;
+
+    const temp = members[memberIndex];
+    members[memberIndex] = members[targetIndex];
+    members[targetIndex] = temp;
+
+    updated[departmentIndex] = {
+      ...department,
+      members,
+    };
     updateSection(updated);
   };
 
@@ -173,28 +218,94 @@ const FacultyGridEditor = ({
                 </div>
               )}
 
-              {(department.members || []).map((member, memberIndex) => (
-                <div
-                  key={member.id}
-                  className="bg-white border rounded-2xl p-6 mt-6 shadow-sm"
-                >
-                  {/* HEADER */}
-                  <div className="flex items-center justify-between mb-6">
-                    <div>
-                      <h4 className="font-semibold text-lg">
-                        Faculty {memberIndex + 1}
-                      </h4>
-                      <p className="text-sm text-gray-500">
-                        {department.name || "Department"}
-                      </p>
-                    </div>
-                    <div className="flex gap-2">
+              {(department.members || []).map((member, memberIndex) => {
+                const hasMemberOverlay = Boolean(
+                  member?.officeLocation?.trim() ||
+                  member?.officeHours?.trim() ||
+                  member?.linkedin?.trim() ||
+                  member?.googleScholar?.trim() ||
+                  member?.website?.trim() ||
+                  member?.education?.trim() ||
+                  member?.researchInterests?.trim() ||
+                  member?.publications?.trim() ||
+                  member?.coursesTaught?.trim() ||
+                  member?.awards?.trim()
+                );
+
+                return (
+                  <div
+                    key={member.id}
+                    className="bg-white border rounded-2xl p-6 mt-6 shadow-sm"
+                  >
+                    {/* HEADER */}
+                    <div className="flex items-center justify-between mb-6">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <h4 className="font-semibold text-lg">
+                            Faculty {memberIndex + 1}
+                          </h4>
+                          {hasMemberOverlay ? (
+                            <span className="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                              Overlay Active
+                            </span>
+                          ) : (
+                            <span className="px-2 py-0.5 rounded-full text-[11px] font-medium bg-gray-100 text-gray-500 border border-gray-200">
+                              Hover Info Only
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-sm text-gray-500">
+                          {department.name || "Department"}
+                        </p>
+                      </div>
+                    <div className="flex gap-2 items-center flex-wrap">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          moveMember(departmentIndex, memberIndex, "up")
+                        }
+                        disabled={memberIndex === 0}
+                        title="Move up"
+                        aria-label="Move faculty up"
+                        className="border rounded-lg p-2 hover:bg-gray-100 text-gray-700 disabled:opacity-30 disabled:hover:bg-transparent disabled:cursor-not-allowed transition flex items-center justify-center"
+                      >
+                        <ArrowUp size={15} />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          moveMember(departmentIndex, memberIndex, "down")
+                        }
+                        disabled={
+                          memberIndex ===
+                          (department.members || []).length - 1
+                        }
+                        title="Move down"
+                        aria-label="Move faculty down"
+                        className="border rounded-lg p-2 hover:bg-gray-100 text-gray-700 disabled:opacity-30 disabled:hover:bg-transparent disabled:cursor-not-allowed transition flex items-center justify-center"
+                      >
+                        <ArrowDown size={15} />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setPreviewMember({
+                            ...member,
+                            department: department.name,
+                          })
+                        }
+                        className="border border-[#C9A555] text-[#8A6B3F] bg-[#FAF8F5] hover:bg-[#F4ECE1] rounded-lg px-3 py-2 text-sm font-medium transition flex items-center gap-1.5 shadow-xs"
+                        title="Preview how this faculty member's big overlay looks"
+                      >
+                        <Eye size={14} />
+                        Preview Overlay
+                      </button>
                       <button
                         type="button"
                         onClick={() =>
                           duplicateMember(departmentIndex, memberIndex)
                         }
-                        className="border rounded-lg px-3 py-2 hover:bg-gray-100"
+                        className="border rounded-lg px-3 py-2 hover:bg-gray-100 text-sm"
                       >
                         Duplicate
                       </button>
@@ -203,7 +314,7 @@ const FacultyGridEditor = ({
                         onClick={() =>
                           deleteMember(departmentIndex, memberIndex)
                         }
-                        className="bg-red-500 text-white rounded-lg px-3 py-2"
+                        className="bg-red-500 text-white rounded-lg px-3 py-2 text-sm"
                       >
                         Delete
                       </button>
@@ -400,8 +511,8 @@ const FacultyGridEditor = ({
                       Short Bio
                     </label>
                     <textarea
-                      rows={4}
-                      value={member.bio}
+                      rows={3}
+                      value={member.bio || ""}
                       onChange={(e) =>
                         updateMember(
                           departmentIndex,
@@ -414,8 +525,268 @@ const FacultyGridEditor = ({
                       className="w-full border rounded-xl px-4 py-3 resize-none"
                     />
                   </div>
+
+                  {/* 2.5 - EXTENDED OVERLAY / BIG POPUP PROFILE DETAILS */}
+                  <div className="mt-6 border border-amber-200/90 rounded-2xl bg-[#FCFBF9] overflow-hidden transition-all">
+                    <button
+                      type="button"
+                      onClick={() => toggleOverlayDetails(member.id)}
+                      className="w-full px-5 py-3.5 bg-gradient-to-r from-amber-50/80 via-white to-amber-50/50 hover:from-amber-100/70 hover:to-amber-50 flex items-center justify-between transition text-left cursor-pointer"
+                    >
+                      <div className="flex items-center gap-2.5 flex-wrap">
+                        <span className="w-2.5 h-2.5 rounded-full bg-[#C9A555] shrink-0" />
+                        <span className="font-semibold text-sm text-[#23201D]">
+                          Extended Overlay Profile (Big Popup Details)
+                        </span>
+                        <span className="text-[11px] text-[#786F64] bg-white border border-[#EAE2D5] px-2.5 py-0.5 rounded-full font-medium shadow-2xs">
+                          {hasMemberOverlay ? "Overlay Enabled on Click" : "Optional (Acts as normal card if blank)"}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2 text-xs font-semibold text-[#8A6B3F] shrink-0">
+                        <span>{expandedOverlays[member.id] ? "Hide Overlay Fields" : "Edit Overlay Details"}</span>
+                        {expandedOverlays[member.id] ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
+                      </div>
+                    </button>
+
+                    {expandedOverlays[member.id] && (
+                      <div className="p-6 border-t border-amber-200/70 space-y-6 bg-white/70">
+                        <div className="flex items-start gap-2.5 text-xs text-[#786F64] bg-[#FAF8F5] p-3.5 rounded-xl border border-[#EAE2D5]">
+                          <Sparkles size={16} className="text-[#C9A555] shrink-0 mt-0.5" />
+                          <p className="m-0 leading-relaxed">
+                            These comprehensive details are displayed in the full-screen academic dossier overlay when students or visitors click on this faculty member's card. Fill in whatever is applicable.
+                          </p>
+                        </div>
+
+                        {/* Office & Hours */}
+                        <div className="grid md:grid-cols-2 gap-5">
+                          <div>
+                            <label className="block mb-1.5 text-xs font-semibold text-gray-700">
+                              Cabin / Office Location
+                            </label>
+                            <input
+                              value={member.officeLocation || ""}
+                              onChange={(e) =>
+                                updateMember(
+                                  departmentIndex,
+                                  memberIndex,
+                                  "officeLocation",
+                                  e.target.value
+                                )
+                              }
+                              placeholder="e.g. Science Block, Room 204 / Cabin B-12"
+                              className="w-full border rounded-xl px-3.5 py-2.5 text-sm bg-white focus:outline-none focus:ring-1 focus:ring-amber-400"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block mb-1.5 text-xs font-semibold text-gray-700">
+                              Office Hours / Consultation Time
+                            </label>
+                            <input
+                              value={member.officeHours || ""}
+                              onChange={(e) =>
+                                updateMember(
+                                  departmentIndex,
+                                  memberIndex,
+                                  "officeHours",
+                                  e.target.value
+                                )
+                              }
+                              placeholder="e.g. Mon & Wed: 2:00 PM – 4:00 PM"
+                              className="w-full border rounded-xl px-3.5 py-2.5 text-sm bg-white focus:outline-none focus:ring-1 focus:ring-amber-400"
+                            />
+                          </div>
+                        </div>
+
+                        {/* Social & Research Profiles */}
+                        <div className="grid md:grid-cols-3 gap-5">
+                          <div>
+                            <label className="block mb-1.5 text-xs font-semibold text-gray-700">
+                              LinkedIn Profile URL
+                            </label>
+                            <input
+                              type="url"
+                              value={member.linkedin || ""}
+                              onChange={(e) =>
+                                updateMember(
+                                  departmentIndex,
+                                  memberIndex,
+                                  "linkedin",
+                                  e.target.value
+                                )
+                              }
+                              placeholder="https://linkedin.com/in/username"
+                              className="w-full border rounded-xl px-3.5 py-2.5 text-sm bg-white focus:outline-none focus:ring-1 focus:ring-amber-400"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block mb-1.5 text-xs font-semibold text-gray-700">
+                              Google Scholar / Research Profile
+                            </label>
+                            <input
+                              type="url"
+                              value={member.googleScholar || ""}
+                              onChange={(e) =>
+                                updateMember(
+                                  departmentIndex,
+                                  memberIndex,
+                                  "googleScholar",
+                                  e.target.value
+                                )
+                              }
+                              placeholder="https://scholar.google.com/citations?user=..."
+                              className="w-full border rounded-xl px-3.5 py-2.5 text-sm bg-white focus:outline-none focus:ring-1 focus:ring-amber-400"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block mb-1.5 text-xs font-semibold text-gray-700">
+                              Personal Website / Portfolio
+                            </label>
+                            <input
+                              type="url"
+                              value={member.website || ""}
+                              onChange={(e) =>
+                                updateMember(
+                                  departmentIndex,
+                                  memberIndex,
+                                  "website",
+                                  e.target.value
+                                )
+                              }
+                              placeholder="https://faculty-portfolio.edu"
+                              className="w-full border rounded-xl px-3.5 py-2.5 text-sm bg-white focus:outline-none focus:ring-1 focus:ring-amber-400"
+                            />
+                          </div>
+                        </div>
+
+                        {/* Academic Education & Degrees (Multi-line) */}
+                        <div>
+                          <label className="block mb-1.5 text-xs font-semibold text-gray-700">
+                            Academic Qualifications & Education (One degree per line)
+                          </label>
+                          <textarea
+                            rows={3}
+                            value={member.education || ""}
+                            onChange={(e) =>
+                              updateMember(
+                                departmentIndex,
+                                memberIndex,
+                                "education",
+                                e.target.value
+                              )
+                            }
+                            placeholder={"Ph.D. in Computer Science & Engineering - IIT Bombay (2018)\nM.Tech in Software Systems - BITS Pilani (2012)\nB.E. in Information Technology - Goa University (2009)"}
+                            className="w-full border rounded-xl px-3.5 py-2.5 text-sm bg-white resize-y focus:outline-none focus:ring-1 focus:ring-amber-400"
+                          />
+                        </div>
+
+                        {/* Research Interests & Areas */}
+                        <div>
+                          <label className="block mb-1.5 text-xs font-semibold text-gray-700">
+                            Research Interests & Areas of Expertise
+                          </label>
+                          <textarea
+                            rows={2}
+                            value={member.researchInterests || ""}
+                            onChange={(e) =>
+                              updateMember(
+                                departmentIndex,
+                                memberIndex,
+                                "researchInterests",
+                                e.target.value
+                              )
+                            }
+                            placeholder="Machine Learning, Cloud Architecture, Distributed Systems, Ethical AI"
+                            className="w-full border rounded-xl px-3.5 py-2.5 text-sm bg-white resize-y focus:outline-none focus:ring-1 focus:ring-amber-400"
+                          />
+                        </div>
+
+                        {/* Key Publications */}
+                        <div>
+                          <label className="block mb-1.5 text-xs font-semibold text-gray-700">
+                            Key Publications & Research Papers (One paper per line)
+                          </label>
+                          <textarea
+                            rows={3}
+                            value={member.publications || ""}
+                            onChange={(e) =>
+                              updateMember(
+                                departmentIndex,
+                                memberIndex,
+                                "publications",
+                                e.target.value
+                              )
+                            }
+                            placeholder={"Deep Learning Approaches in Medical Image Analysis, IEEE Transactions 2023\nScalable Data Pipelines for Educational Analytics, Springer LNCS 2021"}
+                            className="w-full border rounded-xl px-3.5 py-2.5 text-sm bg-white resize-y focus:outline-none focus:ring-1 focus:ring-amber-400"
+                          />
+                        </div>
+
+                        {/* Courses / Subjects Taught */}
+                        <div>
+                          <label className="block mb-1.5 text-xs font-semibold text-gray-700">
+                            Courses & Subjects Handled (Comma or new line separated)
+                          </label>
+                          <textarea
+                            rows={2}
+                            value={member.coursesTaught || ""}
+                            onChange={(e) =>
+                              updateMember(
+                                departmentIndex,
+                                memberIndex,
+                                "coursesTaught",
+                                e.target.value
+                              )
+                            }
+                            placeholder="Data Structures & Algorithms, Web Engineering, Advanced DBMS, Python Programming"
+                            className="w-full border rounded-xl px-3.5 py-2.5 text-sm bg-white resize-y focus:outline-none focus:ring-1 focus:ring-amber-400"
+                          />
+                        </div>
+
+                        {/* Awards & Additional Responsibilities */}
+                        <div>
+                          <label className="block mb-1.5 text-xs font-semibold text-gray-700">
+                            Awards, Honors & Additional Responsibilities (One per line)
+                          </label>
+                          <textarea
+                            rows={2}
+                            value={member.awards || ""}
+                            onChange={(e) =>
+                              updateMember(
+                                departmentIndex,
+                                memberIndex,
+                                "awards",
+                                e.target.value
+                              )
+                            }
+                            placeholder={"Best Teacher of the Year Award 2022\nHead of Institutional Innovation Council (IIC)\nNAAC Criterion 2 Faculty In-Charge"}
+                            className="w-full border rounded-xl px-3.5 py-2.5 text-sm bg-white resize-y focus:outline-none focus:ring-1 focus:ring-amber-400"
+                          />
+                        </div>
+
+                        <div className="pt-2 flex justify-end">
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setPreviewMember({
+                                ...member,
+                                department: department.name,
+                              })
+                            }
+                            className="px-4 py-2 rounded-xl bg-[#23201D] text-white text-xs font-semibold hover:bg-black transition flex items-center gap-1.5 shadow-xs cursor-pointer"
+                          >
+                            <Eye size={13} />
+                            Preview This Member's Overlay
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
-              ))}
+              );
+            })}
             </div>
           </div>
         ))}
@@ -426,11 +797,20 @@ const FacultyGridEditor = ({
         <button
           type="button"
           onClick={addDepartment}
-          className="bg-black text-white px-5 py-3 rounded-xl"
+          className="bg-black text-white px-5 py-3 rounded-xl cursor-pointer hover:bg-neutral-800 transition"
         >
           + Add Department
         </button>
       </div>
+
+      {/* OVERLAY PREVIEW MODAL */}
+      {previewMember && (
+        <FacultyOverlay
+          member={previewMember}
+          isOpen={Boolean(previewMember)}
+          onClose={() => setPreviewMember(null)}
+        />
+      )}
     </>
   );
 };

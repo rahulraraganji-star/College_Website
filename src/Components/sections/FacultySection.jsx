@@ -1,148 +1,120 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState, useMemo } from "react";
+import { useLocation } from "react-router-dom";
 import SectionHeading from "./SectionHeading";
 import Reveal from "./Reveal";
 import FacultyCard from "./FacultyCard";
 
+const slugify = (text) =>
+  (text || "")
+    .toString()
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+
+const tokenize = (str) =>
+  (str || "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, " ")
+    .split(/\s+/)
+    .filter(Boolean);
+
+const findMatchingDepartmentIndex = (departments, rawTarget) => {
+  if (!rawTarget || !Array.isArray(departments) || departments.length === 0) return -1;
+  const target = rawTarget.toLowerCase().trim().replace(/^dept-/, "");
+  const targetNorm = target.replace(/[^a-z0-9]/g, "");
+
+  // 1. Direct ID match
+  const idxById = departments.findIndex(
+    (d) => String(d.id || d._id) === target
+  );
+  if (idxById !== -1) return idxById;
+
+  // 2. Direct slug match
+  const idxBySlug = departments.findIndex(
+    (d) => slugify(d.name) === target || slugify(d.name).replace(/-/g, "") === targetNorm
+  );
+  if (idxBySlug !== -1) return idxBySlug;
+
+  // 3. Known programme / department aliases
+  // BCA
+  if (target === "bca" || targetNorm === "bca") {
+    const idx = departments.findIndex((d) => {
+      const tokens = tokenize(d.name);
+      return (
+        tokens.includes("bca") ||
+        (tokens.includes("computer") && tokens.includes("applications"))
+      );
+    });
+    if (idx !== -1) return idx;
+  }
+
+  // B.Com / Commerce
+  if (
+    target === "commerce" ||
+    target === "bcom" ||
+    targetNorm === "bcom" ||
+    targetNorm === "commerce"
+  ) {
+    const idx = departments.findIndex((d) => {
+      const tokens = tokenize(d.name);
+      return tokens.includes("commerce") || tokens.includes("bcom");
+    });
+    if (idx !== -1) return idx;
+  }
+
+  // B.A. / Arts / Humanities
+  if (
+    target === "ba" ||
+    targetNorm === "ba" ||
+    target === "arts" ||
+    target === "humanities"
+  ) {
+    const idx = departments.findIndex((d) => {
+      const tokens = tokenize(d.name);
+      return (
+        tokens.includes("humanities") ||
+        tokens.includes("arts") ||
+        tokens.includes("english") ||
+        tokens.includes("economics") ||
+        tokens.includes("history") ||
+        tokens.includes("sociology") ||
+        tokens.includes("political")
+      );
+    });
+    if (idx !== -1) return idx;
+  }
+
+  // 4. Token substring matching
+  const targetTokens = tokenize(target).filter((t) => t.length > 2);
+  if (targetTokens.length > 0) {
+    const idx = departments.findIndex((d) => {
+      const deptTokens = tokenize(d.name);
+      return targetTokens.some((tt) => deptTokens.includes(tt));
+    });
+    if (idx !== -1) return idx;
+  }
+
+  // 5. Partial name contains
+  const idxContains = departments.findIndex((d) =>
+    d.name && d.name.toLowerCase().includes(target)
+  );
+  if (idxContains !== -1) return idxContains;
+
+  return -1;
+};
+
 const DepartmentFacultyList = ({ department }) => {
-  const listRef = useRef(null);
+  const members = department.members || department.faculty || [];
 
-  useEffect(() => {
-    const list = listRef.current;
-    if (!list) return;
-
-    let isPointerDown = false;
-    let startX = 0;
-    let startScrollLeft = 0;
-    let isDragging = false;
-    let wheelTimeout = null;
-
-    // --- WHEEL / TRACKPAD HORIZONTAL SCROLL HANDLER ---
-    const handleWheel = (e) => {
-      const maxScrollLeft = list.scrollWidth - list.clientWidth;
-      if (maxScrollLeft <= 0) return; // Content fits, allow default vertical page scrolling
-
-      const deltaX = e.deltaX;
-      const deltaY = e.deltaY;
-
-      // Let native horizontal trackpad gesture or Shift + wheel handle naturally
-      if (Math.abs(deltaX) > Math.abs(deltaY) || e.shiftKey) {
-        return;
-      }
-
-      const canScrollRight = list.scrollLeft < maxScrollLeft - 1;
-      const canScrollLeft = list.scrollLeft > 1;
-
-      // Scrolling down advances right, scrolling up advances left
-      if ((deltaY > 0 && canScrollRight) || (deltaY < 0 && canScrollLeft)) {
-        e.preventDefault();
-        // Temporarily disable smooth scroll & snap animation fight during continuous wheel ticks
-        list.style.scrollBehavior = "auto";
-        list.scrollLeft += deltaY;
-
-        clearTimeout(wheelTimeout);
-        wheelTimeout = setTimeout(() => {
-          if (list) {
-            list.style.scrollBehavior = "smooth";
-          }
-        }, 150);
-      }
-    };
-
-    // --- MOUSE DRAG SCROLL HANDLERS ---
-    const handlePointerDown = (e) => {
-      if (e.pointerType !== "mouse" || e.button !== 0) return;
-      const maxScrollLeft = list.scrollWidth - list.clientWidth;
-      if (maxScrollLeft <= 0) return;
-
-      isPointerDown = true;
-      isDragging = false;
-      startX = e.pageX;
-      startScrollLeft = list.scrollLeft;
-    };
-
-    const handlePointerMove = (e) => {
-      if (!isPointerDown) return;
-      const dx = e.pageX - startX;
-
-      if (!isDragging && Math.abs(dx) > 5) {
-        isDragging = true;
-        list.classList.add("is-dragging");
-        list.style.scrollBehavior = "auto";
-        list.style.scrollSnapType = "none";
-        try {
-          list.setPointerCapture(e.pointerId);
-        } catch {
-          // ignore if capture is unsupported or fails
-        }
-      }
-
-      if (isDragging) {
-        e.preventDefault();
-        list.scrollLeft = startScrollLeft - dx;
-      }
-    };
-
-    const handlePointerUp = (e) => {
-      if (!isPointerDown) return;
-      isPointerDown = false;
-
-      if (isDragging) {
-        isDragging = false;
-        list.classList.remove("is-dragging");
-        list.style.scrollBehavior = "smooth";
-        list.style.scrollSnapType = "";
-        if (list.hasPointerCapture(e.pointerId)) {
-          try {
-            list.releasePointerCapture(e.pointerId);
-          } catch {
-            // ignore
-          }
-        }
-
-        // Prevent accidental link/button click on drag release
-        const preventClick = (clickEvent) => {
-          clickEvent.preventDefault();
-          clickEvent.stopPropagation();
-          list.removeEventListener("click", preventClick, true);
-        };
-        list.addEventListener("click", preventClick, true);
-        setTimeout(() => {
-          list.removeEventListener("click", preventClick, true);
-        }, 100);
-      }
-    };
-
-    const handlePointerCancel = handlePointerUp;
-
-    list.addEventListener("wheel", handleWheel, { passive: false });
-    list.addEventListener("pointerdown", handlePointerDown);
-    list.addEventListener("pointermove", handlePointerMove);
-    list.addEventListener("pointerup", handlePointerUp);
-    list.addEventListener("pointercancel", handlePointerCancel);
-
-    return () => {
-      clearTimeout(wheelTimeout);
-      list.removeEventListener("wheel", handleWheel);
-      list.removeEventListener("pointerdown", handlePointerDown);
-      list.removeEventListener("pointermove", handlePointerMove);
-      list.removeEventListener("pointerup", handlePointerUp);
-      list.removeEventListener("pointercancel", handlePointerCancel);
-    };
-  }, [department]);
-
-  const members = department.members || [];
+  if (members.length === 0) return null;
 
   return (
-    <div className="faculty-list-wrapper">
-      <div
-        ref={listRef}
-        className="faculty-list"
-        tabIndex={0}
-        aria-label={`${department.name || "Department"} faculty members`}
-      >
+    <div className="w-full min-w-0">
+      <div className="faculty-grid-layout">
         {members.map((member, mIndex) => (
           <div
-            key={member.id || mIndex}
+            key={member.id || member._id || mIndex}
             className="faculty-slide"
           >
             <FacultyCard
@@ -159,47 +131,129 @@ const DepartmentFacultyList = ({ department }) => {
 };
 
 const FacultySection = ({ section }) => {
-  const departments = section.departments || [];
+  const departments = useMemo(() => section?.departments || [], [section?.departments]);
+  const location = useLocation();
+  const [highlightedDeptIndex, setHighlightedDeptIndex] = useState(null);
+  const deptRefs = useRef({});
+
+  useEffect(() => {
+    const searchParams = new URLSearchParams(location.search);
+    const deptParam = searchParams.get("dept");
+    const hashParam = location.hash ? location.hash.replace(/^#/, "") : null;
+    const target = deptParam || hashParam;
+
+    if (!target || departments.length === 0) return;
+
+    const matchedIdx = findMatchingDepartmentIndex(departments, target);
+    if (matchedIdx === -1) return;
+
+    const matchedDept = departments[matchedIdx];
+    const deptKey = matchedDept.id || matchedDept._id || matchedIdx;
+
+    const performScroll = () => {
+      const el = deptRefs.current[deptKey];
+      if (!el) return;
+
+      const navbarOffset = 100;
+      const rect = el.getBoundingClientRect();
+      const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+      const targetY = rect.top + scrollTop - navbarOffset;
+
+      window.scrollTo({
+        top: Math.max(0, targetY),
+        behavior: "smooth",
+      });
+
+      setHighlightedDeptIndex(matchedIdx);
+      setTimeout(() => {
+        setHighlightedDeptIndex(null);
+      }, 3000);
+    };
+
+    // Attempt immediately and retry shortly after in case of dynamic image/layout load
+    const frameId = requestAnimationFrame(performScroll);
+    const timerId = setTimeout(performScroll, 350);
+
+    return () => {
+      cancelAnimationFrame(frameId);
+      clearTimeout(timerId);
+    };
+  }, [location.search, location.hash, departments]);
 
   if (departments.length === 0) return null;
 
   return (
-    <section className="w-full min-w-0 pt-20 md:pt-24 border-t border-[#2A2623]/10">
+    <section className="w-full min-w-0 pt-16 md:pt-20 border-t border-[#2A2623]/10">
 
       <SectionHeading
         eyebrow="Faculty"
         title={section.title}
       />
 
-      <div className="w-full min-w-0 space-y-16">
+      <div className="w-full min-w-0 space-y-20 md:space-y-24">
 
-        {departments.map((department, dIndex) => (
-          <Reveal key={department.id || dIndex} className="w-full min-w-0">
+        {departments.map((department, dIndex) => {
+          const members = department.members || department.faculty || [];
+          const deptKey = department.id || department._id || dIndex;
+          const deptSlug = slugify(department.name);
+          const isHighlighted = highlightedDeptIndex === dIndex;
 
-            <div className="w-full min-w-0 space-y-8">
+          return (
+            <Reveal key={deptKey} className="w-full min-w-0">
 
-              {/* Department heading */}
-              <div className="flex items-center gap-4 border-b border-[#2A2623]/10 pb-3">
+              <div
+                ref={(el) => {
+                  deptRefs.current[deptKey] = el;
+                }}
+                id={`dept-${deptSlug}`}
+                data-department-name={department.name}
+                className="w-full min-w-0 space-y-10 scroll-mt-28"
+              >
 
-                <span className="w-6 h-[2px] bg-[#C9A555]" />
+                {/* Department heading */}
+                <div
+                  className={`flex items-center gap-4 border-b pb-4 transition-all duration-700 ${
+                    isHighlighted
+                      ? "border-[#C9A555]"
+                      : "border-[#2A2623]/10"
+                  }`}
+                >
 
-                <h3 className="font-['Fraunces'] text-2xl font-medium text-[#2A2623]">
-                  {department.name}
-                </h3>
+                  <span
+                    className={`h-[2px] rounded-full transition-all duration-700 ease-out ${
+                      isHighlighted ? "w-16 bg-[#C9A555]" : "w-8 bg-[#C9A555]"
+                    }`}
+                  />
 
-                <span className="ml-auto font-['IBM_Plex_Mono'] text-xs uppercase tracking-wide text-[#2A2623]/40">
-                  {(department.members || []).length} Members
-                </span>
+                  <h3
+                    className={`font-['Fraunces'] text-2xl sm:text-3xl font-medium tracking-tight transition-colors duration-500 ${
+                      isHighlighted ? "text-[#171717]" : "text-[#2A2623]"
+                    }`}
+                  >
+                    {department.name}
+                  </h3>
+
+                  {isHighlighted && (
+                    <span className="hidden sm:inline-flex items-center gap-1.5 font-['IBM_Plex_Mono'] text-[11px] font-semibold uppercase tracking-wider text-[#8A6B3F] bg-[#8A6B3F]/10 px-3 py-1 rounded-full">
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#C9A555] animate-pulse" />
+                      Department
+                    </span>
+                  )}
+
+                  <span className="ml-auto font-['IBM_Plex_Mono'] text-xs font-semibold uppercase tracking-wider text-[#8A6B3F] bg-[#8A6B3F]/10 px-3 py-1 rounded-full">
+                    {members.length} {members.length === 1 ? "Member" : "Members"}
+                  </span>
+
+                </div>
+
+                {/* Faculty grid */}
+                <DepartmentFacultyList department={department} />
 
               </div>
 
-              {/* Faculty carousel */}
-              <DepartmentFacultyList department={department} />
-
-            </div>
-
-          </Reveal>
-        ))}
+            </Reveal>
+          );
+        })}
 
       </div>
 

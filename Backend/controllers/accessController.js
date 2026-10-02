@@ -16,6 +16,7 @@ const HOME_SECTION_SCOPES = [
   { key: "home:hero",          label: "Hero Banner" },
   { key: "home:eventsMarquee", label: "Events Marquee" },
   { key: "home:notices",       label: "Notices" },
+  { key: "home:principalMessage", label: "Principal's Message" },
   { key: "home:heroSection2",  label: "Learning Spaces" },
   { key: "home:eventsSection", label: "Events Section" },
   { key: "home:coreStrengths", label: "Core Strengths" },

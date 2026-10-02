@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useAuth } from "../auth/AuthContext";
 import LoadingScreen from "../../Components/LoadingScreen";
 
@@ -40,28 +40,42 @@ const WorkspaceDashboard = () => {
   const { user, hasPermission } = useAuth();
   const navigate = useNavigate();
 
-  const [myPages, setMyPages] = useState([]);
+  const myPages = useMemo(() => {
+    const allowed = (user?.allowedPages || []).filter((p) => p !== "*");
+    return allowed.map(formatScope);
+  }, [user?.allowedPages]);
+
   const [pendingCount, setPendingCount] = useState(0);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(() => !user);
 
   useEffect(() => {
-    const allowed = (user?.allowedPages || []).filter((p) => p !== "*");
-    setMyPages(allowed.map(formatScope));
-    fetchPendingCount();
-    setLoading(false);
-  }, [user]);
+    let ignore = false;
 
-  const fetchPendingCount = async () => {
-    try {
-      const res = await fetch(`${API_URL}/approvals?status=pending&limit=1`, {
-        credentials: "include",
-      });
-      const data = await res.json();
-      if (data.success) setPendingCount(data.pagination?.total || 0);
-    } catch {
-      // optional
+    async function load() {
+      if (!user) return;
+      try {
+        const res = await fetch(`${API_URL}/approvals?status=pending&limit=1`, {
+          credentials: "include",
+        });
+        const data = await res.json();
+        if (!ignore && data.success) {
+          setPendingCount(data.pagination?.total || 0);
+        }
+      } catch {
+        // optional
+      } finally {
+        if (!ignore) {
+          setLoading(false);
+        }
+      }
     }
-  };
+
+    load();
+
+    return () => {
+      ignore = true;
+    };
+  }, [user]);
 
   const canViewApprovals  = hasPermission("approvals.view");
   const canApprove        = hasPermission("approvals.approve");

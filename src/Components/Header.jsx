@@ -1,24 +1,29 @@
 import { Link } from "react-router-dom";
 import logo from "../assets/logo.svg";
+import AccessibilityAudioReader from "./AccessibilityAudioReader";
 
 const Header = ({ data }) => {
   if (!data) return null;
 
   return (
-    <header className="w-full bg-[#FAF8F5] border-b border-[#E8E1D5]">
-      
+    <header className="w-full bg-[#FAF8F5] border-b border-[#E8E1D5] relative">
+      {/* Accessibility Toolbar (Bottom Right) - Desktop view only */}
+      <div className="hidden lg:block absolute bottom-3.5 right-6 lg:right-8 z-30">
+        <AccessibilityAudioReader />
+      </div>
+
       {/* Mobile Header - visible only on mobile */}
       <div className="md:hidden">
         <div className="max-w-7xl mx-auto px-4 py-3">
           <div className="flex items-center justify-start gap-4">
             {/* Logo */}
-            <Link to="/" className="flex-shrink-0 flex items-center">
+            <Link to="/" className="flex-shrink-0 flex items-center -translate-y-2">
               <img
                 src={data.logo || logo}
                 alt="College Logo"
                 fetchPriority="high"
                 loading="eager"
-                className="h-16 w-16 rounded-full border-2 border-[#C8921B] bg-white p-2.5 object-contain"
+                className="w-[74px] sm:w-[80px] h-auto object-contain"
               />
             </Link>
 
@@ -80,13 +85,13 @@ const Header = ({ data }) => {
         <div className="max-w-7xl mx-auto px-4 md:px-8 py-4">
           <div className="flex items-center justify-center gap-5 md:gap-6">
             {/* Logo */}
-            <Link to="/" className="flex-shrink-0 flex items-center">
+            <Link to="/" className="flex-shrink-0 flex items-center -translate-y-1.5 md:-translate-y-2">
               <img
                 src={data.logo || logo}
                 alt="College Logo"
                 fetchPriority="high"
                 loading="eager"
-                className="w-16 md:w-20 h-auto object-contain"
+                className="w-20 md:w-24 lg:w-[100px] h-auto object-contain"
               />
             </Link>
 

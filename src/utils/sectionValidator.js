@@ -27,10 +27,25 @@ export const hasRenderableSection = (sections = []) => {
         );
 
       case "gallery":
-        return Array.isArray(section.images) && section.images.length > 0;
+        return (
+          (Array.isArray(section.images) && section.images.length > 0) ||
+          (Array.isArray(section.galleries) &&
+            section.galleries.some(
+              (g) =>
+                (g.type === "principalMessage" &&
+                  (g.message || g.name || g.media || g.title)) ||
+                (Array.isArray(g.images) && g.images.length > 0)
+            ))
+        );
 
       case "embed":
-        return Boolean(section.url);
+        return Boolean(
+          section.url ||
+          (Array.isArray(section.links) && section.links.some((l) => Boolean(l?.url)))
+        );
+
+      case "organogram":
+        return true;
 
       default:
         return false;

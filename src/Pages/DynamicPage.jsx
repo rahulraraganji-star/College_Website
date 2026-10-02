@@ -4,45 +4,16 @@ import {
   useOutletContext,
 } from "react-router-dom";
 
-import PageTemplate from "../components/PageTemplate";
+import PageTemplate from "../Components/PageTemplate";
 import CoursesTemplate from "../Components/Courses/CoursesTemplate";
 import CoursesDirectory from "../Components/Courses/CoursesDirectory";
 import LoadingScreen from "../Components/LoadingScreen";
-
-// Global client-side memory cache for instantaneous page switching
-export const clientPageCache = new Map();
-const clientPageTimestamps = new Map();
-const inFlightPagePromises = new Map();
-const FRESH_TTL_MS = 30000; // 30 seconds freshness window
-
-/**
- * Proactively prefetches a page into memory before the user clicks
- * @param {string} slug
- */
-export const prefetchPage = (slug) => {
-  if (!slug) return;
-  const now = Date.now();
-  if (clientPageCache.has(slug) && now - (clientPageTimestamps.get(slug) || 0) < FRESH_TTL_MS) {
-    return;
-  }
-  if (inFlightPagePromises.has(slug)) return;
-
-  const promise = fetch(`/api/pages/${slug}`)
-    .then((res) => (res.ok ? res.json() : null))
-    .then((data) => {
-      if (data) {
-        clientPageCache.set(slug, data);
-        clientPageTimestamps.set(slug, Date.now());
-      }
-      return data;
-    })
-    .catch(() => null)
-    .finally(() => {
-      inFlightPagePromises.delete(slug);
-    });
-
-  inFlightPagePromises.set(slug, promise);
-};
+import {
+  clientPageCache,
+  clientPageTimestamps,
+  inFlightPagePromises,
+  FRESH_TTL_MS,
+} from "../utils/pageCache";
 
 const DynamicPage = () => {
   const { slug } = useParams();
@@ -51,30 +22,31 @@ const DynamicPage = () => {
   const outletContext = useOutletContext();
   const navItems = outletContext?.navItems ?? [];
 
+  const [prevSlug, setPrevSlug] = useState(slug);
   const [page, setPage] = useState(() => clientPageCache.get(slug) || null);
   const [error, setError] = useState(null);
   const pageRef = useRef(null);
 
+  if (slug !== prevSlug) {
+    setPrevSlug(slug);
+    setPage(clientPageCache.get(slug) || null);
+    setError(null);
+  }
+
   useEffect(() => {
     if (!slug) return;
 
-    // Scroll to top upon page navigation
-    window.scrollTo({ top: 0, behavior: "instant" });
+    // Scroll to top upon page navigation unless targeting an anchor or department
+    if (!window.location.hash && !window.location.search.includes("dept=")) {
+      window.scrollTo({ top: 0, behavior: "instant" });
+    }
 
     const now = Date.now();
     const isCached = clientPageCache.has(slug);
     const isFresh = isCached && (now - (clientPageTimestamps.get(slug) || 0) < FRESH_TTL_MS);
 
-    // If already in cache, switch content immediately (0ms delay)
-    if (isCached) {
-      setPage(clientPageCache.get(slug));
-      setError(null);
-      if (isFresh) {
-        return;
-      }
-    } else {
-      // Clear page only if not cached so old page content is not shown
-      setPage(null);
+    if (isFresh) {
+      return;
     }
 
     // Background fetch / stale-while-revalidate / reuse in-flight prefetch

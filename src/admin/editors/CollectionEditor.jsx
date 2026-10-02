@@ -40,12 +40,22 @@ const CollectionEditor = ({
     visibleFields.forEach((field) => {
       newItem[field.key] = "";
     });
+    if (newItem.label !== undefined || visibleFields.some((f) => f.key === "label" || f.key === "text")) {
+      newItem.label = newItem.label || "";
+      newItem.text = newItem.label || "";
+    }
     updateSection([...items, newItem]);
   };
 
   const updateItem = (index, key, value) => {
     const updated = [...items];
-    updated[index][key] = value;
+    const updatedObj = { ...updated[index], [key]: value };
+    if (key === "label") {
+      updatedObj.text = value;
+    } else if (key === "text") {
+      updatedObj.label = value;
+    }
+    updated[index] = updatedObj;
     updateSection(updated);
   };
 
@@ -57,9 +67,14 @@ const CollectionEditor = ({
 
   const duplicateItem = (index) => {
     const copy = [...items];
+    const original = items[index];
+    const originalLabel = original.label || original.text || original.title || "Item";
     copy.splice(index + 1, 0, {
-      ...items[index],
-      title: `${items[index].title || "Item"} (Copy)`, // Add "(Copy)" to the title for clarity
+      ...original,
+      ...(original.label !== undefined || original.text !== undefined
+        ? { label: `${originalLabel} (Copy)`, text: `${originalLabel} (Copy)` }
+        : {}),
+      ...(original.title !== undefined ? { title: `${originalLabel} (Copy)` } : {}),
     });
     updateSection(copy);
   };
@@ -85,11 +100,132 @@ const CollectionEditor = ({
   const { imageField, imagesField, regularFields, textareaFields } =
     getFieldGroups(visibleFields);
 
+  const getFieldOptions = (field, currentValue) => {
+    // If editing notices and section has cards configured
+    if (field.key === "category" && Array.isArray(section.cards) && section.cards.length > 0) {
+      const cardOptions = section.cards.map((c) => ({
+        value: c.id || c.title,
+        label: c.title ? `${c.title} (${c.id})` : (c.id || "Card"),
+      }));
+
+      // Preserve existing value if not already in options (e.g. legacy category names)
+      if (
+        currentValue &&
+        !cardOptions.some(
+          (opt) =>
+            opt.value === currentValue ||
+            opt.value.toLowerCase() === currentValue.toLowerCase()
+        )
+      ) {
+        cardOptions.unshift({
+          value: currentValue,
+          label: `${currentValue} (Current)`,
+        });
+      }
+      return cardOptions;
+    }
+
+    return (field.options || []).map((opt) =>
+      typeof opt === "object" ? opt : { value: opt, label: opt }
+    );
+  };
+
   return (
     <>
       {/* Step 2: Replace Section Title and Subtitle with conditional wrapper */}
       {shouldShowSectionInfo && (
         <>
+          {/* List Layout Style Selector */}
+          {section.type === "list" && (
+            <div className="mb-6 rounded-2xl border border-gray-200 bg-gray-50/70 p-5">
+              <label className="block text-sm font-semibold text-gray-800 mb-1">
+                List Display Style
+              </label>
+              <p className="text-xs text-gray-500 mb-3.5">
+                Select between the classic boxed layout or the modern editorial cards
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  onClick={() => onChange({ ...section, layout: "rectangle" })}
+                  className={`flex items-start gap-3.5 p-4 rounded-xl border text-left transition-all ${
+                    (!section.layout || section.layout === "rectangle")
+                      ? "border-amber-600 bg-white ring-2 ring-amber-500/20 shadow-sm"
+                      : "border-gray-200 bg-white/70 hover:border-gray-300 hover:bg-white text-gray-600"
+                  }`}
+                >
+                  <div
+                    className={`mt-0.5 w-5 h-5 rounded-lg flex items-center justify-center shrink-0 ${
+                      (!section.layout || section.layout === "rectangle")
+                        ? "bg-amber-600 text-white"
+                        : "bg-gray-100 text-gray-400"
+                    }`}
+                  >
+                    <div className="w-2 h-2 bg-current rotate-45" />
+                  </div>
+                  <div>
+                    <div className="text-sm font-semibold text-gray-900">
+                      Rectangle (Old)
+                    </div>
+                    <div className="text-xs text-gray-500 mt-0.5">
+                      Classic rectangular boxes with diamond bullets
+                    </div>
+                  </div>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => onChange({ ...section, layout: "editorial" })}
+                  className={`flex items-start gap-3.5 p-4 rounded-xl border text-left transition-all ${
+                    section.layout === "editorial"
+                      ? "border-amber-600 bg-white ring-2 ring-amber-500/20 shadow-sm"
+                      : "border-gray-200 bg-white/70 hover:border-gray-300 hover:bg-white text-gray-600"
+                  }`}
+                >
+                  <div
+                    className={`mt-0.5 w-5 h-5 rounded-lg flex items-center justify-center shrink-0 text-[10px] font-bold ${
+                      section.layout === "editorial"
+                        ? "bg-amber-600 text-white"
+                        : "bg-gray-100 text-gray-400"
+                    }`}
+                  >
+                    01
+                  </div>
+                  <div>
+                    <div className="text-sm font-semibold text-gray-900">
+                      Editorial Cards (New)
+                    </div>
+                    <div className="text-xs text-gray-500 mt-0.5">
+                      Modern cards with numbered badges & titles
+                    </div>
+                  </div>
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Eyebrow / Tag */}
+          <div className="mb-6">
+            <label className="block text-sm font-semibold text-gray-700 mb-1">
+              Eyebrow Tag / Category Label
+            </label>
+            <p className="text-xs text-gray-500 mb-2">
+              The category text shown in gold-accented capital letters above the section title (e.g. Highlights &amp; Values).
+            </p>
+            <input
+              type="text"
+              value={section.eyebrow !== undefined ? section.eyebrow : ""}
+              placeholder={section.type === "list" ? "Highlights & Values" : "e.g., Section Category"}
+              onChange={(e) =>
+                onChange({
+                  ...section,
+                  eyebrow: e.target.value,
+                })
+              }
+              className="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 focus:border-amber-600 focus:ring-2 focus:ring-amber-200 outline-none transition text-sm"
+            />
+          </div>
+
           {/* Section Title */}
           <div className="mb-6">
             <label className="block text-sm font-semibold text-gray-700 mb-2">
@@ -104,15 +240,19 @@ const CollectionEditor = ({
                   title: e.target.value,
                 })
               }
+              placeholder="e.g., Core Principles & Strengths"
               className="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition"
             />
           </div>
 
           {/* Subtitle */}
           <div className="mb-6">
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Subtitle
+            <label className="block text-sm font-semibold text-gray-700 mb-1">
+              Subtitle / Description
             </label>
+            <p className="text-xs text-gray-500 mb-2">
+              Displayed directly below the section title as introductory or contextual text.
+            </p>
             <textarea
               rows={3}
               value={section.subtitle || ""}
@@ -122,7 +262,8 @@ const CollectionEditor = ({
                   subtitle: e.target.value,
                 })
               }
-              className="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition"
+              placeholder="Enter section subtitle or description..."
+              className="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition text-sm"
             />
           </div>
         </>
@@ -140,11 +281,23 @@ const CollectionEditor = ({
               <div className="flex items-center justify-between mb-5 pb-4 border-b border-gray-200">
                 <div>
                   <h4 className="font-semibold text-lg">
-                    {item.title || item.name || item.year || `Item ${index + 1}`}
+                    {item.label || item.text || item.title || item.name || item.year || `Item ${index + 1}`}
                   </h4>
-                  <p className="text-sm text-gray-500">
-                    {config.title} #{index + 1}
-                  </p>
+                  <div className="flex flex-wrap items-center gap-2 mt-1">
+                    <p className="text-sm text-gray-500">
+                      {config.title} #{index + 1}
+                    </p>
+                    {item.category && (
+                      <span className="text-xs px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200 font-medium">
+                        {section.cards?.find((c) => c.id === item.category || c.title === item.category)?.title || item.category}
+                      </span>
+                    )}
+                    {item.status && item.status !== "NONE" && (
+                      <span className="text-xs px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200 font-medium">
+                        {item.status}
+                      </span>
+                    )}
+                  </div>
                 </div>
                 <div className="flex items-center gap-3">
                   <button
@@ -214,10 +367,21 @@ const CollectionEditor = ({
                         {field.type === "text" && (
                           <input
                             type="text"
-                            value={item[field.key] || ""}
+                            value={
+                              (item[field.key] !== undefined && item[field.key] !== ""
+                                ? (typeof item[field.key] === "object" ? item[field.key].text || "" : item[field.key])
+                                : (field.key === "label"
+                                    ? (item.label || item.text || item.title || "")
+                                    : field.key === "text"
+                                    ? (item.text || item.label || item.title || "")
+                                    : field.key === "title"
+                                    ? (item.title || item.label || item.text || "")
+                                    : (item[field.key] || ""))) || ""
+                            }
                             onChange={(e) =>
                               updateItem(index, field.key, e.target.value)
                             }
+                            placeholder={`Enter ${field.label}`}
                             className="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition"
                           />
                         )}
@@ -235,22 +399,25 @@ const CollectionEditor = ({
                         )}
                         
                         {/* Select dropdown */}
-                        {field.type === "select" && (
-                          <select
-                            value={item[field.key] || ""}
-                            onChange={(e) =>
-                              updateItem(index, field.key, e.target.value)
-                            }
-                            className="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition"
-                          >
-                            <option value="">Select {field.label}</option>
-                            {field.options?.map((option) => (
-                              <option key={option} value={option}>
-                                {option}
-                              </option>
-                            ))}
-                          </select>
-                        )}
+                        {field.type === "select" && (() => {
+                          const options = getFieldOptions(field, item[field.key]);
+                          return (
+                            <select
+                              value={item[field.key] || ""}
+                              onChange={(e) =>
+                                updateItem(index, field.key, e.target.value)
+                              }
+                              className="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition"
+                            >
+                              <option value="">Select {field.label}</option>
+                              {options.map((option) => (
+                                <option key={option.value} value={option.value}>
+                                  {option.label}
+                                </option>
+                              ))}
+                            </select>
+                          );
+                        })()}
                         
                         {/* File upload */}
                         {field.type === "file" && (
@@ -278,10 +445,15 @@ const CollectionEditor = ({
                         </label>
                         <textarea
                           rows={4}
-                          value={item[field.key] || ""}
+                          value={
+                            (item[field.key] !== undefined
+                              ? (typeof item[field.key] === "object" ? item[field.key].text || "" : item[field.key])
+                              : (field.key === "description" ? item.text : field.key === "text" ? item.description : "")) || ""
+                          }
                           onChange={(e) =>
                             updateItem(index, field.key, e.target.value)
                           }
+                          placeholder={`Enter ${field.label}`}
                           className="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition"
                         />
                       </div>

@@ -14,10 +14,17 @@ export const createSection = (type) => {
         type: "hero",
         heading: "",
         subheading: "",
+        eyebrow: "",
         background: null,
         height: "medium",
-        alignment: "center",
+        alignment: "left",
         overlay: 40,
+        quickInfo: [],
+        showWatermark: true,
+        watermarkYear: "1985",
+        watermarkTagline: "LEARN\nGROW\nBELONG",
+        backLinkText: "",
+        backLinkUrl: "",
         primaryButtonText: "",
         primaryButtonLink: "",
         secondaryButtonText: "",
@@ -46,6 +53,9 @@ export const createSection = (type) => {
         id: generateSectionId(),
         type: "list",
         title: "",
+        subtitle: "",
+        eyebrow: "Highlights & Values",
+        layout: "editorial",
         items: [],
       };
 
@@ -104,6 +114,7 @@ export const createSection = (type) => {
         type: "organogram",
         title: "Institutional Organogram",
         subheading: "Hierarchical governance and operational reporting structure.",
+        nodes: [],
       };
 
     case "embed":
@@ -113,6 +124,11 @@ export const createSection = (type) => {
         title: "",
         embedType: "iframe",
         url: "",
+        linkText: "",
+        description: "",
+        buttonText: "Open Link",
+        openInNewTab: true,
+        links: [],
         media: null,
         height: 500,
         width: "100%",

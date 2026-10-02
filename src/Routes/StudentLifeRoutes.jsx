@@ -1,5 +1,5 @@
 import { Routes, Route } from "react-router-dom";
-import StudentLifeLayout from "../layouts/StudentLifeLayout";
+import StudentLifeLayout from "../Layouts/StudentLifeLayout";
 import StudentLife from "../Pages/StudentLife/StudentLife";
 import Support from "../Pages/StudentLife/Support";
 import Clubs from "../Pages/StudentLife/Clubs";

@@ -11,6 +11,9 @@ node_modules
 dist
 dist-ssr
 *.local
+.env
+.env.*
+*.zip
 
 # Editor directories and files
 .vscode/*
@@ -23,6 +26,12 @@ dist-ssr
 *.sln
 *.sw?
 
+
+# Server-side uploaded media
+Backend/uploads/
+
+# Original camera photo backups
+Backend/original_camera_photos/
 
 # Environment variables
 .env

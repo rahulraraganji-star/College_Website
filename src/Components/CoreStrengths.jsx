@@ -24,23 +24,28 @@ function useCountUp(target, isVisible, duration = 900) {
 
   useEffect(() => {
     if (!isVisible || target === 0) {
-      setValue(0);
       return;
     }
 
+    let frameId;
     const startTime = performance.now();
 
     const animate = (time) => {
       const progress = Math.min((time - startTime) / duration, 1);
       setValue(Math.floor(progress * target));
 
-      if (progress < 1) requestAnimationFrame(animate);
+      if (progress < 1) {
+        frameId = requestAnimationFrame(animate);
+      }
     };
 
-    requestAnimationFrame(animate);
+    frameId = requestAnimationFrame(animate);
+    return () => {
+      if (frameId) cancelAnimationFrame(frameId);
+    };
   }, [target, isVisible, duration]);
 
-  return value;
+  return isVisible ? value : 0;
 }
 
 // UPDATED: Mobile typography made bolder and slightly larger
@@ -231,10 +236,6 @@ export default function CoreStrengths({ data }) {
             <p className="mt-6 max-w-xl text-base leading-7 text-slate-600">
               {data.description}
             </p>
-
-            <div className="mt-8 inline-flex items-center gap-2 rounded-full border border-[#ECE2CF] bg-[#FFFDF9] px-4 py-2 text-sm text-slate-700 shadow-sm backdrop-blur">
-              <span />
-            </div>
           </div>
 
           {/* RIGHT */}

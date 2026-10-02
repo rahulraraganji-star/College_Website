@@ -38,7 +38,7 @@ const ApprovalOverlay = ({ onClose }) => {
       if (data.success && Array.isArray(data.approvals)) {
         setRequests(data.approvals);
       }
-    } catch (err) {
+    } catch {
       setErrorMsg("Failed to load approval requests.");
     } finally {
       setLoading(false);

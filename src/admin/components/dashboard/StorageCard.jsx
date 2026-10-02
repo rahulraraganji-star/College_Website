@@ -28,7 +28,7 @@ const StorageCard = ({ stats, loading }) => {
       className="min-h-[310px]"
     >
       {/* MAIN STORAGE SECTION */}
-      <div className="flex items-center gap-8">
+      <div className="flex flex-col sm:flex-row items-center sm:items-start min-[1280px]:items-center gap-6 min-[1280px]:gap-8">
 
         {/* DONUT */}
         <div className="relative w-[120px] h-[120px] shrink-0">
@@ -52,7 +52,7 @@ const StorageCard = ({ stats, loading }) => {
         </div>
 
         {/* LEGEND */}
-        <div className="flex-1 space-y-3">
+        <div className="flex-1 w-full space-y-3">
           <div className="flex items-center justify-between gap-5">
             <div className="flex items-center gap-2">
               <span className="w-2 h-2 rounded-sm bg-gray-900" />

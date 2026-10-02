@@ -8,6 +8,7 @@ import Role from "../models/Role.js";
 import ApprovalRequest from "../models/ApprovalRequest.js";
 import AuditLog from "../models/AuditLog.js";
 import FileMapping from "../models/FileMapping.js";
+import { getAnalyticsMetrics } from "../services/analyticsService.js";
 
 /**
  * Format bytes to readable string (e.g., 2.4 MB)
@@ -54,6 +55,7 @@ export const getDashboardStats = async (req, res) => {
       largestMedia,
       largestDoc,
       unmappedFilesCount,
+      analyticsData,
     ] = await Promise.all([
       // Pages
       Page.countDocuments().catch(() => 0),
@@ -97,6 +99,9 @@ export const getDashboardStats = async (req, res) => {
 
       // Unmapped files
       FileMapping ? FileMapping.countDocuments({ targetUrl: { $in: [null, ""] } }).catch(() => 0) : 0,
+
+      // Google Analytics metrics
+      getAnalyticsMetrics("7d").catch(() => null),
     ]);
 
     // Calculate total media storage size and counts from mediaStats
@@ -252,6 +257,14 @@ export const getDashboardStats = async (req, res) => {
           draftPages: draftPages,
           pendingApprovals: pendingApprovals,
           unmappedFiles: unmappedFilesCount,
+        },
+        analytics: analyticsData?.summary || {
+          visitors: 412,
+          bounceRate: "29%",
+          mostViewed: "Admissions",
+          avgVisit: "3m 24s",
+          activityBars: [45, 65, 50, 80, 60, 70, 90],
+          isConfigured: false,
         },
       },
     });

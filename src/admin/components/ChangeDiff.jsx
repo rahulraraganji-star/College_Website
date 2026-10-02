@@ -32,7 +32,7 @@ const FIELD_LABELS = {
   parent: "Reports To (Parent Node)",
   photo: "Photo",
   order: "Display Order",
-  level: "Hierarchy Level",
+  level: "Level / Hierarchy",
   phone: "Phone Number",
   bio: "Biography",
 
@@ -51,7 +51,6 @@ const FIELD_LABELS = {
   faqs: "FAQs",
   courseName: "Course Name",
   courseCode: "Course Code",
-  level: "Degree Level",
   duration: "Duration",
   semesters: "Semesters",
   degree: "Degree Awarded",

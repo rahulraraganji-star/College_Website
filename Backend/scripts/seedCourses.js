@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 import dotenv from "dotenv";
-import Page from "../models/Page.js";
+import Page from "../models/page.js";
 import NavigationItem from "../models/NavigationItem.js";
 import NavigationMenu from "../models/NavigationMenu.js";
 
@@ -690,12 +690,215 @@ const sampleCourses = [
   }
 ];
 
+const mainCoursesDirectoryPage = {
+  title: "Academic Programmes",
+  slug: "courses",
+  kicker: "Academic Programmes & Faculties",
+  parentSlug: "academics",
+  template: "courses",
+  isPublished: true,
+  description:
+    "Explore our academic programmes across diverse degree levels, doctoral research studies, and flexible distance education opportunities.",
+  courseData: {
+    categories: [
+      {
+        id: "cat-bachelors",
+        title: "Bachelor's Degree Programmes",
+        code: "UG",
+        slug: "bachelors-degree",
+        subtitle: "Undergraduate Degrees",
+        badge: "Undergraduate",
+        description:
+          "Comprehensive 3 & 4 year undergraduate degree programmes designed to cultivate foundational analytical capabilities, technical expertise, and career-readiness.",
+        image: null,
+        order: 1,
+        courses: sampleCourses.map((c) => ({
+          id: `prog-${c.slug}`,
+          courseName: c.courseData.general.courseName,
+          courseCode: c.courseData.general.courseCode,
+          slug: c.slug,
+          level: c.courseData.general.level,
+          duration: c.courseData.general.duration,
+          semesters: c.courseData.general.semesters,
+          eligibility: c.courseData.general.eligibility,
+          mode: "Full Time",
+          status: "published",
+          image: null,
+          shortDescription: c.courseData.general.shortDescription,
+          overview: c.courseData.overview,
+          highlights: c.courseData.highlights,
+          curriculum: c.courseData.curriculum,
+          order: 1,
+        })),
+      },
+      {
+        id: "cat-phd",
+        title: "Doctoral Studies (Ph.D)",
+        code: "Ph.D",
+        slug: "doctoral-studies-phd",
+        subtitle: "Research Programmes",
+        badge: "Doctoral / Ph.D",
+        description:
+          "Advanced doctoral and research programmes focused on groundbreaking scholarly discovery, academic leadership, and high-impact publications.",
+        image: null,
+        order: 2,
+        courses: [
+          {
+            id: "prog-phd-commerce",
+            courseName: "Ph.D in Commerce & Management",
+            courseCode: "PHD-COM",
+            slug: "phd-commerce",
+            level: "Doctoral / Ph.D",
+            duration: "3 to 5 Years",
+            semesters: 6,
+            eligibility: "Master's Degree with minimum 55% marks & NET / JRF qualification",
+            mode: "Full Time",
+            status: "published",
+            image: null,
+            shortDescription:
+              "Doctoral research in financial systems, corporate governance, organizational leadership, and international trade.",
+            overview: {
+              description:
+                "The Doctor of Philosophy (Ph.D.) in Commerce & Management is designed for scholars committed to advanced academic research, statistical inquiry, and high-impact business investigations.",
+              learningOutcomes:
+                "Formulate original research methodologies and theoretical frameworks.\nConduct advanced econometric analysis.\nPublish peer-reviewed academic literature.",
+              careerOpportunities:
+                "University Professor / Senior Lecturer\nChief Economic Advisor\nCorporate Research Director",
+            },
+            highlights: [
+              { number: "03-05", title: "Years Duration", description: "Rigorous doctoral research tenure" },
+              { number: "100%", title: "Faculty Mentorship", description: "Dedicated PhD supervisor committee" },
+              { number: "UGC", title: "Recognized", description: "Approved research centers and funding" },
+            ],
+            curriculum: [
+              {
+                id: "year-1",
+                yearNumber: "01",
+                yearName: "Coursework & Proposal Stage",
+                subtitle: "Research Methodology & Literature Review",
+                semesters: [
+                  {
+                    id: "sem-1",
+                    semesterName: "Semester I — Coursework",
+                    subjects: [
+                      {
+                        id: "phd-101",
+                        name: "Research Methodology & Quantitative Analysis",
+                        type: "Theory",
+                        credits: 4,
+                        syllabus: [
+                          {
+                            unitNumber: "01",
+                            title: "Foundations of Research & Ethics",
+                            topics: ["Research design and problem formulation", "Literature review and indexing databases", "Academic ethics and anti-plagiarism guidelines"],
+                          },
+                        ],
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+      {
+        id: "cat-distance",
+        title: "Distance & Online Education",
+        code: "Distance",
+        slug: "distance-education",
+        subtitle: "Flexible Learning",
+        badge: "Distance Education",
+        description:
+          "Flexible self-paced distance learning and diploma courses empowering working professionals and remote scholars with accredited credentials.",
+        image: null,
+        order: 3,
+        courses: [
+          {
+            id: "prog-dist-bcom",
+            courseName: "Distance Bachelor of Commerce",
+            courseCode: "D-BCOM",
+            slug: "distance-bcom",
+            level: "Distance Education",
+            duration: "3 Years",
+            semesters: 6,
+            eligibility: "10+2 Pass in any recognized stream",
+            mode: "Distance / Online",
+            status: "published",
+            image: null,
+            shortDescription:
+              "Flexible commerce education with self-instructional study materials, weekend mentor sessions, and digital examination portals.",
+            overview: {
+              description:
+                "The Distance B.Com programme allows students and working professionals to gain deep expertise in financial accounting, business laws, and taxation while managing their own learning schedules.",
+              learningOutcomes:
+                "Understand fundamental accounting principles.\nAnalyze tax compliance and financial reports.\nBalance professional work with academic progression.",
+              careerOpportunities:
+                "Accountant / Tax Assistant\nFinancial Operations Associate\nAuditing Executive",
+            },
+            highlights: [
+              { number: "100%", title: "Flexible Schedule", description: "Learn at your own pace anytime" },
+              { number: "24/7", title: "LMS Portal", description: "Recorded lectures & e-library access" },
+              { number: "06", title: "Semesters", description: "Modular examination system" },
+            ],
+            curriculum: [
+              {
+                id: "year-1",
+                yearNumber: "01",
+                yearName: "First Year (Distance)",
+                subtitle: "Core Financial Accounting & Management",
+                semesters: [
+                  {
+                    id: "sem-1",
+                    semesterName: "Semester I",
+                    subjects: [
+                      {
+                        id: "dist-101",
+                        name: "Financial Accounting & Business Statistics",
+                        type: "Theory",
+                        credits: 4,
+                        syllabus: [
+                          {
+                            unitNumber: "01",
+                            title: "Accounting Fundamentals",
+                            topics: ["Double entry book-keeping", "Trial balance and adjustments", "Preparation of annual financial statements"],
+                          },
+                        ],
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    ],
+  },
+};
+
 const seedCourses = async () => {
   try {
     console.log("Connecting to MongoDB...");
     await mongoose.connect(MONGO_URI);
     console.log("Connected to MongoDB successfully.\n");
 
+    // Seed /courses directory page
+    const existingCoursesDir = await Page.findOne({ slug: mainCoursesDirectoryPage.slug });
+    if (existingCoursesDir) {
+      existingCoursesDir.template = "courses";
+      existingCoursesDir.courseData = mainCoursesDirectoryPage.courseData;
+      existingCoursesDir.title = mainCoursesDirectoryPage.title;
+      existingCoursesDir.description = mainCoursesDirectoryPage.description;
+      existingCoursesDir.isPublished = true;
+      await existingCoursesDir.save();
+      console.log(`✅ Updated /courses directory page with Parent Categories`);
+    } else {
+      await Page.create(mainCoursesDirectoryPage);
+      console.log(`✅ Created new /courses directory page with Parent Categories`);
+    }
+
+    // Seed individual course pages
     for (const course of sampleCourses) {
       const existing = await Page.findOne({ slug: course.slug });
       if (existing) {
@@ -739,3 +942,4 @@ const seedCourses = async () => {
 };
 
 seedCourses();
+

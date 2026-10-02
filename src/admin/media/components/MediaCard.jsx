@@ -40,7 +40,21 @@ const MediaCard = ({
       ? formatFileSize(media.size)
       : media.size;
 
+  const isPdf =
+    media.type === "pdf" ||
+    media.mimeType === "application/pdf" ||
+    media.extension === "pdf" ||
+    Boolean(
+      (media.url || media.filename || media.originalName || "")
+        .toLowerCase()
+        .split("?")[0]
+        .endsWith(".pdf")
+    );
+
   const getIcon = () => {
+    if (isPdf) {
+      return <FileText size={28} className="text-red-500" />;
+    }
     switch (media.type) {
       case "image":
         return <Image size={28} />;
@@ -172,8 +186,8 @@ const MediaCard = ({
             text-gray-500
           "
         >
-          <span className="uppercase">
-            {media.type}
+          <span className="uppercase font-semibold">
+            {isPdf ? "pdf" : media.type}
           </span>
 
           <span>

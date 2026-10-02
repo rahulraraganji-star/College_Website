@@ -409,7 +409,7 @@ const HeaderManager = () => {
                           <img
                             src={formData.logo || defaultLogoSvg}
                             alt="College Logo"
-                            className="w-16 md:w-20 h-auto object-contain"
+                            className="w-20 md:w-24 lg:w-[100px] h-auto object-contain -translate-y-1.5 md:-translate-y-2"
                           />
                           <div className="text-center">
                             <h1
@@ -438,7 +438,7 @@ const HeaderManager = () => {
                           <img
                             src={formData.logo || defaultLogoSvg}
                             alt="College Logo"
-                            className="h-14 w-14 rounded-full border-2 border-[#C8921B] bg-white p-2 object-contain flex-shrink-0"
+                            className="w-[70px] sm:w-[74px] h-auto object-contain flex-shrink-0 -translate-y-2"
                           />
                           <div className="flex-1 text-left">
                             <h1

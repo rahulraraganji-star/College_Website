@@ -1,5 +1,5 @@
 import { Routes, Route, Navigate } from "react-router-dom";
-import ProgrammeLayout from "../layouts/ProgrammeLayout";
+import ProgrammeLayout from "../Layouts/ProgrammeLayout";
 
 import Subjects from "../Pages/Academics/Programmes/Subjects";
 import Syllabus from "../Pages/Academics/Programmes/Syllabus";

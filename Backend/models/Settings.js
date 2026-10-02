@@ -2,7 +2,12 @@ import mongoose from "mongoose";
 
 const settingsSchema = new mongoose.Schema(
   {
-    type: { type: String, required: true, unique: true }, // "header" or "footer"
+    type: { type: String, required: true, unique: true }, // "header", "footer", or "analytics"
+
+    // analytics fields
+    measurementId: { type: String, default: "" },
+    propertyId: { type: String, default: "" },
+    analyticsEnabled: { type: Boolean, default: true },
 
     // header fields
     logo: { type: String, default: "" },
@@ -44,4 +49,4 @@ const settingsSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-export default mongoose.model("Settings", settingsSchema);
+export default mongoose.models.Settings || mongoose.model("Settings", settingsSchema);

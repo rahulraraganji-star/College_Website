@@ -66,8 +66,14 @@ export const sectionTypes = {
   },
 
   embed: {
-    label: "Embed",
+    label: "Embed & Links",
     icon: "🔗",
     category: "Media",
+  },
+
+  notices: {
+    label: "Notices",
+    icon: "📢",
+    category: "Data",
   },
 };

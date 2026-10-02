@@ -1,5 +1,5 @@
 import { Routes, Route } from "react-router-dom";
-import AdministrationLayout from "../layouts/AdministrationLayout";
+import AdministrationLayout from "../Layouts/AdministrationLayout";
 import Administration from "../Pages/Administration/Administration";
 import Organogram from "../Pages/Administration/Organogram";
 import Committees from "../Pages/Administration/Committees";

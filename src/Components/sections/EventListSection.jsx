@@ -7,31 +7,28 @@ import {
 } from "lucide-react";
 import Lightbox from "yet-another-react-lightbox";
 import "yet-another-react-lightbox/styles.css";
+import { getCleanImageUrl } from "../../utils/imageUrl";
 
 const EventListSection = ({ section }) => {
   const [slides, setSlides] = useState([]);
   const [open, setOpen] = useState(false);
   const [index, setIndex] = useState(0);
-  
+
   const events = section.events || [];
   if (events.length === 0) return null;
 
   return (
-    <section className="pt-20 md:pt-24 border-t border-[#2A2623]/10">
-      <SectionHeading eyebrow="Events" title={section.title} />
-      <div className="space-y-20">
+    <section className="pt-14 sm:pt-18 md:pt-20 border-t border-[#E6DED3]">
+      <SectionHeading eyebrow="College Events & Activities" title={section.title || "Upcoming & Recent Events"} />
+      <div className="space-y-16">
         {events.map((event, i) => {
-
-          console.log("Section:", section);
-          console.log("Events Array:", section.events);
-
           return (
             <div
               key={i}
-              className="pb-20 border-b border-[#2A2623]/10 last:border-none"
+              className="pb-16 border-b border-[#E6DED3] last:border-none"
             >
-              {/* Title - Now at the top */}
-              <h3 className="font-['Fraunces'] text-3xl md:text-4xl font-medium text-[#2A2623]">
+              {/* Title */}
+              <h3 className="font-['Fraunces'] text-2xl sm:text-3xl md:text-4xl font-medium text-[#2A2623]">
                 {event.title}
               </h3>
 
@@ -97,13 +94,19 @@ const EventListSection = ({ section }) => {
                       }}
                     >
                       <img
-                        src={image.url}
+                        src={getCleanImageUrl(image.url)}
                         alt={event.title}
                         className="w-full h-52 rounded-2xl object-cover cursor-pointer transition duration-300 hover:scale-105"
+                        onError={(e) => {
+                          if (!e.currentTarget.dataset.retried) {
+                            e.currentTarget.dataset.retried = "true";
+                            e.currentTarget.src = "/uploads/event1.jpg";
+                          }
+                        }}
                         onClick={() => {
                           setSlides(
                             event.images.map((img) => ({
-                              src: img.url,
+                              src: getCleanImageUrl(img.url),
                             }))
                           );
                           setIndex(imageIndex);

@@ -33,13 +33,18 @@ import AdminRoutes from "./admin/routes/AdminRoutes";
 
 /* LEGACY RESOLVER / 404 */
 import LegacyResolverFallback from "./Components/LegacyResolverFallback";
+import { initGoogleAnalytics, trackPageView } from "./utils/googleAnalytics";
 
 function ScrollToTop() {
-  const { pathname } = useLocation();
+  const location = useLocation();
 
   useEffect(() => {
+    // If navigating with an explicit anchor or department scroll query, do not force scroll to top
+    if (location.hash || location.search.includes("dept=")) {
+      return;
+    }
     window.scrollTo({ top: 0, behavior: "instant" });
-  }, [pathname]);
+  }, [location.pathname, location.hash, location.search]);
 
   return null;
 }
@@ -53,6 +58,15 @@ function App() {
     useState(null);
 
   const location = useLocation();
+
+  // Initialize GA and track pageviews safely
+  useEffect(() => {
+    initGoogleAnalytics();
+  }, []);
+
+  useEffect(() => {
+    trackPageView(location.pathname + location.search);
+  }, [location.pathname, location.search]);
 
   // FIXED: startsWith("/admin") was also matching
   // "/administration" since "/admin" is a text
@@ -122,6 +136,32 @@ function App() {
         <Route
           path="/page/:slug"
           element={<DynamicPage />}
+        />
+
+        {/* NOTICES REDIRECTS & ALIASES */}
+        <Route
+          path="/notices/circulars"
+          element={<Navigate to="/examination/exam-notices" replace />}
+        />
+        <Route
+          path="/notices/admissions"
+          element={<Navigate to="/admissions/admission-notices" replace />}
+        />
+        <Route
+          path="/notices/vacancies"
+          element={<Navigate to="/campus-alumni/general-announcements" replace />}
+        />
+        <Route
+          path="/examination/notices"
+          element={<Navigate to="/examination/exam-notices" replace />}
+        />
+        <Route
+          path="/admissions/notices"
+          element={<Navigate to="/admissions/admission-notices" replace />}
+        />
+        <Route
+          path="/administration/notices"
+          element={<Navigate to="/campus-alumni/general-announcements" replace />}
         />
 
         {/* DYNAMIC SECTION ROUTE */}

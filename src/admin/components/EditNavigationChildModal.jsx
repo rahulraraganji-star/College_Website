@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import IconPicker from "./IconPicker";
 
 const EditNavigationChildModal = ({
@@ -7,6 +7,7 @@ const EditNavigationChildModal = ({
   onClose,
   onSave,
 }) => {
+  const [prevChild, setPrevChild] = useState(null);
   const [form, setForm] = useState({
     label: "",
     slug: "",
@@ -14,16 +15,17 @@ const EditNavigationChildModal = ({
     isActive: true,
   });
 
-  useEffect(() => {
+  if (child !== prevChild) {
+    setPrevChild(child);
     if (child) {
       setForm({
         label: child.label || "",
         slug: child.slug || "",
         icon: child.icon || "",
-        isActive: child.isActive,
+        isActive: child.isActive ?? true,
       });
     }
-  }, [child]);
+  }
 
   if (!open || !child) return null;
 

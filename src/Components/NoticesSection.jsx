@@ -12,7 +12,7 @@ const STATUS_STYLES = {
 };
 
 const getStatusClass = (status) =>
-  STATUS_STYLES[status] ||
+  STATUS_STYLES[(status || "").toUpperCase()] ||
   "bg-[#F3F0E8] text-[#81765E] border-[#E1DCCF]";
 
 const getFileUrl = (file) => {
@@ -385,23 +385,156 @@ const NoticeColumn = ({ card, notices }) => {
   );
 };
 
+// Helper to determine if a notice belongs to a card
+const doesNoticeMatchCard = (notice, card, cardIndex) => {
+  if (!notice || !card) return false;
+  const cat = (notice.category || "").trim().toLowerCase();
+  const cardId = (card.id || "").trim().toLowerCase();
+  const cardTitle = (card.title || "").trim().toLowerCase();
+
+  // 1. Direct match with card ID or card Title (case-insensitive)
+  if (cat && (cat === cardId || cat === cardTitle)) {
+    return true;
+  }
+
+  // 2. Keyword check on notice title for specific categories
+  const noticeTitle = (notice.title || "").toLowerCase();
+
+  // Vacancies / Recruitment
+  if (
+    cardId === "vacancies" ||
+    cardTitle.includes("vacanc") ||
+    cardTitle.includes("recruitment") ||
+    cardTitle.includes("opening") ||
+    cardIndex === 2
+  ) {
+    if (
+      cat === "vacancies" ||
+      cat.includes("vacanc") ||
+      cat.includes("job") ||
+      cat.includes("recruitment") ||
+      noticeTitle.includes("vacancy") ||
+      noticeTitle.includes("clerk") ||
+      noticeTitle.includes("recruitment") ||
+      noticeTitle.includes("post of")
+    ) {
+      // Ensure it's not explicitly an exam or admission notice
+      if (
+        !cat.includes("exam") &&
+        !cat.includes("admission") &&
+        !noticeTitle.includes("merit list") &&
+        !noticeTitle.includes("timetable")
+      ) {
+        return true;
+      }
+    }
+  }
+
+  // Admissions
+  if (
+    cardId === "admissions" ||
+    cardTitle.includes("admission") ||
+    cardIndex === 1
+  ) {
+    if (
+      cat === "admissions" ||
+      cat === "admission news" ||
+      cat.includes("admission") ||
+      noticeTitle.includes("admission") ||
+      noticeTitle.includes("merit list") ||
+      noticeTitle.includes("prospectus")
+    ) {
+      if (!cat.includes("exam") && !cat.includes("vacanc")) {
+        return true;
+      }
+    }
+  }
+
+  // Circulars / Examinations / General notices
+  if (
+    cardId === "circulars" ||
+    cardTitle.includes("exam") ||
+    cardTitle.includes("circular") ||
+    cardTitle.includes("result") ||
+    cardIndex === 0
+  ) {
+    if (
+      cat === "circulars" ||
+      cat === "circulars & notifications" ||
+      cat.includes("circular") ||
+      cat.includes("notification") ||
+      cat.includes("exam") ||
+      cat.includes("result") ||
+      noticeTitle.includes("exam") ||
+      noticeTitle.includes("result") ||
+      noticeTitle.includes("timetable") ||
+      noticeTitle.includes("revaluation")
+    ) {
+      return true;
+    }
+  }
+
+  return false;
+};
+
 // Updated NoticesSection with dynamic cards and compatibility logic
 const NoticesSection = ({ data }) => {
-  const notices = data?.notices || [];
-  const cards = data?.cards || [];
+  // Filter out empty placeholder notices that have no title, file, or description
+  const allNotices = (data?.notices || []).filter(
+    (n) =>
+      (n?.title && n.title.trim()) ||
+      n?.file ||
+      (n?.description && n.description.trim())
+  );
 
-  // Group notices by card ID with compatibility for both old and new category formats
+  // Dynamic cards or sensible fallback
+  const cards =
+    Array.isArray(data?.cards) && data.cards.length > 0
+      ? data.cards
+      : [
+          {
+            id: "notices",
+            title: data?.title || "Notices & Circulars",
+            icon: "Bell",
+            viewAllText: "VIEW ALL",
+            viewAllUrl: "",
+          },
+        ];
+
+  // Group notices by card ID
   const groupedNotices = cards.reduce((acc, card) => {
-    acc[card.id] = notices.filter((notice) => {
-      // Support both: category: "circulars" (new) and category: "Circulars & Notifications" (old)
-      return (
-        notice?.category === card.id ||
-        notice?.category === card.title
-      );
-    });
-
+    acc[card.id] = [];
     return acc;
   }, {});
+
+  const unassigned = [];
+
+  allNotices.forEach((notice) => {
+    let matched = false;
+    for (let i = 0; i < cards.length; i++) {
+      const card = cards[i];
+      if (doesNoticeMatchCard(notice, card, i)) {
+        groupedNotices[card.id].push(notice);
+        matched = true;
+        break;
+      }
+    }
+    if (!matched) {
+      unassigned.push(notice);
+    }
+  });
+
+  // Ensure unassigned notices are never lost - put them in the first card
+  if (unassigned.length > 0 && cards.length > 0) {
+    groupedNotices[cards[0].id].push(...unassigned);
+  }
+
+  const gridColsClass =
+    cards.length === 1
+      ? "grid gap-7 max-w-2xl mx-auto"
+      : cards.length === 2
+      ? "grid gap-7 md:grid-cols-2 max-w-4xl mx-auto"
+      : "grid gap-7 lg:grid-cols-3";
 
   return (
     <section className="bg-[#FBF9F5] px-5 py-20 sm:px-8 lg:px-12 lg:py-28">
@@ -455,7 +588,7 @@ const NoticesSection = ({ data }) => {
         </div>
 
         {/* Dynamic notice columns from cards */}
-        <div className="grid gap-7 lg:grid-cols-3">
+        <div className={gridColsClass}>
           {cards.map((card) => (
             <NoticeColumn
               key={card.id}

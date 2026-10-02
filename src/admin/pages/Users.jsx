@@ -268,7 +268,8 @@ const Users = () => {
           </div>
         ) : (
           <>
-            <table className="w-full text-sm">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-gray-200 bg-gray-50">
                   <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-[0.08em] text-gray-500">
@@ -428,6 +429,7 @@ const Users = () => {
                 })}
               </tbody>
             </table>
+            </div>
 
 
             {/* PAGINATION */}

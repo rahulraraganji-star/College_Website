@@ -1,25 +1,52 @@
 export const collectionConfigs = {
-  // ✅ Scrolling Text/Marquee
+  // ✅ List / Highlights
   list: {
-  title: "Scrolling Text",
-  icon: "📢",
-  collectionKey: "items",
-  addButtonLabel: "Message",
+    title: "List / Highlights",
+    icon: "📋",
+    collectionKey: "items",
+    addButtonLabel: "Item",
 
-  fields: [
-    {
-      key: "text",
-      label: "Text",
-      type: "text",
-    },
-    {
-      key: "font",
-      label: "Font",
-      type: "text",
-      showIn: ["homepage"],
-    },
-  ],
-},
+    fields: [
+      {
+        key: "label",
+        label: "Title / Heading",
+        type: "text",
+      },
+      {
+        key: "description",
+        label: "Description / Details",
+        type: "textarea",
+        showIn: ["page"],
+      },
+      {
+        key: "font",
+        label: "Font",
+        type: "text",
+        showIn: ["homepage"],
+      },
+    ],
+  },
+
+  // ✅ Scrolling Text / Marquee
+  eventsMarquee: {
+    title: "Scrolling Text",
+    icon: "📜",
+    collectionKey: "items",
+    addButtonLabel: "Text Item",
+
+    fields: [
+      {
+        key: "label",
+        label: "Scrolling Text",
+        type: "text",
+      },
+      {
+        key: "font",
+        label: "Font",
+        type: "text",
+      },
+    ],
+  },
 
   // ✅ Timeline
   timeline: {

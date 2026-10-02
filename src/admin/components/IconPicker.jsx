@@ -49,7 +49,7 @@ const IconPicker = ({
             <button
               key={name}
               type="button"
-              onClick={() => onChange(name)}
+              onClick={() => onChange(value === name ? "" : name)}
               title={name}
               className={`h-12 rounded-lg border transition flex items-center justify-center
 

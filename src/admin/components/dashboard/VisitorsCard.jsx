@@ -1,17 +1,37 @@
 import DashboardCard from "./DashboardCard";
 
-const VisitorsCard = () => {
+const VisitorsCard = ({ stats, onOpenOverlay }) => {
+  const analytics = stats?.analytics;
+
+  const visitorsCount = analytics?.visitors ?? 412;
+  const bounceRate = analytics?.bounceRate ?? "29%";
+  const mostViewed = analytics?.mostViewed ?? "Admissions";
+  const avgVisit = analytics?.avgVisit ?? "3m 24s";
+  const bars = analytics?.activityBars || [45, 65, 50, 80, 60, 70, 90];
+
   return (
     <DashboardCard
       eyebrow="Visitors Today"
-      action="Last 7 days"
+      action={
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            onOpenOverlay?.();
+          }}
+          className="text-xs text-gray-400 hover:text-gray-700 hover:underline transition-colors"
+        >
+          Last 7 days
+        </button>
+      }
       className="min-h-[300px]"
+      onClick={onOpenOverlay}
     >
       <div className="grid grid-cols-2 gap-6">
 
         <div>
           <p className="text-2xl font-semibold text-gray-900">
-            412
+            {visitorsCount}
           </p>
 
           <p className="text-xs text-gray-500 mt-1">
@@ -21,7 +41,7 @@ const VisitorsCard = () => {
 
         <div>
           <p className="text-2xl font-semibold text-gray-900">
-            29%
+            {bounceRate}
           </p>
 
           <p className="text-xs text-gray-500 mt-1">
@@ -39,7 +59,7 @@ const VisitorsCard = () => {
           </span>
 
           <span className="font-medium text-gray-900">
-            Admissions
+            {mostViewed}
           </span>
         </div>
 
@@ -49,7 +69,7 @@ const VisitorsCard = () => {
           </span>
 
           <span className="font-medium text-gray-900">
-            3m 24s
+            {avgVisit}
           </span>
         </div>
 
@@ -57,15 +77,13 @@ const VisitorsCard = () => {
 
       {/* SIMPLE ACTIVITY BARS */}
       <div className="flex items-end gap-2 h-16 mt-6">
-        {[45, 65, 50, 80, 60, 70, 90].map(
-          (height, index) => (
-            <div
-              key={index}
-              className="flex-1 bg-gray-300 rounded-t"
-              style={{ height: `${height}%` }}
-            />
-          )
-        )}
+        {bars.map((height, index) => (
+          <div
+            key={index}
+            className="flex-1 bg-gray-300 hover:bg-gray-400 rounded-t transition-colors"
+            style={{ height: `${height}%` }}
+          />
+        ))}
       </div>
     </DashboardCard>
   );

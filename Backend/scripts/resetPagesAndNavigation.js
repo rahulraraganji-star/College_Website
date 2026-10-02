@@ -1,7 +1,7 @@
 import dotenv from "dotenv";
 import connectDB from "../database/connect.js";
 
-import Page from "../models/Page.js";
+import Page from "../models/page.js";
 import NavigationItem from "../models/NavigationItem.js";
 import NavigationMenu from "../models/NavigationMenu.js";
 

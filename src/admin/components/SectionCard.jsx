@@ -53,6 +53,7 @@ const SectionCard = ({
       eventsSection: "Events",
       coreStrengths: "Core Strengths",
       notices: "Notices",
+      principalMessage: "Principal’s Message",
       richText: "Rich Text",
       gallery: "Gallery",
       documents: "Documents",
@@ -63,6 +64,7 @@ const SectionCard = ({
       layout: "Layout",
       list: "List",
       grid: "Grid",
+      embed: "Embed & Links",
     };
 
     return map[type] || type;

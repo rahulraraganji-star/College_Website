@@ -64,6 +64,7 @@ const MediaModal = ({
   const [successMessage, setSuccessMessage] =
     useState("");
 
+
   const [selectedItems, setSelectedItems] =
     useState([]);
 
@@ -161,9 +162,8 @@ const handleUpload = async (files) => {
             console.log("3. Calling uploadMedia");
             console.log("1");
             await uploadMedia(formData);
-            console.log("2");
-
-            console.log("4. Upload success");
+            setSuccessMessage("File uploaded successfully.");
+            setTimeout(() => setSuccessMessage(""), 4000);
 
         } catch (err) {
 
@@ -199,13 +199,83 @@ const handleUpload = async (files) => {
       FILTERED MEDIA
   ========================================================== */
 
+  const isPdfItem = (item) => {
+    return Boolean(
+      item?.type === "pdf" ||
+      item?.mimeType === "application/pdf" ||
+      item?.extension === "pdf" ||
+      (item?.url && item.url.toLowerCase().split("?")[0].endsWith(".pdf")) ||
+      (item?.filename && item.filename.toLowerCase().endsWith(".pdf")) ||
+      (item?.originalName && item.originalName.toLowerCase().endsWith(".pdf"))
+    );
+  };
+
+  const isDocumentItem = (item) => {
+    return Boolean(
+      item?.type === "document" ||
+      isPdfItem(item) ||
+      item?.mimeType?.includes("word") ||
+      item?.mimeType?.includes("excel") ||
+      item?.mimeType?.includes("powerpoint") ||
+      item?.mimeType?.startsWith("text/") ||
+      /\.(pdf|doc|docx|xls|xlsx|ppt|pptx|txt|rtf|csv)$/i.test(
+        item?.url || item?.filename || item?.originalName || ""
+      )
+    );
+  };
+
+  const isImageItem = (item) => {
+    return Boolean(
+      item?.type === "image" ||
+      item?.mimeType?.startsWith("image/") ||
+      /\.(jpg|jpeg|png|webp|gif|svg|avif)$/i.test(
+        item?.url || item?.filename || item?.originalName || ""
+      )
+    );
+  };
+
+  const isVideoItem = (item) => {
+    return Boolean(
+      item?.type === "video" ||
+      item?.mimeType?.startsWith("video/") ||
+      /\.(mp4|webm|mov|avi|mkv)$/i.test(
+        item?.url || item?.filename || item?.originalName || ""
+      )
+    );
+  };
+
+  const isAudioItem = (item) => {
+    return Boolean(
+      item?.type === "audio" ||
+      item?.mimeType?.startsWith("audio/") ||
+      /\.(mp3|wav|ogg|m4a|flac)$/i.test(
+        item?.url || item?.filename || item?.originalName || ""
+      )
+    );
+  };
+
   const filteredMedia = useMemo(() => {
     let items = [...media];
 
-    if (filter !== "all") {
-      items = items.filter(
-        (item) => item.type === filter
-      );
+    if (filter && filter !== "all") {
+      items = items.filter((item) => {
+        if (filter === "pdf") {
+          return isPdfItem(item);
+        }
+        if (filter === "document") {
+          return isDocumentItem(item);
+        }
+        if (filter === "image") {
+          return isImageItem(item);
+        }
+        if (filter === "video") {
+          return isVideoItem(item);
+        }
+        if (filter === "audio") {
+          return isAudioItem(item);
+        }
+        return item.type === filter;
+      });
     }
 
     switch (sort) {
@@ -341,14 +411,6 @@ const handleUpload = async (files) => {
               onNewFolder={handleCreateFolder}
             />
 
-            <UploadDropzone
-              multiple={true}
-              onFilesSelected={(files) => {
-                  console.log("Dropzone fired");
-                  handleUpload(files);
-              }}
-            />
-
             {uploading && (
               <div className="text-blue-600 text-sm">
                 Uploading...
@@ -418,6 +480,16 @@ const handleUpload = async (files) => {
             <div className="flex-1 overflow-y-auto p-6 space-y-10">
 
               {/* ==================================================
+                  UPLOAD
+              ================================================== */}
+              <UploadDropzone
+                multiple={true}
+                onFilesSelected={(files) => {
+                  handleUpload(files);
+                }}
+              />
+
+              {/* ==================================================
                   FOLDERS
               ================================================== */}
 
@@ -447,9 +519,10 @@ const handleUpload = async (files) => {
                     className="
                       grid
                       grid-cols-2
+                      sm:grid-cols-3
                       md:grid-cols-4
-                      xl:grid-cols-6
-                      gap-5
+                      xl:grid-cols-4
+                      gap-6
                     "
                   >
 
@@ -579,9 +652,10 @@ const handleUpload = async (files) => {
                     className="
                       grid
                       grid-cols-2
+                      sm:grid-cols-3
                       md:grid-cols-4
-                      xl:grid-cols-6
-                      gap-5
+                      xl:grid-cols-4
+                      gap-6
                     "
                   >
 
@@ -652,9 +726,10 @@ const handleUpload = async (files) => {
                         ? `
                             grid
                             grid-cols-2
+                            sm:grid-cols-3
                             md:grid-cols-4
-                            xl:grid-cols-6
-                            gap-5
+                            xl:grid-cols-4
+                            gap-6
                           `
 
                         : `
