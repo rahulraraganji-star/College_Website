@@ -189,14 +189,18 @@ const Roles = () => {
                       {(role.allowedPages || []).length === 0 ? (
                         <span className="text-xs text-gray-400">—</span>
                       ) : (
-                        (role.allowedPages || []).slice(0, 3).map((pg) => (
-                          <span
-                            key={pg}
-                            className="rounded-md bg-gray-100 px-2 py-0.5 text-xs text-gray-600"
-                          >
-                            {pg}
-                          </span>
-                        ))
+                        (role.allowedPages || []).slice(0, 3).map((pg, idx) => {
+                          const label = typeof pg === "string" ? pg : (pg?.key || pg?.label || "");
+                          if (!label) return null;
+                          return (
+                            <span
+                              key={label + idx}
+                              className="rounded-md bg-gray-100 px-2 py-0.5 text-xs text-gray-600"
+                            >
+                              {label}
+                            </span>
+                          );
+                        })
                       )}
                       {(role.allowedPages || []).length > 3 && (
                         <span className="text-xs text-gray-400">

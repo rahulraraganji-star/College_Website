@@ -317,14 +317,18 @@ const CreateUser = () => {
                         {(selectedRole.allowedPages || []).length === 0 ? (
                           <span className="text-xs text-gray-400">No pages assigned</span>
                         ) : (
-                          selectedRole.allowedPages.map((pg) => (
-                            <span
-                              key={pg}
-                              className="flex items-center gap-1 rounded-md bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-700"
-                            >
-                              <span className="text-green-500">✓</span> {pg}
-                            </span>
-                          ))
+                          (selectedRole.allowedPages || []).map((pg, idx) => {
+                            const label = typeof pg === "string" ? pg : (pg?.key || pg?.label || "");
+                            if (!label) return null;
+                            return (
+                              <span
+                                key={label + idx}
+                                className="flex items-center gap-1 rounded-md bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-700"
+                              >
+                                <span className="text-green-500">✓</span> {label}
+                              </span>
+                            );
+                          })
                         )}
                       </div>
                     </div>
@@ -338,14 +342,18 @@ const CreateUser = () => {
                         {(selectedRole.permissions || []).length === 0 ? (
                           <span className="text-xs text-gray-400">No permissions assigned</span>
                         ) : (
-                          selectedRole.permissions.map((perm) => (
-                            <span
-                              key={perm}
-                              className="rounded-md bg-gray-900 px-2.5 py-1 text-xs font-medium text-white"
-                            >
-                              {perm}
-                            </span>
-                          ))
+                          selectedRole.permissions.map((perm, idx) => {
+                            const label = typeof perm === "string" ? perm : (perm?.key || perm?.label || "");
+                            if (!label) return null;
+                            return (
+                              <span
+                                key={label + idx}
+                                className="rounded-md bg-gray-900 px-2.5 py-1 text-xs font-medium text-white"
+                              >
+                                {label}
+                              </span>
+                            );
+                          })
                         )}
                       </div>
                     </div>

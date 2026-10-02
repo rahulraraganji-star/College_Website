@@ -109,23 +109,35 @@ const CreateRoleModal = ({ onSuccess, onClose }) => {
   // ==========================================
 
   const togglePage = (key) => {
+    if (!key) return;
+    const pageKey = typeof key === "string" ? key : key?.key;
+    if (!pageKey) return;
+
     setSelectedPages((prev) => {
-      const current = prev || [];
-      return current.includes(key)
-        ? current.filter((k) => k !== key)
-        : [...current, key];
+      const current = (prev || [])
+        .map((p) => (typeof p === "string" ? p : p?.key || ""))
+        .filter(Boolean);
+      return current.includes(pageKey)
+        ? current.filter((k) => k !== pageKey)
+        : [...current, pageKey];
     });
   };
 
   const togglePermission = (perm) => {
+    if (!perm) return;
+    const permKey = typeof perm === "string" ? perm : perm?.key;
+    if (!permKey) return;
+
     setSelectedPermissions((prev) => {
-      const current = prev || [];
-      if (current.includes(perm)) {
-        return current.filter((p) => p !== perm);
+      const current = (prev || [])
+        .map((p) => (typeof p === "string" ? p : p?.key || ""))
+        .filter(Boolean);
+      if (current.includes(permKey)) {
+        return current.filter((p) => p !== permKey);
       } else {
-        const next = [...current, perm];
-        if (perm && typeof perm === "string" && perm.includes(".")) {
-          const modulePrefix = perm.split(".")[0];
+        const next = [...current, permKey];
+        if (typeof permKey === "string" && permKey.includes(".")) {
+          const modulePrefix = permKey.split(".")[0];
           const viewPerm = `${modulePrefix}.view`;
           if (!next.includes(viewPerm)) {
             next.push(viewPerm);
@@ -138,29 +150,39 @@ const CreateRoleModal = ({ onSuccess, onClose }) => {
 
   const toggleGroupAll = (group) => {
     if (!group || !group.permissions) return;
-    const keys = (group.permissions || []).map((p) => p.key);
-    const current = selectedPermissions || [];
-    const allSelected = keys.length > 0 && keys.every((k) => current.includes(k));
+    const keys = (group.permissions || [])
+      .map((p) => (typeof p === "string" ? p : p?.key))
+      .filter(Boolean);
+    if (keys.length === 0) return;
 
     setSelectedPermissions((prev) => {
-      const p = prev || [];
+      const current = (prev || [])
+        .map((p) => (typeof p === "string" ? p : p?.key || ""))
+        .filter(Boolean);
+      const allSelected = keys.every((k) => current.includes(k));
+
       return allSelected
-        ? p.filter((k) => !keys.includes(k))
-        : [...p.filter((k) => !keys.includes(k)), ...keys];
+        ? current.filter((k) => !keys.includes(k))
+        : [...current.filter((k) => !keys.includes(k)), ...keys];
     });
   };
 
   // Toggle all children of a page group (for checkboxes)
   const togglePageGroup = (group) => {
     if (!group || !group.children) return;
-    const childKeys = (group.children || []).map((c) => c.key);
-    const current = selectedPages || [];
-    const allSelected = childKeys.length > 0 && childKeys.every((k) => current.includes(k));
+    const childKeys = (group.children || [])
+      .map((c) => (typeof c === "string" ? c : c?.key))
+      .filter(Boolean);
+    if (childKeys.length === 0) return;
+
     setSelectedPages((prev) => {
-      const p = prev || [];
+      const current = (prev || [])
+        .map((p) => (typeof p === "string" ? p : p?.key || ""))
+        .filter(Boolean);
+      const allSelected = childKeys.every((k) => current.includes(k));
       return allSelected
-        ? p.filter((k) => !childKeys.includes(k))
-        : [...p.filter((k) => !childKeys.includes(k)), ...childKeys];
+        ? current.filter((k) => !childKeys.includes(k))
+        : [...current.filter((k) => !childKeys.includes(k)), ...childKeys];
     });
   };
 
@@ -407,8 +429,13 @@ const CreateRoleModal = ({ onSuccess, onClose }) => {
                   {(groups || []).map((group) => {
                     if (!group) return null;
                     const isExpanded = Boolean(expandedGroups[group.key]);
-                    const childKeys = (group.children || []).map((c) => c.key);
-                    const selectedCount = childKeys.filter((k) => (selectedPages || []).includes(k)).length;
+                    const childKeys = (group.children || [])
+                      .map((c) => (typeof c === "string" ? c : c?.key))
+                      .filter(Boolean);
+                    const currentPages = (selectedPages || [])
+                      .map((p) => (typeof p === "string" ? p : p?.key || ""))
+                      .filter(Boolean);
+                    const selectedCount = childKeys.filter((k) => currentPages.includes(k)).length;
                     const allSelected = childKeys.length > 0 && selectedCount === childKeys.length;
                     const someSelected = selectedCount > 0 && !allSelected;
 
@@ -428,7 +455,11 @@ const CreateRoleModal = ({ onSuccess, onClose }) => {
                             <input
                               type="checkbox"
                               checked={allSelected}
-                              ref={(el) => { if (el) el.indeterminate = someSelected; }}
+                              ref={(el) => {
+                                if (el) {
+                                  el.indeterminate = Boolean(someSelected);
+                                }
+                              }}
                               onChange={(e) => {
                                 e.stopPropagation();
                                 togglePageGroup(group);
@@ -463,10 +494,13 @@ const CreateRoleModal = ({ onSuccess, onClose }) => {
                             ) : (
                               (group.children || []).map((child) => {
                                 if (!child) return null;
-                                const selected = (selectedPages || []).includes(child.key);
+                                const childKey = typeof child === "string" ? child : child?.key;
+                                const childLabel = typeof child === "string" ? child : (child?.label || childKey);
+                                if (!childKey) return null;
+                                const selected = currentPages.includes(childKey);
                                 return (
                                   <label
-                                    key={child.key}
+                                    key={childKey}
                                     className={[
                                       "flex items-center gap-3 px-6 py-2.5 cursor-pointer transition-colors",
                                       selected ? "bg-gray-900 text-white" : "bg-white hover:bg-gray-50 text-gray-700",
@@ -475,10 +509,10 @@ const CreateRoleModal = ({ onSuccess, onClose }) => {
                                     <input
                                       type="checkbox"
                                       checked={selected}
-                                      onChange={() => togglePage(child.key)}
+                                      onChange={() => togglePage(childKey)}
                                       className="h-3.5 w-3.5 rounded"
                                     />
-                                    <span className="text-sm">{child.label}</span>
+                                    <span className="text-sm">{childLabel}</span>
                                   </label>
                                 );
                               })
@@ -513,9 +547,14 @@ const CreateRoleModal = ({ onSuccess, onClose }) => {
                   .filter((g) => g && g.key !== "audit")
                   .map((group) => {
                     if (!group) return null;
-                    const keys = (group.permissions || []).map((p) => p.key);
+                    const keys = (group.permissions || [])
+                      .map((p) => (typeof p === "string" ? p : p?.key))
+                      .filter(Boolean);
+                    const currentPerms = (selectedPermissions || [])
+                      .map((p) => (typeof p === "string" ? p : p?.key || ""))
+                      .filter(Boolean);
                     const allSelected = keys.length > 0 && keys.every((k) =>
-                      (selectedPermissions || []).includes(k)
+                      currentPerms.includes(k)
                     );
 
                     return (
@@ -538,25 +577,33 @@ const CreateRoleModal = ({ onSuccess, onClose }) => {
                         <div className="flex flex-wrap gap-2 p-4">
                           {(group.permissions || []).map((perm) => {
                             if (!perm) return null;
-                            const active = (selectedPermissions || []).includes(perm.key);
+                            const permKey = typeof perm === "string" ? perm : perm?.key;
+                            const permLabel = typeof perm === "string" ? perm : (perm?.label || perm?.key || "");
+                            if (!permKey) return null;
+                            const active = currentPerms.includes(permKey);
                             return (
-                              <label
-                                key={perm.key}
+                              <button
+                                type="button"
+                                key={permKey}
+                                onClick={() => togglePermission(permKey)}
                                 className={[
                                   "flex items-center gap-2 rounded-lg border px-3 py-2 cursor-pointer text-sm transition-colors select-none",
                                   active
                                     ? "border-gray-900 bg-gray-900 text-white"
-                                    : "border-gray-200 text-gray-600 hover:border-gray-300",
+                                    : "border-gray-200 text-gray-600 hover:border-gray-300 bg-white",
                                 ].join(" ")}
                               >
-                                <input
-                                  type="checkbox"
-                                  checked={active}
-                                  onChange={() => togglePermission(perm.key)}
-                                  className="sr-only"
-                                />
-                                {perm.label}
-                              </label>
+                                <span className="sr-only">
+                                  <input
+                                    type="checkbox"
+                                    checked={active}
+                                    readOnly
+                                    tabIndex={-1}
+                                    className="sr-only"
+                                  />
+                                </span>
+                                {permLabel}
+                              </button>
                             );
                           })}
                         </div>
@@ -591,13 +638,14 @@ const CreateRoleModal = ({ onSuccess, onClose }) => {
                       <span className="text-sm text-gray-400">None selected</span>
                     ) : (
                       selectedPages.map((key) => {
-                        const scope = scopes.find((s) => s.key === key);
+                        const pageKey = typeof key === "string" ? key : key?.key;
+                        const scope = scopes.find((s) => s.key === pageKey);
                         return (
                           <span
-                            key={key}
+                            key={pageKey}
                             className="rounded-md bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-700"
                           >
-                            {scope?.label || key}
+                            {scope?.label || pageKey}
                           </span>
                         );
                       })
@@ -613,14 +661,18 @@ const CreateRoleModal = ({ onSuccess, onClose }) => {
                     {selectedPermissions.length === 0 ? (
                       <span className="text-sm text-gray-400">None selected</span>
                     ) : (
-                      selectedPermissions.map((perm) => (
-                        <span
-                          key={perm}
-                          className="rounded-md bg-gray-900 px-2.5 py-1 text-xs font-medium text-white"
-                        >
-                          {perm}
-                        </span>
-                      ))
+                      selectedPermissions.map((perm, idx) => {
+                        const permLabel = typeof perm === "string" ? perm : (perm?.key || perm?.label || "");
+                        if (!permLabel) return null;
+                        return (
+                          <span
+                            key={permLabel + idx}
+                            className="rounded-md bg-gray-900 px-2.5 py-1 text-xs font-medium text-white"
+                          >
+                            {permLabel}
+                          </span>
+                        );
+                      })
                     )}
                   </div>
                 </div>

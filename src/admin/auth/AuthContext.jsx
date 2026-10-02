@@ -102,7 +102,10 @@ export const AuthProvider = ({ children }) => {
       return true;
     }
 
-    const permissions = user.permissions || [];
+    const rawPermissions = user.permissions || [];
+    const permissions = rawPermissions
+      .map((p) => (typeof p === "string" ? p : p?.key || ""))
+      .filter(Boolean);
 
     // Super Admin / wildcard access
     if (permissions.includes("*")) {
@@ -114,9 +117,9 @@ export const AuthProvider = ({ children }) => {
     }
 
     // Permission hierarchy: edit/create/delete/upload implies view
-    if (permission.endsWith(".view")) {
+    if (typeof permission === "string" && permission.endsWith(".view")) {
       const modulePrefix = permission.split(".")[0] + ".";
-      return permissions.some((p) => p.startsWith(modulePrefix));
+      return permissions.some((p) => typeof p === "string" && p.startsWith(modulePrefix));
     }
 
     return false;
@@ -131,14 +134,17 @@ export const AuthProvider = ({ children }) => {
       return true;
     }
 
-    const userPermissions = user.permissions || [];
+    const rawPermissions = user.permissions || [];
+    const userPermissions = rawPermissions
+      .map((p) => (typeof p === "string" ? p : p?.key || ""))
+      .filter(Boolean);
 
     // Wildcard = everything
     if (userPermissions.includes("*")) {
       return true;
     }
 
-    return permissionList.some((perm) => hasPermission(perm));
+    return (permissionList || []).some((perm) => hasPermission(perm));
   };
 
   const hasAllPermissions = (permissionList = []) => {
@@ -150,14 +156,17 @@ export const AuthProvider = ({ children }) => {
       return true;
     }
 
-    const userPermissions = user.permissions || [];
+    const rawPermissions = user.permissions || [];
+    const userPermissions = rawPermissions
+      .map((p) => (typeof p === "string" ? p : p?.key || ""))
+      .filter(Boolean);
 
     // Wildcard = everything
     if (userPermissions.includes("*")) {
       return true;
     }
 
-    return permissionList.every((perm) => hasPermission(perm));
+    return (permissionList || []).every((perm) => hasPermission(perm));
   };
 
   const hasPageAccess = (pageSlug) => {
@@ -169,7 +178,10 @@ export const AuthProvider = ({ children }) => {
       return true;
     }
 
-    const allowedPages = user.allowedPages || [];
+    const rawPages = user.allowedPages || [];
+    const allowedPages = rawPages
+      .map((p) => (typeof p === "string" ? p : p?.key || ""))
+      .filter(Boolean);
 
     // Wildcard = access to all pages
     if (allowedPages.includes("*")) {

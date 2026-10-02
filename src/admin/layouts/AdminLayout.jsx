@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import { Outlet } from "react-router-dom";
 import AdminSidebar from "../components/AdminSidebar";
 import AdminTopbar from "../components/AdminTopbar";
+import AdminErrorBoundary from "../components/AdminErrorBoundary";
 import LoadingScreen from "../../Components/LoadingScreen";
 
 const AdminLayout = () => {
@@ -13,9 +14,11 @@ const AdminLayout = () => {
         <AdminTopbar />
 
         <main className="flex-1 p-4 md:p-6 lg:p-8 overflow-y-auto min-w-0">
-          <Suspense fallback={<LoadingScreen fullScreen={false} text="Loading..." />}>
-            <Outlet />
-          </Suspense>
+          <AdminErrorBoundary>
+            <Suspense fallback={<LoadingScreen fullScreen={false} text="Loading..." />}>
+              <Outlet />
+            </Suspense>
+          </AdminErrorBoundary>
         </main>
       </div>
     </div>
