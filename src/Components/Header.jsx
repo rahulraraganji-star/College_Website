@@ -2,6 +2,30 @@ import { Link } from "react-router-dom";
 import logo from "../assets/logo.svg";
 import AccessibilityAudioReader from "./AccessibilityAudioReader";
 
+const renderMobileTitle = (title) => {
+  if (!title || typeof title !== "string") return title;
+
+  if (title.includes("\n")) {
+    return title.split("\n").map((line, idx) => (
+      <span key={idx} className="block whitespace-nowrap">
+        {line}
+      </span>
+    ));
+  }
+
+  const collegeMatch = title.match(/^(.*?\bCollege\s+of)\s+(.*)$/i);
+  if (collegeMatch) {
+    return (
+      <>
+        <span className="block whitespace-nowrap">{collegeMatch[1]}</span>
+        <span className="block whitespace-nowrap">{collegeMatch[2]}</span>
+      </>
+    );
+  }
+
+  return title;
+};
+
 const Header = ({ data }) => {
   if (!data) return null;
 
@@ -28,19 +52,19 @@ const Header = ({ data }) => {
             </Link>
 
             {/* Text Content */}
-            <div className="flex-1 text-left">
+            <div className="flex-1 text-left min-w-0">
               {/* College Name */}
               <h1
                 className="
                   text-[#233044]
-                  text-[2rem]
-                  leading-[1]
+                  text-[clamp(1.35rem,6.2vw,2rem)]
+                  leading-[1.12]
                   tracking-[-0.02em]
                   font-normal
                   font-[Jaini_Purva]
                 "
               >
-                {data.title}
+                {renderMobileTitle(data.title)}
               </h1>
 
               {/* Subtitle */}
