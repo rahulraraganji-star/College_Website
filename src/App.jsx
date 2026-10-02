@@ -49,10 +49,16 @@ function ScrollToTop() {
   return null;
 }
 
+const DEFAULT_HEADER = {
+  title: "Fr. Agnel College of Arts & Commerce",
+  subtitle: "Affiliated to Goa University",
+  tagline: "Accredited by NAAC with Grade A+ (CGPA 3.28)",
+};
+
 function App() {
 
   const [header, setHeader] =
-    useState(null);
+    useState(DEFAULT_HEADER);
 
   const [footer, setFooter] =
     useState(null);
@@ -80,24 +86,45 @@ function App() {
     const loadSettings = () => {
       fetch("/api/settings/header", { cache: "no-store" })
         .then((res) => res.json())
-        .then(setHeader)
+        .then((data) => {
+          if (data && data.title) {
+            setHeader(data);
+          }
+        })
         .catch(() => console.log("Header error"));
 
       fetch("/api/settings/footer", { cache: "no-store" })
         .then((res) => res.json())
-        .then(setFooter)
+        .then((data) => {
+          if (data) setFooter(data);
+        })
         .catch(() => console.log("Footer error"));
     };
 
     loadSettings();
 
+    // Revalidate when page is restored from mobile browser background / bfcache
     const handlePageShow = (e) => {
       if (e.persisted) {
+        window.location.reload();
+      } else {
         loadSettings();
       }
     };
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        loadSettings();
+      }
+    };
+
     window.addEventListener("pageshow", handlePageShow);
-    return () => window.removeEventListener("pageshow", handlePageShow);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      window.removeEventListener("pageshow", handlePageShow);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
   }, []);
 
   return (

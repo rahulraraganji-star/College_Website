@@ -27,6 +27,21 @@
       gtag('js', new Date());
       gtag('config', 'G-D8PRGJKBW6');
     </script>
+    <!-- Clean legacy service workers or offline caches on mobile -->
+    <script>
+      try {
+        if ('serviceWorker' in navigator) {
+          navigator.serviceWorker.getRegistrations().then(function(regs) {
+            for (var r of regs) r.unregister();
+          });
+        }
+        if ('caches' in window) {
+          caches.keys().then(function(keys) {
+            for (var k of keys) caches.delete(k);
+          });
+        }
+      } catch (e) {}
+    </script>
     <!-- Instant Hero Image Preloader (Frame 0 Network Discovery) -->
     <script>
       (function () {

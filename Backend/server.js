@@ -242,6 +242,8 @@ app.use(
         res.set("Cache-Control", "no-cache, no-store, must-revalidate");
         res.set("Pragma", "no-cache");
         res.set("Expires", "0");
+        res.removeHeader("ETag");
+        res.removeHeader("Last-Modified");
       } else if (filePath.includes("assets") || filePath.includes("dist" + path.sep + "assets")) {
         // Hashed JS/CSS chunks have unique hashes, safe to cache permanently
         res.set("Cache-Control", "public, max-age=31536000, immutable");
@@ -273,7 +275,7 @@ app.get("/{*splat}", (req, res) => {
     res.set("Cache-Control", "no-cache, no-store, must-revalidate");
     res.set("Pragma", "no-cache");
     res.set("Expires", "0");
-    return res.sendFile(indexPath);
+    return res.sendFile(indexPath, { etag: false, lastModified: false });
   }
 
   return res.status(404).json({
