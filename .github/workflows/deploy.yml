@@ -12,8 +12,18 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
         with:
-          fetch-depth: 0
+          node-version: 20
+          cache: npm
+
+      - name: Install frontend dependencies
+        run: npm ci
+
+      - name: Build frontend
+        run: npm run build
 
       - name: Configure SSH
         env:
@@ -41,11 +51,31 @@ jobs:
 
           chmod 600 ~/.ssh/config
 
-      - name: Push to cPanel Git repository
+      - name: Test cPanel SSH connection
         run: |
-          git remote add cpanel ssh://cpanel/home/fac/git_deploy/college_Website
+          ssh cpanel "echo 'SSH connection successful'"
 
-          git -c pack.threads=1 \
-              -c pack.window=1 \
-              -c pack.depth=1 \
-              push cpanel HEAD:master
+      - name: Deploy frontend
+        run: |
+          rsync -az \
+            ./dist/ \
+            cpanel:/home/fac/test/college_Website/dist/
+
+      - name: Deploy backend
+        run: |
+          rsync -az \
+            --exclude='.env' \
+            --exclude='.env.production' \
+            --exclude='uploads/' \
+            --exclude='node_modules/' \
+            ./Backend/ \
+            cpanel:/home/fac/test/college_Website/Backend/
+
+      - name: Install backend dependencies and restart
+        run: |
+          ssh cpanel '
+            export PATH=/home/fac/nodevenv/test/college_Website/Backend/20/bin:$PATH &&
+            cd /home/fac/test/college_Website/Backend &&
+            npm install --omit=dev --no-audit --no-fund &&
+            touch tmp/restart.txt
+          '
