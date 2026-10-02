@@ -12,6 +12,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
 
       - name: Configure SSH
         env:
@@ -42,4 +44,8 @@ jobs:
       - name: Push to cPanel Git repository
         run: |
           git remote add cpanel ssh://cpanel/home/fac/git_deploy/college_Website
-          GIT_SSH_COMMAND="ssh -F ~/.ssh/config" git push cpanel HEAD:master
+
+          git -c pack.threads=1 \
+              -c pack.window=1 \
+              -c pack.depth=1 \
+              push cpanel HEAD:master
