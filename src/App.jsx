@@ -77,25 +77,27 @@ function App() {
     location.pathname.startsWith("/admin/");
 
   useEffect(() => {
+    const loadSettings = () => {
+      fetch("/api/settings/header", { cache: "no-store" })
+        .then((res) => res.json())
+        .then(setHeader)
+        .catch(() => console.log("Header error"));
 
-    fetch(
-      "/api/settings/header"
-    )
-      .then((res) => res.json())
-      .then(setHeader)
-      .catch(() =>
-        console.log("Header error")
-      );
+      fetch("/api/settings/footer", { cache: "no-store" })
+        .then((res) => res.json())
+        .then(setFooter)
+        .catch(() => console.log("Footer error"));
+    };
 
-    fetch(
-      "/api/settings/footer"
-    )
-      .then((res) => res.json())
-      .then(setFooter)
-      .catch(() =>
-        console.log("Footer error")
-      );
+    loadSettings();
 
+    const handlePageShow = (e) => {
+      if (e.persisted) {
+        loadSettings();
+      }
+    };
+    window.addEventListener("pageshow", handlePageShow);
+    return () => window.removeEventListener("pageshow", handlePageShow);
   }, []);
 
   return (

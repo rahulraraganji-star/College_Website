@@ -7,7 +7,7 @@ const Layout = ({ children }) => {
   const [settings, setSettings] = useState(null);
 
   useEffect(() => {
-    fetch("/api/settings")
+    fetch("/api/settings", { cache: "no-store" })
       .then((res) => res.json())
       .then((data) => {
         console.log("SETTINGS:", data); // DEBUG

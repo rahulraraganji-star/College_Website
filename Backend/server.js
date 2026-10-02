@@ -234,8 +234,21 @@ app.use(handleLegacyRequest);
 // 1. Serve static frontend assets (JS, CSS, images, icons, fonts)
 app.use(
   express.static(distPath, {
-    maxAge: "1d",
     etag: true,
+    lastModified: true,
+    setHeaders: (res, filePath) => {
+      // index.html must NEVER be cached by browsers
+      if (path.basename(filePath) === "index.html") {
+        res.set("Cache-Control", "no-cache, no-store, must-revalidate");
+        res.set("Pragma", "no-cache");
+        res.set("Expires", "0");
+      } else if (filePath.includes("assets") || filePath.includes("dist" + path.sep + "assets")) {
+        // Hashed JS/CSS chunks have unique hashes, safe to cache permanently
+        res.set("Cache-Control", "public, max-age=31536000, immutable");
+      } else {
+        res.set("Cache-Control", "no-cache, must-revalidate");
+      }
+    },
   })
 );
 
@@ -257,6 +270,9 @@ app.get("/{*splat}", (req, res) => {
 
   const indexPath = path.join(distPath, "index.html");
   if (fs.existsSync(indexPath)) {
+    res.set("Cache-Control", "no-cache, no-store, must-revalidate");
+    res.set("Pragma", "no-cache");
+    res.set("Expires", "0");
     return res.sendFile(indexPath);
   }
 
