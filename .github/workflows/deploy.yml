@@ -1,0 +1,45 @@
+name: Deploy to cPanel
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Configure SSH
+        env:
+          CPANEL_SSH_PRIVATE_KEY: ${{ secrets.CPANEL_SSH_PRIVATE_KEY }}
+        run: |
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+
+          printf '%s\n' "$CPANEL_SSH_PRIVATE_KEY" > ~/.ssh/cpanel_deploy
+          chmod 600 ~/.ssh/cpanel_deploy
+
+          ssh-keyscan -4 -p 7822 fragnelcollege.edu.in >> ~/.ssh/known_hosts
+          chmod 644 ~/.ssh/known_hosts
+
+          cat > ~/.ssh/config <<'EOF'
+          Host cpanel
+            HostName fragnelcollege.edu.in
+            User fac
+            Port 7822
+            IdentityFile ~/.ssh/cpanel_deploy
+            IdentitiesOnly yes
+            AddressFamily inet
+            MACs hmac-sha2-512
+          EOF
+
+          chmod 600 ~/.ssh/config
+
+      - name: Push to cPanel Git repository
+        run: |
+          git remote add cpanel ssh://cpanel/home/fac/git_deploy/college_Website
+          GIT_SSH_COMMAND="ssh -F ~/.ssh/config" git push cpanel HEAD:master
