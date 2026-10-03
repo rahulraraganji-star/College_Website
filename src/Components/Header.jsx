@@ -60,7 +60,7 @@ const Header = ({ data }) => {
                   text-[clamp(1.2rem,5.6vw,1.95rem)]
                   leading-[1.12]
                   tracking-[-0.02em]
-                  font-normal
+                  font-medium
                   font-[Jaini_Purva]
                 "
               >
@@ -71,11 +71,12 @@ const Header = ({ data }) => {
               {data.subtitle && (
                 <p
                   className="
-                    mt-2
+                    mt-1
                     text-[#C8921B]
-                    text-[18px]
-                    font-semibold
-                    tracking-[0.08em]
+                    text-[13px]
+                    sm:text-[14px]
+                    font-medium
+                    tracking-[0.04em]
                   "
                 >
                   {data.subtitle}

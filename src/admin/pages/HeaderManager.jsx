@@ -466,13 +466,13 @@ const HeaderManager = () => {
                           />
                           <div className="flex-1 text-left min-w-0">
                             <h1
-                              className="text-[#233044] text-lg leading-tight font-normal"
+                              className="text-[#233044] text-lg leading-tight font-medium"
                               style={{ fontFamily: "'Jaini Purva', cursive, serif" }}
                             >
                               {renderMobileTitle(formData.title || "College Name")}
                             </h1>
                             {formData.subtitle && (
-                              <p className="mt-1 text-[#C8921B] text-xs font-semibold tracking-[0.05em]">
+                              <p className="mt-1 text-[#C8921B] text-xs font-medium tracking-[0.05em]">
                                 {formData.subtitle}
                               </p>
                             )}
