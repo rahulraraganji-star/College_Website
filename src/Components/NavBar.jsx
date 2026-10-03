@@ -23,7 +23,7 @@ const Navbar = () => {
 
     const fetchNavbarData = () => {
 
-      fetch("/api/navigation")
+      fetch("/api/navigation", { cache: "no-store" })
         .then((res) => res.json())
         .then((navData) => {
 
@@ -57,9 +57,13 @@ const Navbar = () => {
     // INITIAL FETCH
     fetchNavbarData();
 
-    // LISTEN FOR CREATE/UPDATE EVENTS
+    // LISTEN FOR CREATE/UPDATE & TAB RESUME EVENTS
     window.addEventListener(
       "navbarRefresh",
+      fetchNavbarData
+    );
+    window.addEventListener(
+      "app:revalidate",
       fetchNavbarData
     );
 
@@ -68,6 +72,10 @@ const Navbar = () => {
 
       window.removeEventListener(
         "navbarRefresh",
+        fetchNavbarData
+      );
+      window.removeEventListener(
+        "app:revalidate",
         fetchNavbarData
       );
 

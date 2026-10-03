@@ -34,6 +34,8 @@ import AdminRoutes from "./admin/routes/AdminRoutes";
 /* LEGACY RESOLVER / 404 */
 import LegacyResolverFallback from "./Components/LegacyResolverFallback";
 import { initGoogleAnalytics, trackPageView } from "./utils/googleAnalytics";
+import { clearPageCache } from "./utils/pageCache";
+import { clearSidebarCache } from "./utils/sidebarCache";
 
 function ScrollToTop() {
   const location = useLocation();
@@ -83,6 +85,8 @@ function App() {
     location.pathname.startsWith("/admin/");
 
   useEffect(() => {
+    let initialVersion = null;
+
     const loadSettings = () => {
       fetch("/api/settings/header", { cache: "no-store" })
         .then((res) => res.json())
@@ -101,29 +105,60 @@ function App() {
         .catch(() => console.log("Footer error"));
     };
 
-    loadSettings();
+    const checkVersionAndRevalidate = () => {
+      // 1. Invalidate in-memory caches to guarantee freshness
+      clearPageCache();
+      clearSidebarCache();
 
-    // Revalidate when page is restored from mobile browser background / bfcache
+      // 2. Revalidate settings and broadcast revalidate event to active pages/components
+      loadSettings();
+      window.dispatchEvent(new CustomEvent("app:revalidate"));
+
+      // 3. Check if server deployed a new version of the frontend
+      fetch("/api/version", { cache: "no-store" })
+        .then((res) => res.json())
+        .then((data) => {
+          if (data && data.version) {
+            if (!initialVersion) {
+              initialVersion = data.version;
+            } else if (initialVersion !== data.version) {
+              // A new build was deployed: seamlessly refresh the page
+              window.location.reload();
+            }
+          }
+        })
+        .catch(() => {});
+    };
+
+    checkVersionAndRevalidate();
+
+    // Revalidate when page is restored from mobile browser background / bfcache / tab resume
     const handlePageShow = (e) => {
       if (e.persisted) {
         window.location.reload();
       } else {
-        loadSettings();
+        checkVersionAndRevalidate();
       }
     };
 
     const handleVisibilityChange = () => {
       if (document.visibilityState === "visible") {
-        loadSettings();
+        checkVersionAndRevalidate();
       }
+    };
+
+    const handleFocus = () => {
+      checkVersionAndRevalidate();
     };
 
     window.addEventListener("pageshow", handlePageShow);
     document.addEventListener("visibilitychange", handleVisibilityChange);
+    window.addEventListener("focus", handleFocus);
 
     return () => {
       window.removeEventListener("pageshow", handlePageShow);
       document.removeEventListener("visibilitychange", handleVisibilityChange);
+      window.removeEventListener("focus", handleFocus);
     };
   }, []);
 

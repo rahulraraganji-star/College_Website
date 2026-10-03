@@ -22,36 +22,48 @@ const SectionLayout = () => {
 
     let isCurrent = true;
 
-    fetch(`/api/pages/sidebar/${parentSlug}`)
-      .then((res) => {
-        if (!res.ok) throw new Error("Failed to fetch sidebar data");
-        return res.json();
-      })
-      .then((data) => {
-        if (!isCurrent) return;
-        const items = Array.isArray(data)
-          ? data.map((page) => ({
-              to: `/${parentSlug}/${page.slug}`,
-              label: page.title,
-            }))
-          : [];
-        sidebarCache.set(parentSlug, items);
-        setNavItems(items);
-        setError(null);
-      })
-      .catch((err) => {
-        if (!isCurrent) return;
-        if (!sidebarCache.has(parentSlug)) {
-          console.error(err);
-          setError(err.message);
-        }
-      })
-      .finally(() => {
-        if (isCurrent) setLoading(false);
-      });
+    const loadSidebarData = () => {
+      fetch(`/api/pages/sidebar/${parentSlug}`, { cache: "no-store" })
+        .then((res) => {
+          if (!res.ok) throw new Error("Failed to fetch sidebar data");
+          return res.json();
+        })
+        .then((data) => {
+          if (!isCurrent) return;
+          const items = Array.isArray(data)
+            ? data.map((page) => ({
+                to: `/${parentSlug}/${page.slug}`,
+                label: page.title,
+              }))
+            : [];
+          sidebarCache.set(parentSlug, items);
+          setNavItems(items);
+          setError(null);
+        })
+        .catch((err) => {
+          if (!isCurrent) return;
+          if (!sidebarCache.has(parentSlug)) {
+            console.error(err);
+            setError(err.message);
+          }
+        })
+        .finally(() => {
+          if (isCurrent) setLoading(false);
+        });
+    };
+
+    loadSidebarData();
+
+    const handleRevalidate = () => {
+      sidebarCache.delete(parentSlug);
+      loadSidebarData();
+    };
+
+    window.addEventListener("app:revalidate", handleRevalidate);
 
     return () => {
       isCurrent = false;
+      window.removeEventListener("app:revalidate", handleRevalidate);
     };
   }, [parentSlug]);
 

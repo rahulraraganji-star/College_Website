@@ -16,23 +16,35 @@ const HomePageTemplate = () => {
 
   useEffect(() => {
     let isCurrent = true;
-    fetch("/api/home", { cache: "no-store" })
-      .then((res) => res.json())
-      .then((resData) => {
-        if (!isCurrent) return;
-        const normalized = Array.isArray(resData) ? resData[0] : resData;
-        setClientHomeCache(normalized);
-        setData(normalized);
-        setLoading(false);
-      })
-      .catch((error) => {
-        if (!isCurrent) return;
-        console.error(error);
-        setLoading(false);
-      });
+
+    const loadHomeData = () => {
+      fetch("/api/home", { cache: "no-store" })
+        .then((res) => res.json())
+        .then((resData) => {
+          if (!isCurrent) return;
+          const normalized = Array.isArray(resData) ? resData[0] : resData;
+          setClientHomeCache(normalized);
+          setData(normalized);
+          setLoading(false);
+        })
+        .catch((error) => {
+          if (!isCurrent) return;
+          console.error(error);
+          setLoading(false);
+        });
+    };
+
+    loadHomeData();
+
+    const handleRevalidate = () => {
+      loadHomeData();
+    };
+
+    window.addEventListener("app:revalidate", handleRevalidate);
 
     return () => {
       isCurrent = false;
+      window.removeEventListener("app:revalidate", handleRevalidate);
     };
   }, []);
 

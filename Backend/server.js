@@ -112,8 +112,18 @@ app.use(
 );
 
 /* ==========================================
-    API ROUTES
+    API ROUTES & GLOBAL API CACHE PREVENTION
 ========================================== */
+
+// Global middleware ensuring all /api/* routes are never heuristically cached by mobile browsers or proxies
+app.use("/api", (req, res, next) => {
+  res.set("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0");
+  res.set("Pragma", "no-cache");
+  res.set("Expires", "0");
+  res.set("Surrogate-Control", "no-store");
+  res.set("X-LiteSpeed-Cache-Control", "no-cache");
+  next();
+});
 
 app.use(
   "/api/pages",
@@ -200,7 +210,7 @@ app.use(
 );
 
 /* ==========================================
-    API HEALTH CHECK & 404 ROUTE GUARD
+    API HEALTH CHECK, VERSION & 404 ROUTE GUARD
 ========================================== */
 
 app.get("/api", (req, res) => {
@@ -208,6 +218,19 @@ app.get("/api", (req, res) => {
     success: true,
     message: "College CMS API is running.",
   });
+});
+
+// Lightweight version endpoint to allow mobile clients to detect new deployments automatically
+app.get("/api/version", (req, res) => {
+  const indexPath = path.join(distPath, "index.html");
+  let version = "dev";
+  try {
+    if (fs.existsSync(indexPath)) {
+      const stat = fs.statSync(indexPath);
+      version = `${Math.floor(stat.mtimeMs)}_${stat.size}`;
+    }
+  } catch {}
+  res.json({ success: true, version });
 });
 
 // Protect all /api/* routes from falling through to the React SPA fallback
@@ -232,19 +255,14 @@ app.use(handleLegacyRequest);
 ========================================== */
 
 // 1. Serve static frontend assets (JS, CSS, images, icons, fonts)
+// index: false ensures index.html is NEVER served by express.static with static ETags/Last-Modified
 app.use(
   express.static(distPath, {
+    index: false,
     etag: true,
     lastModified: true,
     setHeaders: (res, filePath) => {
-      // index.html must NEVER be cached by browsers
-      if (path.basename(filePath) === "index.html") {
-        res.set("Cache-Control", "no-cache, no-store, must-revalidate");
-        res.set("Pragma", "no-cache");
-        res.set("Expires", "0");
-        res.removeHeader("ETag");
-        res.removeHeader("Last-Modified");
-      } else if (filePath.includes("assets") || filePath.includes("dist" + path.sep + "assets")) {
+      if (filePath.includes("assets") || filePath.includes("dist" + path.sep + "assets")) {
         // Hashed JS/CSS chunks have unique hashes, safe to cache permanently
         res.set("Cache-Control", "public, max-age=31536000, immutable");
       } else {
@@ -253,6 +271,29 @@ app.use(
     },
   })
 );
+
+// SPA index.html handler with absolute anti-caching guarantees and no ETags
+const serveIndexHtml = (req, res) => {
+  const indexPath = path.join(distPath, "index.html");
+  if (fs.existsSync(indexPath)) {
+    res.set("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0");
+    res.set("Pragma", "no-cache");
+    res.set("Expires", "0");
+    res.set("Surrogate-Control", "no-store");
+    res.set("X-LiteSpeed-Cache-Control", "no-cache");
+    res.removeHeader("ETag");
+    res.removeHeader("Last-Modified");
+    return res.sendFile(indexPath, { etag: false, lastModified: false });
+  }
+
+  return res.status(404).json({
+    success: false,
+    message: "Frontend production build (dist/index.html) not found. Run 'npm run build' first.",
+  });
+};
+
+// Explicit root route
+app.get("/", serveIndexHtml);
 
 // 2. Fallback for React Router (SPA HTML5 History API)
 // Direct hits to /admin, /courses, /page/:slug, etc. return index.html.
@@ -270,18 +311,7 @@ app.get("/{*splat}", (req, res) => {
     });
   }
 
-  const indexPath = path.join(distPath, "index.html");
-  if (fs.existsSync(indexPath)) {
-    res.set("Cache-Control", "no-cache, no-store, must-revalidate");
-    res.set("Pragma", "no-cache");
-    res.set("Expires", "0");
-    return res.sendFile(indexPath, { etag: false, lastModified: false });
-  }
-
-  return res.status(404).json({
-    success: false,
-    message: "Frontend production build (dist/index.html) not found. Run 'npm run build' first.",
-  });
+  return serveIndexHtml(req, res);
 });
 
 /* ==========================================

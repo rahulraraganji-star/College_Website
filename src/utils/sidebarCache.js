@@ -1,6 +1,10 @@
 // Global client-side sidebar cache
 export const sidebarCache = new Map();
 
+export const clearSidebarCache = () => {
+  sidebarCache.clear();
+};
+
 /**
  * Prefetches sidebar nav items into memory
  * @param {string} parentSlug
@@ -8,7 +12,7 @@ export const sidebarCache = new Map();
 export const prefetchSidebar = (parentSlug) => {
   if (!parentSlug || sidebarCache.has(parentSlug)) return;
 
-  fetch(`/api/pages/sidebar/${parentSlug}`)
+  fetch(`/api/pages/sidebar/${parentSlug}`, { cache: "no-store" })
     .then((res) => (res.ok ? res.json() : null))
     .then((data) => {
       if (Array.isArray(data)) {

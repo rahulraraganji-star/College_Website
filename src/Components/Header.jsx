@@ -57,7 +57,7 @@ const Header = ({ data }) => {
               <h1
                 className="
                   text-[#233044]
-                  text-[clamp(1.35rem,6.2vw,2rem)]
+                  text-[clamp(1.2rem,5.6vw,1.95rem)]
                   leading-[1.12]
                   tracking-[-0.02em]
                   font-normal

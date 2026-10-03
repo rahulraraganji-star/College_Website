@@ -2,7 +2,13 @@
 export const clientPageCache = new Map();
 export const clientPageTimestamps = new Map();
 export const inFlightPagePromises = new Map();
-export const FRESH_TTL_MS = 30000; // 30 seconds freshness window
+export const FRESH_TTL_MS = 15000; // 15 seconds freshness window
+
+export const clearPageCache = () => {
+  clientPageCache.clear();
+  clientPageTimestamps.clear();
+  inFlightPagePromises.clear();
+};
 
 /**
  * Proactively prefetches a page into memory before the user clicks
@@ -16,7 +22,7 @@ export const prefetchPage = (slug) => {
   }
   if (inFlightPagePromises.has(slug)) return;
 
-  const promise = fetch(`/api/pages/${slug}`)
+  const promise = fetch(`/api/pages/${slug}`, { cache: "no-store" })
     .then((res) => (res.ok ? res.json() : null))
     .then((data) => {
       if (data) {

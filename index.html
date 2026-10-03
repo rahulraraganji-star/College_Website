@@ -42,34 +42,6 @@
         }
       } catch (e) {}
     </script>
-    <!-- Instant Hero Image Preloader (Frame 0 Network Discovery) -->
-    <script>
-      (function () {
-        try {
-          var c = localStorage.getItem("college_home_cache_v2");
-          if (c) {
-            var data = JSON.parse(c);
-            var heroImg =
-              data &&
-              data.sections &&
-              data.sections.hero &&
-              data.sections.hero.slides &&
-              data.sections.hero.slides[0] &&
-              ((data.sections.hero.slides[0].image &&
-                data.sections.hero.slides[0].image.url) ||
-                data.sections.hero.slides[0].image);
-            if (heroImg) {
-              var l = document.createElement("link");
-              l.rel = "preload";
-              l.as = "image";
-              l.href = heroImg;
-              l.fetchPriority = "high";
-              document.head.appendChild(l);
-            }
-          }
-        } catch (e) {}
-      })();
-    </script>
   </head>
   <body>
     <div id="root">

@@ -54,7 +54,7 @@ const DynamicPage = () => {
 
     const fetchPromise = inFlightPagePromises.has(slug)
       ? inFlightPagePromises.get(slug)
-      : fetch(`/api/pages/${slug}`).then((res) => {
+      : fetch(`/api/pages/${slug}`, { cache: "no-store" }).then((res) => {
           if (!res.ok) {
             throw new Error("Page not found");
           }
@@ -79,6 +79,34 @@ const DynamicPage = () => {
 
     return () => {
       isCurrent = false;
+    };
+  }, [slug]);
+
+  // Revalidate current page when tab resumes or version changes
+  useEffect(() => {
+    const handleRevalidate = () => {
+      if (!slug) return;
+      clientPageCache.delete(slug);
+      clientPageTimestamps.delete(slug);
+      fetch(`/api/pages/${slug}`, { cache: "no-store" })
+        .then((res) => {
+          if (!res.ok) throw new Error("Page not found");
+          return res.json();
+        })
+        .then((data) => {
+          if (data) {
+            clientPageCache.set(slug, data);
+            clientPageTimestamps.set(slug, Date.now());
+            setPage(data);
+            setError(null);
+          }
+        })
+        .catch(() => {});
+    };
+
+    window.addEventListener("app:revalidate", handleRevalidate);
+    return () => {
+      window.removeEventListener("app:revalidate", handleRevalidate);
     };
   }, [slug]);
 
