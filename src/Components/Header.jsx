@@ -87,10 +87,12 @@ const Header = ({ data }) => {
               {data.tagline && (
                 <p
                   className="
-                    mt-1.5
+                    mt-1
                     text-[#7C8493]
-                    text-[12px]
-                    tracking-[0.08em]
+                    text-[10.5px]
+                    sm:text-[11px]
+                    leading-snug
+                    tracking-[0.05em]
                     uppercase
                     font-normal
                   "
