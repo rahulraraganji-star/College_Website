@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import DynamicPageEditor from "../components/DynamicPageEditor";
 import CoursesEditor from "../editors/CoursesEditor";
 import AddSectionModal from "../components/AddSectionModal";
+import Toast from "../components/Toast";
 import { createSection } from "../utils/sectionFactory";
 
 const TITLE_MAX = 80;
@@ -72,6 +73,18 @@ const EditPage = () => {
   const [showSectionModal, setShowSectionModal] = useState(false);
   const [saveStatus, setSaveStatus] = useState("idle"); // idle | saving | saved
   const [isDeleting, setIsDeleting] = useState(false);
+  const [toast, setToast] = useState({
+    open: false,
+    type: "success",
+    message: "",
+  });
+
+  const showToast = (type, message) => {
+    setToast({ open: true, type, message });
+    setTimeout(() => {
+      setToast((prev) => ({ ...prev, open: false }));
+    }, 3000);
+  };
 
   // SNAPSHOT OF LAST SAVED STATE (FOR DIRTY CHECK)
   const savedSnapshotRef = useRef(null);
@@ -183,7 +196,7 @@ const EditPage = () => {
 
       if (data?.approvalRequired) {
         setSaveStatus("saved");
-        alert(data.message || "Your changes have been submitted for Admin approval.");
+        showToast("info", data.message || "Your changes have been submitted for Admin approval.");
         savedSnapshotRef.current = JSON.stringify(page);
         setTimeout(() => setSaveStatus("idle"), 2500);
         return;
@@ -200,11 +213,12 @@ const EditPage = () => {
       }
 
       setSaveStatus("saved");
+      showToast("success", "Changes saved successfully!");
       setTimeout(() => setSaveStatus("idle"), 2500);
     } catch (error) {
       console.error("Save Page Error:", error);
       setSaveStatus("idle");
-      alert(error.message || "Failed to update page");
+      showToast("error", error.message || "Failed to update page");
     }
   };
 
@@ -257,15 +271,23 @@ const EditPage = () => {
   // ==========================================
   if (page.template === "courses") {
     return (
-      <div className="max-w-[1400px] mx-auto">
-        <CoursesEditor
-          page={page}
-          setPage={setPage}
-          onSave={handleSubmit}
-          saveStatus={saveStatus}
-          menus={menus}
+      <>
+        <div className="max-w-[1400px] mx-auto">
+          <CoursesEditor
+            page={page}
+            setPage={setPage}
+            onSave={handleSubmit}
+            saveStatus={saveStatus}
+            menus={menus}
+          />
+        </div>
+        <Toast
+          open={toast.open}
+          type={toast.type}
+          message={toast.message}
+          onClose={() => setToast((prev) => ({ ...prev, open: false }))}
         />
-      </div>
+      </>
     );
   }
 
@@ -472,6 +494,13 @@ const EditPage = () => {
           onClose={() => setShowSectionModal(false)}
         />
       )}
+
+      <Toast
+        open={toast.open}
+        type={toast.type}
+        message={toast.message}
+        onClose={() => setToast((prev) => ({ ...prev, open: false }))}
+      />
     </div>
   );
 };

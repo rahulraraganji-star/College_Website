@@ -4,6 +4,7 @@ import { createSection } from "../utils/sectionFactory";
 import DynamicPageEditor from "../components/DynamicPageEditor";
 import CoursesEditor from "../editors/CoursesEditor";
 import AddSectionModal from "../components/AddSectionModal";
+import Toast from "../components/Toast";
 
 const slugify = (text) => {
   return (text || "")
@@ -19,6 +20,18 @@ const CreatePage = () => {
   const [menus, setMenus] = useState([]);
   const [showSectionModal, setShowSectionModal] = useState(false);
   const [saveStatus, setSaveStatus] = useState("idle");
+  const [toast, setToast] = useState({
+    open: false,
+    type: "success",
+    message: "",
+  });
+
+  const showToast = (type, message) => {
+    setToast({ open: true, type, message });
+    setTimeout(() => {
+      setToast((prev) => ({ ...prev, open: false }));
+    }, 3000);
+  };
 
   const [formData, setFormData] = useState({
     title: "",
@@ -104,11 +117,11 @@ const CreatePage = () => {
 
     // VALIDATION
     if (!submissionData.title?.trim()) {
-      alert("Page title is required");
+      showToast("error", "Page title is required");
       return;
     }
     if (!submissionData.slug?.trim()) {
-      alert("Slug is required");
+      showToast("error", "Slug is required");
       return;
     }
 
@@ -128,12 +141,12 @@ const CreatePage = () => {
 
       if (!response.ok) {
         setSaveStatus("idle");
-        alert(data.message || "Failed to create page");
+        showToast("error", data.message || "Failed to create page");
         return;
       }
 
       setSaveStatus("saved");
-      alert("Page created successfully!");
+      showToast("success", "Page created successfully!");
 
       // REFRESH NAVBAR
       window.dispatchEvent(new Event("navbarRefresh"));
@@ -142,14 +155,16 @@ const CreatePage = () => {
 
       // Stay in the admin panel by transitioning to the page editor
       if (createdPage?._id) {
-        navigate(`/admin/pages/${createdPage._id}`, { replace: true });
+        setTimeout(() => {
+          navigate(`/admin/pages/${createdPage._id}`, { replace: true });
+        }, 1000);
       } else {
         setSaveStatus("idle");
       }
     } catch (error) {
       console.error(error);
       setSaveStatus("idle");
-      alert("Failed to create page");
+      showToast("error", "Failed to create page");
     }
   };
 
