@@ -47,12 +47,18 @@ jobs:
             IdentitiesOnly yes
             AddressFamily inet
             MACs hmac-sha2-512
+            ControlMaster auto
+            ControlPath ~/.ssh/control-%C
+            ControlPersist 10m
+            ServerAliveInterval 30
+            ServerAliveCountMax 5
           EOF
 
           chmod 600 ~/.ssh/config
 
-      - name: Test cPanel SSH connection
+      - name: Connect to cPanel (Multiplexed)
         run: |
+          ssh -fNM cpanel
           ssh cpanel "echo 'SSH connection successful'"
 
       - name: Deploy frontend
@@ -79,3 +85,8 @@ jobs:
             npm install --omit=dev --no-audit --no-fund &&
             touch tmp/restart.txt
           '
+
+      - name: Close SSH session
+        if: always()
+        run: |
+          ssh -O exit cpanel 2>/dev/null || true
