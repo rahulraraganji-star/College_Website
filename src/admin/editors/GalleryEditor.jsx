@@ -410,7 +410,7 @@ const GalleryEditor = ({ section, onChange }) => {
             className="inline-flex items-center gap-2 px-4 py-2.5 bg-neutral-900 hover:bg-black text-white text-sm font-medium rounded-xl shadow-sm hover:shadow transition active:scale-[0.98]"
             title="Preview the entire gallery and images as visitors will see them"
           >
-            <Eye size={16} className="text-amber-400" />
+            <Eye size={16} className="text-white" />
             <span>Preview Gallery</span>
             <span className="text-xs bg-neutral-800 text-neutral-300 px-2 py-0.5 rounded-full ml-0.5">
               {totalImages} {totalImages === 1 ? "img" : "imgs"}
@@ -429,15 +429,15 @@ const GalleryEditor = ({ section, onChange }) => {
             return (
               <div
                 key={item.id || galleryIndex}
-                className="border rounded-2xl p-6 sm:p-8 bg-amber-50/40 border-amber-200/80 relative"
+                className="border rounded-2xl p-6 sm:p-8 bg-neutral-50/50 border-neutral-200 relative"
               >
                 {/* Header */}
-                <div className="flex flex-wrap items-center justify-between gap-3 mb-6 pb-4 border-b border-amber-200/60">
+                <div className="flex flex-wrap items-center justify-between gap-3 mb-6 pb-4 border-b border-neutral-200">
                   <div className="flex items-center gap-3">
-                    <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-semibold uppercase tracking-wider bg-amber-100 text-amber-900 border border-amber-300/60">
+                    <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-semibold uppercase tracking-wider bg-neutral-100 text-neutral-900 border border-neutral-200">
                       Principal’s Message
                     </span>
-                    <h3 className="font-['Fraunces'] text-xl sm:text-2xl text-[#2A2623]">
+                    <h3 className="font-['Fraunces'] text-xl sm:text-2xl text-neutral-900">
                       {item.title || "Principal’s Message"}
                     </h3>
                   </div>
@@ -445,12 +445,12 @@ const GalleryEditor = ({ section, onChange }) => {
                   <div className="flex items-center gap-2">
                     {/* Move Up / Down */}
                     {(section.galleries || []).length > 1 && (
-                      <div className="inline-flex items-center bg-white border border-amber-300/70 rounded-lg shadow-sm overflow-hidden">
+                      <div className="inline-flex items-center bg-white border border-neutral-200 rounded-lg shadow-sm overflow-hidden">
                         <button
                           type="button"
                           onClick={() => moveGallery(galleryIndex, galleryIndex - 1)}
                           disabled={galleryIndex === 0}
-                          className="p-1.5 text-amber-900 hover:bg-amber-100 disabled:opacity-30 disabled:pointer-events-none transition border-r border-amber-200"
+                          className="p-1.5 text-neutral-700 hover:bg-neutral-100 disabled:opacity-30 disabled:pointer-events-none transition border-r border-neutral-200"
                           title="Move Block Up"
                         >
                           <ArrowUp size={13} />
@@ -459,7 +459,7 @@ const GalleryEditor = ({ section, onChange }) => {
                           type="button"
                           onClick={() => moveGallery(galleryIndex, galleryIndex + 1)}
                           disabled={galleryIndex === (section.galleries || []).length - 1}
-                          className="p-1.5 text-amber-900 hover:bg-amber-100 disabled:opacity-30 disabled:pointer-events-none transition"
+                          className="p-1.5 text-neutral-700 hover:bg-neutral-100 disabled:opacity-30 disabled:pointer-events-none transition"
                           title="Move Block Down"
                         >
                           <ArrowDown size={13} />
@@ -509,7 +509,7 @@ const GalleryEditor = ({ section, onChange }) => {
                         <span className="text-gray-400 italic">No name provided</span>
                       )}
                     </div>
-                    <div className="font-['IBM_Plex_Mono'] text-xs uppercase tracking-wider text-[#8A6B3F] font-semibold">
+                    <div className="font-['IBM_Plex_Mono'] text-xs uppercase tracking-wider text-neutral-700 font-semibold">
                       {item.designation || "Principal"}
                     </div>
                     <p className="text-sm text-gray-600 line-clamp-3 pt-2 font-['Inter'] leading-relaxed">
@@ -543,10 +543,10 @@ const GalleryEditor = ({ section, onChange }) => {
                   <span className="w-7 h-7 rounded-lg bg-neutral-900 text-white flex items-center justify-center shrink-0 text-xs font-bold">
                     {galleryIndex + 1}
                   </span>
-                  <h3 className="font-['Fraunces'] text-xl sm:text-2xl text-[#2A2623] truncate">
+                  <h3 className="font-['Fraunces'] text-xl sm:text-2xl text-neutral-900 truncate">
                     {gallery.title || `Gallery ${galleryIndex + 1}`}
                   </h3>
-                  <span className="text-xs font-semibold text-gray-700 bg-amber-100/80 text-amber-900 px-2.5 py-0.5 rounded-full shrink-0 border border-amber-200">
+                  <span className="text-xs font-semibold text-neutral-800 bg-neutral-100 px-2.5 py-0.5 rounded-full shrink-0 border border-neutral-200">
                     {imageCount} {imageCount === 1 ? "photo" : "photos"}
                   </span>
                 </div>
@@ -617,7 +617,7 @@ const GalleryEditor = ({ section, onChange }) => {
                     className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-white text-gray-800 hover:text-black border border-gray-200 rounded-lg hover:bg-gray-100 transition shadow-sm"
                     title="Preview this album and images exactly as rendered on page"
                   >
-                    <Eye size={13} className="text-amber-600" />
+                    <Eye size={13} className="text-neutral-700" />
                     <span>Preview Album</span>
                   </button>
 
@@ -719,7 +719,7 @@ const GalleryEditor = ({ section, onChange }) => {
                   <div className="flex flex-wrap items-center justify-between gap-3 mb-4 pb-3 border-b border-gray-100">
                     <div className="flex items-center gap-2 text-xs text-gray-600">
                       <span className="font-bold text-gray-900 flex items-center gap-1.5">
-                        <GripVertical size={14} className="text-amber-500" />
+                        <GripVertical size={14} className="text-neutral-700" />
                         Click & Drag Photos to Rearrange
                       </span>
                       <span>
@@ -764,7 +764,7 @@ const GalleryEditor = ({ section, onChange }) => {
                             }
                             className={`group relative rounded-xl border bg-white overflow-hidden shadow-xs transition-all duration-150 cursor-grab active:cursor-grabbing flex flex-col justify-between ${
                               isDraggingOver
-                                ? "border-amber-500 ring-4 ring-amber-300 scale-[1.03] z-20 shadow-lg bg-amber-50/20"
+                                ? "border-neutral-900 ring-4 ring-neutral-300 scale-[1.03] z-20 shadow-lg bg-neutral-100/50"
                                 : "border-gray-200 hover:border-gray-400 hover:shadow-md"
                             } ${
                               isCurrentDragged
@@ -991,7 +991,7 @@ const GalleryEditor = ({ section, onChange }) => {
                         onDrop={(e) => handleDrop(e, galleryIndex, imageIndex)}
                         className={`border rounded-2xl p-5 sm:p-6 bg-white transition-all duration-150 relative shadow-sm ${
                           isDraggingOver
-                            ? "border-amber-500 ring-2 ring-amber-300 bg-amber-50/20 scale-[1.01]"
+                            ? "border-neutral-900 ring-2 ring-neutral-300 bg-neutral-100/50 scale-[1.01]"
                             : "border-gray-200 hover:border-gray-300"
                         } ${isCurrentDragged ? "opacity-30 scale-95" : "opacity-100"}`}
                       >
@@ -1184,7 +1184,7 @@ const GalleryEditor = ({ section, onChange }) => {
                     }
                     className="px-4 py-2.5 bg-white border border-gray-300 hover:border-gray-400 text-gray-800 rounded-xl transition text-sm font-medium shadow-sm flex items-center gap-2"
                   >
-                    <LayoutGrid size={14} className="text-amber-600" />
+                    <LayoutGrid size={14} className="text-neutral-700" />
                     <span>Switch to Visual Drag Grid ({imageCount} Photos)</span>
                   </button>
                 )}
@@ -1213,7 +1213,7 @@ const GalleryEditor = ({ section, onChange }) => {
             <button
               type="button"
               onClick={openAddPrincipalModal}
-              className="px-5 py-3 bg-amber-600 text-white rounded-xl hover:bg-amber-700 transition font-medium text-sm shadow-sm flex items-center gap-2"
+              className="px-5 py-3 bg-neutral-900 text-white rounded-xl hover:bg-black transition font-medium text-sm shadow-sm flex items-center gap-2"
             >
               <span>🎓</span>
               <span>+ Add Principal’s Message</span>
@@ -1238,7 +1238,7 @@ const GalleryEditor = ({ section, onChange }) => {
             <button
               type="button"
               onClick={openAddPrincipalModal}
-              className="px-5 py-2.5 bg-amber-600 text-white rounded-xl hover:bg-amber-700 transition font-medium text-sm flex items-center gap-2 shadow-sm"
+              className="px-5 py-2.5 bg-neutral-900 text-white rounded-xl hover:bg-black transition font-medium text-sm flex items-center gap-2 shadow-sm"
             >
               <span>🎓</span>
               <span>+ Add Principal’s Message</span>
@@ -1253,7 +1253,7 @@ const GalleryEditor = ({ section, onChange }) => {
             }}
             className="inline-flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-300 hover:bg-gray-50 text-gray-800 rounded-xl text-sm font-semibold shadow-sm transition"
           >
-            <Eye size={15} className="text-amber-600" />
+            <Eye size={15} className="text-neutral-700" />
             <span>Preview Gallery & Images</span>
           </button>
         </div>
@@ -1268,7 +1268,7 @@ const GalleryEditor = ({ section, onChange }) => {
             {/* Modal Header */}
             <div className="flex flex-wrap items-center justify-between gap-3 p-4 sm:p-5 border-b border-neutral-200 bg-white sticky top-0 z-20">
               <div className="flex items-center gap-3">
-                <div className="h-9 w-9 rounded-xl bg-amber-500/10 text-amber-700 flex items-center justify-center font-bold">
+                <div className="h-9 w-9 rounded-xl bg-neutral-100 text-neutral-800 flex items-center justify-center font-bold">
                   <Eye size={18} />
                 </div>
                 <div>
@@ -1405,7 +1405,7 @@ const GalleryEditor = ({ section, onChange }) => {
                       .filter(Boolean);
 
                     return (
-                      <div className="bg-[#FAF8F5] border border-[#E6DED3] rounded-2xl p-6 sm:p-8">
+                      <div className="bg-neutral-50 border border-neutral-200 rounded-2xl p-6 sm:p-8">
                         <div className="grid grid-cols-1 md:grid-cols-[200px_minmax(0,1fr)] gap-6 items-start">
                           <div className="aspect-[3/4] w-full max-w-[200px] mx-auto rounded-xl overflow-hidden bg-gray-200 border border-gray-300 shadow-sm">
                             {photoUrl ? (
@@ -1705,7 +1705,7 @@ const GalleryEditor = ({ section, onChange }) => {
             {/* Modal Header */}
             <div className="flex items-center justify-between p-5 border-b border-neutral-100 sticky top-0 bg-white z-10">
               <div className="flex items-center gap-2.5">
-                <div className="h-8 w-8 rounded-lg bg-amber-500/10 text-amber-700 flex items-center justify-center font-bold">
+                <div className="h-8 w-8 rounded-lg bg-neutral-100 text-neutral-800 flex items-center justify-center font-bold">
                   🎓
                 </div>
                 <h3 className="text-lg font-bold text-neutral-900 font-['Fraunces']">
@@ -1762,7 +1762,7 @@ const GalleryEditor = ({ section, onChange }) => {
                         name: e.target.value,
                       }));
                     }}
-                    className="w-full border rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
+                    className="w-full border rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-1 focus:ring-neutral-900 focus:border-neutral-900"
                     placeholder="e.g. Prof.(Dr.) Annie Rajan"
                   />
                 </div>
@@ -1780,7 +1780,7 @@ const GalleryEditor = ({ section, onChange }) => {
                         designation: e.target.value,
                       }))
                     }
-                    className="w-full border rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
+                    className="w-full border rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-1 focus:ring-neutral-900 focus:border-neutral-900"
                     placeholder="e.g. Principal"
                   />
                 </div>
@@ -1800,7 +1800,7 @@ const GalleryEditor = ({ section, onChange }) => {
                       title: e.target.value,
                     }))
                   }
-                  className="w-full border rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
+                  className="w-full border rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-1 focus:ring-neutral-900 focus:border-neutral-900"
                   placeholder="e.g. Principal’s Message"
                 />
               </div>
@@ -1825,7 +1825,7 @@ const GalleryEditor = ({ section, onChange }) => {
                       message: e.target.value,
                     }));
                   }}
-                  className="w-full border rounded-xl px-4 py-3 text-sm min-h-[200px] resize-y font-['Inter'] leading-relaxed focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
+                  className="w-full border rounded-xl px-4 py-3 text-sm min-h-[200px] resize-y font-['Inter'] leading-relaxed focus:outline-none focus:ring-1 focus:ring-neutral-900 focus:border-neutral-900"
                   placeholder="Enter the welcome introduction, message paragraphs, and closing statement..."
                 />
               </div>

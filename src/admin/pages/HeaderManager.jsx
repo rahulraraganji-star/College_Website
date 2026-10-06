@@ -425,7 +425,7 @@ const HeaderManager = () => {
                   </div>
 
                   {/* Preview Canvas */}
-                  <div className="rounded-xl border border-neutral-300 bg-[#FAF8F5] overflow-hidden p-4">
+                  <div className="rounded-xl border border-neutral-300 bg-neutral-50 overflow-hidden p-4">
                     {previewMode === "desktop" ? (
                       /* DESKTOP PREVIEW */
                       <div className="py-6 px-4 text-center">

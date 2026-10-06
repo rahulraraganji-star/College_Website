@@ -151,7 +151,7 @@ const HeroEditor = ({
         {!isHome && (
           <div>
             <label className="block mb-1.5 text-xs font-semibold uppercase tracking-wider text-gray-500">
-              Eyebrow / Kicker (Gold Accent)
+              Eyebrow / Kicker
             </label>
             <input
               type="text"
@@ -280,7 +280,7 @@ const HeroEditor = ({
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-gray-100">
             <div>
               <h4 className="text-sm font-bold text-gray-900 flex items-center gap-2">
-                <Sparkles size={16} className="text-[#C9A555]" />
+                <Sparkles size={16} className="text-black" />
                 Quick Info / Highlights Bar (Bottom Strip)
               </h4>
               <p className="text-xs text-gray-500 mt-0.5">
@@ -292,7 +292,7 @@ const HeroEditor = ({
               <button
                 type="button"
                 onClick={loadPreset}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-[#8A6B3F] bg-[#FAF6EE] hover:bg-[#F3EADB] border border-[#E4D5B7] rounded-lg transition-colors"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-neutral-800 bg-neutral-100 hover:bg-neutral-200 border border-neutral-300 rounded-lg transition-colors"
                 title="Load 4 Academic Calendar reference items"
               >
                 <Wand2 size={13} />

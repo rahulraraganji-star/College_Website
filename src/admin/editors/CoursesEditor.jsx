@@ -609,7 +609,7 @@ const CoursesEditor = ({ page, setPage, onSave, saveStatus = "idle", menus = [] 
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
-                        color: "#8a6b3f",
+                        color: "#525252",
                         fontWeight: 700,
                         fontSize: "14px",
                         borderRadius: "2px",
@@ -785,7 +785,7 @@ const CoursesEditor = ({ page, setPage, onSave, saveStatus = "idle", menus = [] 
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
-                        color: "#8a6b3f",
+                        color: "#525252",
                         fontWeight: 700,
                         fontSize: "14px",
                         backgroundSize: "cover",
@@ -1164,7 +1164,7 @@ const CoursesEditor = ({ page, setPage, onSave, saveStatus = "idle", menus = [] 
                       style={{
                         textAlign: "center",
                         padding: "35px 20px",
-                        background: "#faf8f5",
+                        background: "#f9fafb",
                         border: "1px dashed var(--border)",
                         borderRadius: "4px",
                         color: "#888",
@@ -1213,7 +1213,7 @@ const CoursesEditor = ({ page, setPage, onSave, saveStatus = "idle", menus = [] 
                               fontSize: "12px",
                               fontWeight: "700",
                               textTransform: "uppercase",
-                              color: "#8a6b3f",
+                              color: "#171717",
                               letterSpacing: "0.08em",
                             }}
                           >
@@ -1330,8 +1330,8 @@ const CoursesEditor = ({ page, setPage, onSave, saveStatus = "idle", menus = [] 
                 {/* Course-level Curriculum PDF Document Section */}
                 <div
                   style={{
-                    background: "#faf8f5",
-                    border: "1px solid #e8e2d8",
+                    background: "#f9fafb",
+                    border: "1px solid #e5e7eb",
                     borderRadius: "8px",
                     padding: "16px",
                     marginBottom: "24px",
@@ -1424,7 +1424,7 @@ const CoursesEditor = ({ page, setPage, onSave, saveStatus = "idle", menus = [] 
                         rel="noopener noreferrer"
                         style={{
                           fontSize: "12px",
-                          color: "#8a6b3f",
+                          color: "#171717",
                           fontWeight: 600,
                           textDecoration: "underline",
                         }}
@@ -1442,7 +1442,7 @@ const CoursesEditor = ({ page, setPage, onSave, saveStatus = "idle", menus = [] 
                       padding: "32px 16px",
                       textAlign: "center",
                       color: "#78716c",
-                      background: "#faf8f5",
+                      background: "#f9fafb",
                       border: "1px dashed #d6d3d1",
                       borderRadius: "8px",
                       marginBottom: "16px",
@@ -1936,7 +1936,7 @@ const CoursesEditor = ({ page, setPage, onSave, saveStatus = "idle", menus = [] 
                     fontWeight: 700,
                     textTransform: "uppercase",
                     letterSpacing: "0.08em",
-                    color: "#8a6b3f",
+                    color: "#171717",
                     display: "block",
                     marginBottom: "8px",
                   }}
@@ -1956,7 +1956,7 @@ const CoursesEditor = ({ page, setPage, onSave, saveStatus = "idle", menus = [] 
                             : syllabusModal.data.syllabusPdf
                             ? "pdf"
                             : "detailed")) === "detailed"
-                          ? "2px solid #8a6b3f"
+                          ? "2px solid #171717"
                           : "1px solid #ddd6ce",
                       background:
                         (syllabusModal.data.syllabusMode ||
@@ -1965,7 +1965,7 @@ const CoursesEditor = ({ page, setPage, onSave, saveStatus = "idle", menus = [] 
                             : syllabusModal.data.syllabusPdf
                             ? "pdf"
                             : "detailed")) === "detailed"
-                          ? "#fdfbf7"
+                          ? "#f4f4f5"
                           : "#fff",
                       borderRadius: "4px",
                       cursor: "pointer",
@@ -1998,7 +1998,7 @@ const CoursesEditor = ({ page, setPage, onSave, saveStatus = "idle", menus = [] 
                             : syllabusModal.data.syllabusPdf
                             ? "pdf"
                             : "detailed")) === "pdf"
-                          ? "2px solid #8a6b3f"
+                          ? "2px solid #171717"
                           : "1px solid #ddd6ce",
                       background:
                         (syllabusModal.data.syllabusMode ||
@@ -2007,7 +2007,7 @@ const CoursesEditor = ({ page, setPage, onSave, saveStatus = "idle", menus = [] 
                             : syllabusModal.data.syllabusPdf
                             ? "pdf"
                             : "detailed")) === "pdf"
-                          ? "#fdfbf7"
+                          ? "#f4f4f5"
                           : "#fff",
                       borderRadius: "4px",
                       cursor: "pointer",
@@ -2035,8 +2035,8 @@ const CoursesEditor = ({ page, setPage, onSave, saveStatus = "idle", menus = [] 
                 style={{
                   marginTop: "16px",
                   padding: "14px 16px",
-                  background: "#faf8f5",
-                  border: "1px solid #e8e2d8",
+                  background: "#f9fafb",
+                  border: "1px solid #e5e7eb",
                   borderRadius: "4px",
                 }}
               >
@@ -2135,7 +2135,7 @@ const CoursesEditor = ({ page, setPage, onSave, saveStatus = "idle", menus = [] 
                       rel="noopener noreferrer"
                       style={{
                         fontSize: "12px",
-                        color: "#8a6b3f",
+                        color: "#171717",
                         fontWeight: 600,
                         textDecoration: "underline",
                       }}
@@ -2152,8 +2152,8 @@ const CoursesEditor = ({ page, setPage, onSave, saveStatus = "idle", menus = [] 
                   style={{
                     marginTop: "16px",
                     padding: "20px",
-                    background: "#fdfbf7",
-                    border: "1px dashed #d6cfc4",
+                    background: "#f9fafb",
+                    border: "1px dashed #e5e7eb",
                     borderRadius: "4px",
                     textAlign: "center",
                   }}
@@ -2257,7 +2257,7 @@ const CoursesEditor = ({ page, setPage, onSave, saveStatus = "idle", menus = [] 
                             style={{
                               background: "none",
                               border: "none",
-                              color: "#8a6b3f",
+                              color: "#171717",
                               fontSize: "12px",
                               cursor: "pointer",
                               fontWeight: 600,

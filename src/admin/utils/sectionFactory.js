@@ -137,6 +137,15 @@ export const createSection = (type) => {
         responsive: true,
       };
 
+    case "notices":
+      return {
+        id: generateSectionId(),
+        type: "notices",
+        title: "",
+        eyebrow: "Notices & Announcements",
+        items: [],
+      };
+
     default:
       return null;
   }

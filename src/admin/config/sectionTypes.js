@@ -1,79 +1,92 @@
 export const sectionTypes = {
   hero: {
-    label: "Hero",
-    icon: "⭐",
+    label: "Hero Banner",
+    description: "Header with title, kicker & action buttons",
+    icon: "LayoutTemplate",
     category: "Basic",
   },
 
   heading: {
     label: "Heading",
-    icon: "📝",
+    description: "Standalone section header title",
+    icon: "Heading",
     category: "Basic",
   },
 
   richText: {
     label: "Rich Text",
-    icon: "📄",
+    description: "Formatted article body & content",
+    icon: "FileText",
     category: "Basic",
   },
 
   list: {
-    label: "List",
-    icon: "📋",
+    label: "List / Highlights",
+    description: "Editorial list & values highlights",
+    icon: "ListCheck",
     category: "Basic",
   },
 
   "faculty-grid": {
     label: "Faculty Grid",
-    icon: "👨‍🏫",
+    description: "Faculty directory & profile cards",
+    icon: "Users",
     category: "Data",
   },
 
   gallery: {
-    label: "Gallery",
-    icon: "🖼️",
+    label: "Photo Gallery",
+    description: "Albums, photo grid & principal message",
+    icon: "Images",
     category: "Media",
   },
 
   documentList: {
     label: "Documents",
-    icon: "📑",
+    description: "Downloadable files, forms & circulars",
+    icon: "FileDown",
     category: "Data",
   },
 
   table: {
-    label: "Table",
-    icon: "📊",
+    label: "Data Table",
+    description: "Custom tabular data rows & columns",
+    icon: "Table",
     category: "Data",
   },
 
   timeline: {
     label: "Timeline",
-    icon: "🕒",
+    description: "Chronological history & milestone steps",
+    icon: "Clock",
     category: "Data",
   },
 
   eventList: {
-    label: "Events",
-    icon: "🎉",
+    label: "Events List",
+    description: "College events calendar & dates",
+    icon: "CalendarDays",
     category: "Data",
   },
 
   organogram: {
     label: "Organogram",
-    icon: "🏛️",
+    description: "Institutional governance chart",
+    icon: "Network",
     category: "Data",
   },
 
   embed: {
     label: "Embed & Links",
-    icon: "🔗",
+    description: "External link cards & iframes",
+    icon: "Link2",
     category: "Media",
   },
 
   notices: {
-    label: "Notices",
-    icon: "📢",
+    label: "Notices & Circulars",
+    description: "Official notifications board",
+    icon: "Megaphone",
     category: "Data",
   },
 };

@@ -210,7 +210,7 @@ const CollectionEditor = ({
               Eyebrow Tag / Category Label
             </label>
             <p className="text-xs text-gray-500 mb-2">
-              The category text shown in gold-accented capital letters above the section title (e.g. Highlights &amp; Values).
+              The category text shown in capital letters above the section title (e.g. Highlights &amp; Values).
             </p>
             <input
               type="text"
@@ -222,7 +222,7 @@ const CollectionEditor = ({
                   eyebrow: e.target.value,
                 })
               }
-              className="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 focus:border-amber-600 focus:ring-2 focus:ring-amber-200 outline-none transition text-sm"
+              className="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 focus:border-black focus:ring-1 focus:ring-black outline-none transition text-sm"
             />
           </div>
 

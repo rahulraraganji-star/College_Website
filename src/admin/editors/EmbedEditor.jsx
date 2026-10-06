@@ -502,7 +502,7 @@ const EmbedEditor = ({
                       value={item.description || ""}
                       onChange={(e) => handleUpdateLink(idx, "description", e.target.value)}
                       placeholder="Short note or helper info..."
-                      className="w-full border rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-amber-500 focus:border-amber-500 outline-none"
+                      className="w-full border rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-black focus:border-black outline-none"
                     />
                   </div>
                   <div>
@@ -514,7 +514,7 @@ const EmbedEditor = ({
                       value={item.buttonText || "Open Link"}
                       onChange={(e) => handleUpdateLink(idx, "buttonText", e.target.value)}
                       placeholder="Open Link"
-                      className="w-full border rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-amber-500 focus:border-amber-500 outline-none"
+                      className="w-full border rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-black focus:border-black outline-none"
                     />
                   </div>
                 </div>
@@ -541,7 +541,7 @@ const EmbedEditor = ({
                 type="number"
                 value={section.height || 500}
                 onChange={(e) => updateField("height", Number(e.target.value))}
-                className="w-full border rounded-xl px-4 py-3 focus:ring-2 focus:ring-amber-500/20 focus:border-amber-600 outline-none"
+                className="w-full border rounded-xl px-4 py-3 focus:ring-1 focus:ring-black focus:border-black outline-none"
               />
             </div>
             <div>
@@ -551,7 +551,7 @@ const EmbedEditor = ({
               <input
                 value={section.width || "100%"}
                 onChange={(e) => updateField("width", e.target.value)}
-                className="w-full border rounded-xl px-4 py-3 focus:ring-2 focus:ring-amber-500/20 focus:border-amber-600 outline-none"
+                className="w-full border rounded-xl px-4 py-3 focus:ring-1 focus:ring-black focus:border-black outline-none"
               />
             </div>
           </div>
@@ -569,7 +569,7 @@ const EmbedEditor = ({
                 type="checkbox"
                 checked={section.allowFullscreen ?? true}
                 onChange={(e) => updateField("allowFullscreen", e.target.checked)}
-                className="h-5 w-5 accent-amber-600 rounded cursor-pointer"
+                className="h-5 w-5 accent-black rounded cursor-pointer"
               />
             </div>
 
@@ -584,7 +584,7 @@ const EmbedEditor = ({
                 type="checkbox"
                 checked={section.lazyLoad ?? true}
                 onChange={(e) => updateField("lazyLoad", e.target.checked)}
-                className="h-5 w-5 accent-amber-600 rounded cursor-pointer"
+                className="h-5 w-5 accent-black rounded cursor-pointer"
               />
             </div>
 
@@ -599,7 +599,7 @@ const EmbedEditor = ({
                 type="checkbox"
                 checked={section.responsive ?? true}
                 onChange={(e) => updateField("responsive", e.target.checked)}
-                className="h-5 w-5 accent-amber-600 rounded cursor-pointer"
+                className="h-5 w-5 accent-black rounded cursor-pointer"
               />
             </div>
           </div>
@@ -615,35 +615,35 @@ const EmbedEditor = ({
 
         {isLinkType ? (
           /* LINK EMBED PREVIEW */
-          <div className="border-2 rounded-2xl p-6 bg-gradient-to-br from-[#FAF8F5] to-white border-[#E6DED3] space-y-4 shadow-sm">
+          <div className="border-2 rounded-2xl p-6 bg-gradient-to-br from-neutral-50 to-white border-neutral-200 space-y-4 shadow-sm">
             <div className="flex items-center gap-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#C9A555]" />
-              <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#8A6B3F]">
+              <span className="w-1.5 h-1.5 rounded-full bg-neutral-900" />
+              <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-neutral-700">
                 External Resource
               </span>
             </div>
 
             {/* Primary link card */}
             {section.url ? (
-              <div className="p-5 rounded-xl border border-[#E6DED3] bg-white shadow-xs hover:border-[#C9A555] transition-all group">
+              <div className="p-5 rounded-xl border border-neutral-200 bg-white shadow-xs hover:border-black transition-all group">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div className="space-y-1.5 min-w-0">
                     <div className="flex items-center gap-2">
-                      <span className="px-2.5 py-0.5 rounded-md text-[11px] font-medium bg-[#F4EDE2] text-[#8A6B3F] border border-[#E6DED3]">
+                      <span className="px-2.5 py-0.5 rounded-md text-[11px] font-medium bg-neutral-100 text-neutral-800 border border-neutral-200">
                         {getDomainFromUrl(section.url)}
                       </span>
                     </div>
-                    <h4 className="text-lg font-medium text-[#2A2623] truncate">
+                    <h4 className="text-lg font-medium text-neutral-900 truncate">
                       {section.linkText || section.title || "External Resource Link"}
                     </h4>
                     {section.description && (
-                      <p className="text-sm text-[#7A7268] line-clamp-2">
+                      <p className="text-sm text-neutral-600 line-clamp-2">
                         {section.description}
                       </p>
                     )}
                   </div>
                   <div className="shrink-0">
-                    <span className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#2A2623] text-white text-xs font-medium group-hover:bg-[#8A6B3F] transition-colors shadow-xs">
+                    <span className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-neutral-900 text-white text-xs font-medium group-hover:bg-black transition-colors shadow-xs">
                       <span>{section.buttonText || "Open Link"}</span>
                       <ExternalLink size={13} />
                     </span>
@@ -666,7 +666,7 @@ const EmbedEditor = ({
                   {linksList.map((lnk, idx) => (
                     <div
                       key={idx}
-                      className="p-3.5 rounded-lg border border-gray-200 bg-white hover:border-amber-400 transition-all flex items-center justify-between gap-3 text-left"
+                      className="p-3.5 rounded-lg border border-gray-200 bg-white hover:border-neutral-400 transition-all flex items-center justify-between gap-3 text-left"
                     >
                       <div className="min-w-0">
                         <p className="text-xs font-semibold text-gray-800 truncate">
@@ -678,7 +678,7 @@ const EmbedEditor = ({
                           </p>
                         )}
                       </div>
-                      <span className="inline-flex items-center gap-1 text-xs font-medium text-amber-700 shrink-0">
+                      <span className="inline-flex items-center gap-1 text-xs font-medium text-neutral-700 shrink-0">
                         <span>{lnk.buttonText || "Open"}</span>
                         <ExternalLink size={11} />
                       </span>
@@ -731,7 +731,7 @@ const EmbedEditor = ({
                     className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white border border-gray-300 text-xs font-medium text-gray-800 shadow-2xs"
                   >
                     <span>{lnk.title || `Resource ${idx + 1}`}</span>
-                    <ExternalLink size={12} className="text-amber-600" />
+                    <ExternalLink size={12} className="text-neutral-700" />
                   </span>
                 ))}
               </div>

@@ -3,20 +3,20 @@
 ===================================================== */
 
 .courses-admin-scope {
-  --bg: #f6f3ee;
-  --text: #292522;
-  --dark: #24211f;
-  --dark-btn: #2b2724;
-  --dark-btn-hover: #171513;
-  --gold: #c9a555;
-  --gold-text: #8a6b3f;
-  --border: #e3ddd5;
-  --border-light: #e4dfd8;
-  --border-subtle: #eee9e3;
-  --input-bg: #faf9f7;
-  --header-bg: #faf8f5;
-  --muted: #817a73;
-  --muted-light: #8b847b;
+  --bg: #f9fafb;
+  --text: #171717;
+  --dark: #171717;
+  --dark-btn: #171717;
+  --dark-btn-hover: #262626;
+  --gold: #171717;
+  --gold-text: #404040;
+  --border: #e5e7eb;
+  --border-light: #e5e7eb;
+  --border-subtle: #f3f4f6;
+  --input-bg: #ffffff;
+  --header-bg: #f9fafb;
+  --muted: #737373;
+  --muted-light: #a3a3a3;
   --status-bg: #edf4ed;
   --status-text: #557557;
 
@@ -97,8 +97,8 @@
 }
 
 .courses-admin-scope .btn-outline:hover {
-  border-color: #b6a68e;
-  background: #faf8f5;
+  border-color: #a3a3a3;
+  background: #f9fafb;
 }
 
 .courses-admin-scope .btn-gold {
@@ -107,7 +107,7 @@
 }
 
 .courses-admin-scope .btn-gold:hover {
-  background: #b59243;
+  background: #262626;
 }
 
 .courses-admin-scope .btn-danger {
@@ -440,7 +440,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 18px 20px;
-  background: #faf8f5;
+  background: #f9fafb;
   cursor: pointer;
   user-select: none;
 }
@@ -630,7 +630,7 @@
 
 .courses-admin-scope .unit-header {
   padding: 14px 16px;
-  background: #faf8f5;
+  background: #f9fafb;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -703,11 +703,11 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  background: #f0ece4;
-  color: #8a6b3f;
+  background: #f4f4f5;
+  color: #18181b;
   padding: 3px 9px;
   border-radius: 12px;
-  border: 1px solid #e2dcd2;
+  border: 1px solid #e4e4e7;
 }
 
 .courses-admin-scope .category-subtitle {

@@ -294,7 +294,7 @@ const FacultyGridEditor = ({
                             department: department.name,
                           })
                         }
-                        className="border border-[#C9A555] text-[#8A6B3F] bg-[#FAF8F5] hover:bg-[#F4ECE1] rounded-lg px-3 py-2 text-sm font-medium transition flex items-center gap-1.5 shadow-xs"
+                        className="border border-neutral-300 text-neutral-800 bg-white hover:bg-neutral-50 rounded-lg px-3 py-2 text-sm font-medium transition flex items-center gap-1.5 shadow-xs"
                         title="Preview how this faculty member's big overlay looks"
                       >
                         <Eye size={14} />
@@ -527,31 +527,31 @@ const FacultyGridEditor = ({
                   </div>
 
                   {/* 2.5 - EXTENDED OVERLAY / BIG POPUP PROFILE DETAILS */}
-                  <div className="mt-6 border border-amber-200/90 rounded-2xl bg-[#FCFBF9] overflow-hidden transition-all">
+                  <div className="mt-6 border border-neutral-200 rounded-2xl bg-neutral-50/50 overflow-hidden transition-all">
                     <button
                       type="button"
                       onClick={() => toggleOverlayDetails(member.id)}
-                      className="w-full px-5 py-3.5 bg-gradient-to-r from-amber-50/80 via-white to-amber-50/50 hover:from-amber-100/70 hover:to-amber-50 flex items-center justify-between transition text-left cursor-pointer"
+                      className="w-full px-5 py-3.5 bg-neutral-50 hover:bg-neutral-100 flex items-center justify-between transition text-left cursor-pointer"
                     >
                       <div className="flex items-center gap-2.5 flex-wrap">
-                        <span className="w-2.5 h-2.5 rounded-full bg-[#C9A555] shrink-0" />
-                        <span className="font-semibold text-sm text-[#23201D]">
+                        <span className="w-2.5 h-2.5 rounded-full bg-neutral-900 shrink-0" />
+                        <span className="font-semibold text-sm text-neutral-900">
                           Extended Overlay Profile (Big Popup Details)
                         </span>
-                        <span className="text-[11px] text-[#786F64] bg-white border border-[#EAE2D5] px-2.5 py-0.5 rounded-full font-medium shadow-2xs">
+                        <span className="text-[11px] text-neutral-600 bg-white border border-neutral-200 px-2.5 py-0.5 rounded-full font-medium shadow-2xs">
                           {hasMemberOverlay ? "Overlay Enabled on Click" : "Optional (Acts as normal card if blank)"}
                         </span>
                       </div>
-                      <div className="flex items-center gap-2 text-xs font-semibold text-[#8A6B3F] shrink-0">
+                      <div className="flex items-center gap-2 text-xs font-semibold text-neutral-900 shrink-0">
                         <span>{expandedOverlays[member.id] ? "Hide Overlay Fields" : "Edit Overlay Details"}</span>
                         {expandedOverlays[member.id] ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
                       </div>
                     </button>
 
                     {expandedOverlays[member.id] && (
-                      <div className="p-6 border-t border-amber-200/70 space-y-6 bg-white/70">
-                        <div className="flex items-start gap-2.5 text-xs text-[#786F64] bg-[#FAF8F5] p-3.5 rounded-xl border border-[#EAE2D5]">
-                          <Sparkles size={16} className="text-[#C9A555] shrink-0 mt-0.5" />
+                      <div className="p-6 border-t border-neutral-200 space-y-6 bg-white/70">
+                        <div className="flex items-start gap-2.5 text-xs text-neutral-600 bg-neutral-50 p-3.5 rounded-xl border border-neutral-200">
+                          <Sparkles size={16} className="text-neutral-900 shrink-0 mt-0.5" />
                           <p className="m-0 leading-relaxed">
                             These comprehensive details are displayed in the full-screen academic dossier overlay when students or visitors click on this faculty member's card. Fill in whatever is applicable.
                           </p>
@@ -574,7 +574,7 @@ const FacultyGridEditor = ({
                                 )
                               }
                               placeholder="e.g. Science Block, Room 204 / Cabin B-12"
-                              className="w-full border rounded-xl px-3.5 py-2.5 text-sm bg-white focus:outline-none focus:ring-1 focus:ring-amber-400"
+                              className="w-full border rounded-xl px-3.5 py-2.5 text-sm bg-white focus:outline-none focus:ring-1 focus:ring-neutral-900 focus:border-neutral-900"
                             />
                           </div>
 
@@ -593,7 +593,7 @@ const FacultyGridEditor = ({
                                 )
                               }
                               placeholder="e.g. Mon & Wed: 2:00 PM – 4:00 PM"
-                              className="w-full border rounded-xl px-3.5 py-2.5 text-sm bg-white focus:outline-none focus:ring-1 focus:ring-amber-400"
+                              className="w-full border rounded-xl px-3.5 py-2.5 text-sm bg-white focus:outline-none focus:ring-1 focus:ring-neutral-900 focus:border-neutral-900"
                             />
                           </div>
                         </div>
@@ -616,7 +616,7 @@ const FacultyGridEditor = ({
                                 )
                               }
                               placeholder="https://linkedin.com/in/username"
-                              className="w-full border rounded-xl px-3.5 py-2.5 text-sm bg-white focus:outline-none focus:ring-1 focus:ring-amber-400"
+                              className="w-full border rounded-xl px-3.5 py-2.5 text-sm bg-white focus:outline-none focus:ring-1 focus:ring-neutral-900 focus:border-neutral-900"
                             />
                           </div>
 
@@ -636,7 +636,7 @@ const FacultyGridEditor = ({
                                 )
                               }
                               placeholder="https://scholar.google.com/citations?user=..."
-                              className="w-full border rounded-xl px-3.5 py-2.5 text-sm bg-white focus:outline-none focus:ring-1 focus:ring-amber-400"
+                              className="w-full border rounded-xl px-3.5 py-2.5 text-sm bg-white focus:outline-none focus:ring-1 focus:ring-neutral-900 focus:border-neutral-900"
                             />
                           </div>
 
@@ -656,7 +656,7 @@ const FacultyGridEditor = ({
                                 )
                               }
                               placeholder="https://faculty-portfolio.edu"
-                              className="w-full border rounded-xl px-3.5 py-2.5 text-sm bg-white focus:outline-none focus:ring-1 focus:ring-amber-400"
+                              className="w-full border rounded-xl px-3.5 py-2.5 text-sm bg-white focus:outline-none focus:ring-1 focus:ring-neutral-900 focus:border-neutral-900"
                             />
                           </div>
                         </div>
@@ -678,7 +678,7 @@ const FacultyGridEditor = ({
                               )
                             }
                             placeholder={"Ph.D. in Computer Science & Engineering - IIT Bombay (2018)\nM.Tech in Software Systems - BITS Pilani (2012)\nB.E. in Information Technology - Goa University (2009)"}
-                            className="w-full border rounded-xl px-3.5 py-2.5 text-sm bg-white resize-y focus:outline-none focus:ring-1 focus:ring-amber-400"
+                            className="w-full border rounded-xl px-3.5 py-2.5 text-sm bg-white resize-y focus:outline-none focus:ring-1 focus:ring-neutral-900 focus:border-neutral-900"
                           />
                         </div>
 
@@ -699,7 +699,7 @@ const FacultyGridEditor = ({
                               )
                             }
                             placeholder="Machine Learning, Cloud Architecture, Distributed Systems, Ethical AI"
-                            className="w-full border rounded-xl px-3.5 py-2.5 text-sm bg-white resize-y focus:outline-none focus:ring-1 focus:ring-amber-400"
+                            className="w-full border rounded-xl px-3.5 py-2.5 text-sm bg-white resize-y focus:outline-none focus:ring-1 focus:ring-neutral-900 focus:border-neutral-900"
                           />
                         </div>
 
@@ -720,7 +720,7 @@ const FacultyGridEditor = ({
                               )
                             }
                             placeholder={"Deep Learning Approaches in Medical Image Analysis, IEEE Transactions 2023\nScalable Data Pipelines for Educational Analytics, Springer LNCS 2021"}
-                            className="w-full border rounded-xl px-3.5 py-2.5 text-sm bg-white resize-y focus:outline-none focus:ring-1 focus:ring-amber-400"
+                            className="w-full border rounded-xl px-3.5 py-2.5 text-sm bg-white resize-y focus:outline-none focus:ring-1 focus:ring-neutral-900 focus:border-neutral-900"
                           />
                         </div>
 
@@ -741,7 +741,7 @@ const FacultyGridEditor = ({
                               )
                             }
                             placeholder="Data Structures & Algorithms, Web Engineering, Advanced DBMS, Python Programming"
-                            className="w-full border rounded-xl px-3.5 py-2.5 text-sm bg-white resize-y focus:outline-none focus:ring-1 focus:ring-amber-400"
+                            className="w-full border rounded-xl px-3.5 py-2.5 text-sm bg-white resize-y focus:outline-none focus:ring-1 focus:ring-neutral-900 focus:border-neutral-900"
                           />
                         </div>
 
@@ -762,7 +762,7 @@ const FacultyGridEditor = ({
                               )
                             }
                             placeholder={"Best Teacher of the Year Award 2022\nHead of Institutional Innovation Council (IIC)\nNAAC Criterion 2 Faculty In-Charge"}
-                            className="w-full border rounded-xl px-3.5 py-2.5 text-sm bg-white resize-y focus:outline-none focus:ring-1 focus:ring-amber-400"
+                            className="w-full border rounded-xl px-3.5 py-2.5 text-sm bg-white resize-y focus:outline-none focus:ring-1 focus:ring-neutral-900 focus:border-neutral-900"
                           />
                         </div>
 
@@ -775,7 +775,7 @@ const FacultyGridEditor = ({
                                 department: department.name,
                               })
                             }
-                            className="px-4 py-2 rounded-xl bg-[#23201D] text-white text-xs font-semibold hover:bg-black transition flex items-center gap-1.5 shadow-xs cursor-pointer"
+                            className="px-4 py-2 rounded-xl bg-black text-white text-xs font-semibold hover:bg-neutral-800 transition flex items-center gap-1.5 shadow-xs cursor-pointer"
                           >
                             <Eye size={13} />
                             Preview This Member's Overlay
