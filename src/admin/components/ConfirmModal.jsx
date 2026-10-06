@@ -9,6 +9,7 @@ const ConfirmModal = ({
   loading = false,
   onConfirm,
   onCancel,
+  zIndex = "z-[9999]",
 }) => {
   if (open === false) return null;
 
@@ -16,7 +17,7 @@ const ConfirmModal = ({
     confirmText || confirmLabel || (loading ? "Deleting..." : "Confirm");
 
   return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm">
+    <div className={`fixed inset-0 ${zIndex} flex items-center justify-center bg-black/50 backdrop-blur-sm`}>
       <div className="w-full max-w-md overflow-hidden rounded-2xl bg-white shadow-2xl">
 
         {/* Header */}

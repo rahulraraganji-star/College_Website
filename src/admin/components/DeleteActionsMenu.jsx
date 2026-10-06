@@ -81,7 +81,8 @@ const DeleteActionsMenu = ({
 >
           <button
             type="button"
-            onClick={() => {
+            onClick={(e) => {
+              e.stopPropagation();
               setOpen(false);
               onDelete?.();
             }}

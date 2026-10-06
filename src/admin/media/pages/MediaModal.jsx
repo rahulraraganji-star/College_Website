@@ -13,6 +13,7 @@ import FolderCard from "../components/FolderCard";
 import FolderBreadcrumb from "../components/FolderBreadcrumb";
 import UploadDropzone from "../components/UploadDropzone";
 import MediaToolbar from "../components/MediaToolbar";
+import ConfirmModal from "../../components/ConfirmModal";
 
 const MediaModal = ({
   isOpen,
@@ -37,7 +38,9 @@ const MediaModal = ({
     error,
 
     uploadMedia,
+    deleteMedia,
     createFolder,
+    deleteFolder,
 
     setCurrentFolder,
 
@@ -68,7 +71,54 @@ const MediaModal = ({
   const [selectedItems, setSelectedItems] =
     useState([]);
 
+  const [showDeleteModal, setShowDeleteModal] =
+    useState(false);
+
+  const [deleteTarget, setDeleteTarget] =
+    useState(null);
+
+  const [deleteType, setDeleteType] =
+    useState(null);
+
+  const [isDeleting, setIsDeleting] =
+    useState(false);
+
   const uploadInputRef = useRef(null);
+
+  const handleDeleteMedia = (mediaItem) => {
+    setDeleteTarget(mediaItem);
+    setDeleteType("media");
+    setShowDeleteModal(true);
+  };
+
+  const handleDeleteFolder = (folderItem) => {
+    setDeleteTarget(folderItem);
+    setDeleteType("folder");
+    setShowDeleteModal(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
+
+    try {
+      setIsDeleting(true);
+      if (deleteType === "folder") {
+        await deleteFolder(deleteTarget._id || deleteTarget.id);
+      } else {
+        await deleteMedia(deleteTarget._id);
+        setSelectedItems((prev) =>
+          prev.filter((item) => item._id !== deleteTarget._id)
+        );
+      }
+      setShowDeleteModal(false);
+      setDeleteTarget(null);
+      setDeleteType(null);
+    } catch (err) {
+      console.error("DELETE ERROR:", err);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   /* ==========================================================
       SYNC TYPE PROP
@@ -552,6 +602,10 @@ const handleUpload = async (files) => {
                           );
 
                         }}
+
+                        onDelete={() =>
+                          handleDeleteFolder(folder)
+                        }
                       />
 
                     ))}
@@ -799,6 +853,10 @@ const handleUpload = async (files) => {
                             onSelect={() =>
                               toggleSelection(item)
                             }
+
+                            onDelete={() =>
+                              handleDeleteMedia(item)
+                            }
                           />
 
                         </div>
@@ -981,6 +1039,28 @@ const handleUpload = async (files) => {
         </div>
 
       </div>
+
+      {/* CONFIRM DELETE MODAL */}
+      <ConfirmModal
+        open={showDeleteModal}
+        loading={isDeleting}
+        zIndex="z-[10001]"
+        title={deleteType === "folder" ? "Delete Folder" : "Delete Media"}
+        message={
+          deleteType === "folder"
+            ? `Are you sure you want to delete "${deleteTarget?.name}"? All contents will be moved to root.`
+            : `Are you sure you want to delete "${
+                deleteTarget?.originalName || deleteTarget?.filename || "this media"
+              }"? This action cannot be undone.`
+        }
+        confirmText="Delete"
+        onConfirm={confirmDelete}
+        onCancel={() => {
+          setShowDeleteModal(false);
+          setDeleteTarget(null);
+          setDeleteType(null);
+        }}
+      />
     </>
   );
 
