@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import CreateRoleModal from "../components/CreateRoleModal";
+import Toast from "../components/Toast";
 import { useAuth } from "../auth/AuthContext";
 
 const API_URL = "/api";
@@ -35,6 +36,18 @@ const EditUser = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
+  const [toast, setToast] = useState({
+    open: false,
+    type: "success",
+    message: "",
+  });
+
+  const showToast = (type, message) => {
+    setToast({ open: true, type, message });
+    setTimeout(() => {
+      setToast((prev) => ({ ...prev, open: false }));
+    }, 3000);
+  };
 
   // ==========================================
   // LOAD USER
@@ -116,6 +129,7 @@ const EditUser = () => {
     setSelectedRole(newRole);
     setShowCreateRole(false);
     setShowPermissions(false);
+    showToast("success", "Role created successfully!");
   };
 
 
@@ -128,8 +142,16 @@ const EditUser = () => {
     setError("");
     setSuccess(false);
 
-    if (!name.trim()) return setError("Name is required.");
-    if (!email.trim()) return setError("Email is required.");
+    if (!name.trim()) {
+      setError("Name is required.");
+      showToast("error", "Name is required.");
+      return;
+    }
+    if (!email.trim()) {
+      setError("Email is required.");
+      showToast("error", "Email is required.");
+      return;
+    }
 
     setLoading(true);
 
@@ -154,10 +176,12 @@ const EditUser = () => {
       }
 
       setSuccess(true);
+      showToast("success", "Changes saved successfully!");
       setTimeout(() => navigate("/admin/users"), 1000);
 
     } catch (err) {
       setError(err.message);
+      showToast("error", err.message || "Failed to update user.");
     } finally {
       setLoading(false);
     }
@@ -433,6 +457,12 @@ const EditUser = () => {
         />
       )}
 
+      <Toast
+        open={toast.open}
+        type={toast.type}
+        message={toast.message}
+        onClose={() => setToast((prev) => ({ ...prev, open: false }))}
+      />
     </div>
   );
 };

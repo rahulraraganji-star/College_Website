@@ -217,6 +217,13 @@ const CreatePage = () => {
             onClose={() => setShowSectionModal(false)}
           />
         )}
+
+        <Toast
+          open={toast.open}
+          type={toast.type}
+          message={toast.message}
+          onClose={() => setToast((prev) => ({ ...prev, open: false }))}
+        />
       </div>
     );
   }
@@ -386,6 +393,13 @@ const CreatePage = () => {
           onClose={() => setShowSectionModal(false)}
         />
       )}
+
+      <Toast
+        open={toast.open}
+        type={toast.type}
+        message={toast.message}
+        onClose={() => setToast((prev) => ({ ...prev, open: false }))}
+      />
     </div>
   );
 };

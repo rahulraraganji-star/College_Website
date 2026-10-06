@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import ChangeDiff from "../components/ChangeDiff";
 import LoadingScreen from "../../Components/LoadingScreen";
+import Toast from "../components/Toast";
 
 const API_URL = "/api";
 
@@ -28,6 +29,18 @@ const Approvals = () => {
   const [error, setError] = useState("");
   const [page, setPage] = useState(1);
   const [pagination, setPagination] = useState(null);
+  const [toast, setToast] = useState({
+    open: false,
+    type: "success",
+    message: "",
+  });
+
+  const showToast = (type, message) => {
+    setToast({ open: true, type, message });
+    setTimeout(() => {
+      setToast((prev) => ({ ...prev, open: false }));
+    }, 3000);
+  };
 
   const [expandedId, setExpandedId] = useState(targetIdFromUrl || null);
   const [rejectTarget, setRejectTarget] = useState(null);
@@ -91,9 +104,11 @@ const Approvals = () => {
       if (!res.ok || !data.success) {
         throw new Error(data.message || "Failed to approve request.");
       }
+      showToast("success", "Request approved successfully.");
       fetchApprovals();
     } catch (err) {
       setActionError(err.message);
+      showToast("error", err.message || "Failed to approve request.");
       fetchApprovals(); // Refresh state to show latest decision
     } finally {
       setActionLoading(false);
@@ -110,6 +125,7 @@ const Approvals = () => {
 
     if (!trimmedReason) {
       setActionError("A rejection reason is required. Please explain why the change was rejected.");
+      showToast("error", "A rejection reason is required.");
       return;
     }
 
@@ -126,11 +142,13 @@ const Approvals = () => {
       if (!res.ok || !data.success) {
         throw new Error(data.message || "Failed to reject request.");
       }
+      showToast("success", "Request rejected.");
       setRejectTarget(null);
       setRejectReason("");
       fetchApprovals();
     } catch (err) {
       setActionError(err.message);
+      showToast("error", err.message || "Failed to reject request.");
       fetchApprovals(); // Refresh state to show latest decision
     } finally {
       setActionLoading(false);
@@ -377,6 +395,12 @@ const Approvals = () => {
         </div>
       )}
 
+      <Toast
+        open={toast.open}
+        type={toast.type}
+        message={toast.message}
+        onClose={() => setToast((prev) => ({ ...prev, open: false }))}
+      />
     </div>
   );
 };

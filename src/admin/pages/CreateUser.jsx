@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import CreateRoleModal from "../components/CreateRoleModal";
+import Toast from "../components/Toast";
 import { useAuth } from "../auth/AuthContext";
 
 const API_URL = "/api";
@@ -36,6 +37,18 @@ const CreateUser = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
+  const [toast, setToast] = useState({
+    open: false,
+    type: "success",
+    message: "",
+  });
+
+  const showToast = (type, message) => {
+    setToast({ open: true, type, message });
+    setTimeout(() => {
+      setToast((prev) => ({ ...prev, open: false }));
+    }, 3000);
+  };
 
 
   // ==========================================
@@ -84,6 +97,7 @@ const CreateUser = () => {
     setSelectedRole(newRole);
     setShowCreateRole(false);
     setShowPermissions(false);
+    showToast("success", "Role created successfully!");
   };
 
 
@@ -95,10 +109,22 @@ const CreateUser = () => {
     e.preventDefault();
     setError("");
 
-    if (!name.trim())       return setError("Name is required.");
-    if (!email.trim())      return setError("Email is required.");
-    if (password.length < 8) return setError("Password must be at least 8 characters.");
-    if (!selectedRoleId)    return setError("Please select a role.");
+    if (!name.trim()) {
+      showToast("error", "Name is required.");
+      return setError("Name is required.");
+    }
+    if (!email.trim()) {
+      showToast("error", "Email is required.");
+      return setError("Email is required.");
+    }
+    if (password.length < 8) {
+      showToast("error", "Password must be at least 8 characters.");
+      return setError("Password must be at least 8 characters.");
+    }
+    if (!selectedRoleId) {
+      showToast("error", "Please select a role.");
+      return setError("Please select a role.");
+    }
 
     setLoading(true);
 
@@ -121,10 +147,12 @@ const CreateUser = () => {
       if (!res.ok || !data.success) throw new Error(data.message || "Failed to create user.");
 
       setSuccess(true);
+      showToast("success", "User created successfully!");
       setTimeout(() => navigate("/admin/users"), 1200);
 
     } catch (err) {
       setError(err.message || "Failed to create user.");
+      showToast("error", err.message || "Failed to create user.");
     } finally {
       setLoading(false);
     }
@@ -414,6 +442,12 @@ const CreateUser = () => {
         />
       )}
 
+      <Toast
+        open={toast.open}
+        type={toast.type}
+        message={toast.message}
+        onClose={() => setToast((prev) => ({ ...prev, open: false }))}
+      />
     </div>
   );
 };

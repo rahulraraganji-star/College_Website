@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import CreateRoleModal from "../components/CreateRoleModal";
 import ConfirmModal from "../components/ConfirmModal";
+import Toast from "../components/Toast";
 
 const API_URL = "/api";
 
@@ -14,6 +15,18 @@ const Roles = () => {
   const [showCreateRole, setShowCreateRole] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [deleting, setDeleting] = useState(false);
+  const [toast, setToast] = useState({
+    open: false,
+    type: "success",
+    message: "",
+  });
+
+  const showToast = (type, message) => {
+    setToast({ open: true, type, message });
+    setTimeout(() => {
+      setToast((prev) => ({ ...prev, open: false }));
+    }, 3000);
+  };
 
 
   // ==========================================
@@ -47,6 +60,7 @@ const Roles = () => {
   const handleRoleCreated = (newRole) => {
     setRoles((prev) => [newRole, ...prev]);
     setShowCreateRole(false);
+    showToast("success", "Role created successfully!");
   };
 
 
@@ -70,11 +84,13 @@ const Roles = () => {
         throw new Error(data.message || "Failed to delete role.");
       }
 
+      showToast("success", "Role deleted successfully.");
       setDeleteTarget(null);
       fetchRoles();
 
     } catch (err) {
       setError(err.message);
+      showToast("error", err.message || "Failed to delete role.");
       setDeleteTarget(null);
     } finally {
       setDeleting(false);
@@ -284,6 +300,12 @@ const Roles = () => {
         />
       )}
 
+      <Toast
+        open={toast.open}
+        type={toast.type}
+        message={toast.message}
+        onClose={() => setToast((prev) => ({ ...prev, open: false }))}
+      />
     </div>
   );
 };

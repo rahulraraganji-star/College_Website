@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import Toast from "../components/Toast";
 
 const API_URL = "/api";
 
@@ -31,6 +32,18 @@ const EditRole = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
+  const [toast, setToast] = useState({
+    open: false,
+    type: "success",
+    message: "",
+  });
+
+  const showToast = (type, message) => {
+    setToast({ open: true, type, message });
+    setTimeout(() => {
+      setToast((prev) => ({ ...prev, open: false }));
+    }, 3000);
+  };
 
 
   // ==========================================
@@ -194,8 +207,14 @@ const EditRole = () => {
     setError("");
     setSuccess(false);
 
-    if (!name.trim()) return setError("Role name is required.");
-    if (!slug.trim()) return setError("Role slug is required.");
+    if (!name.trim()) {
+      showToast("error", "Role name is required.");
+      return setError("Role name is required.");
+    }
+    if (!slug.trim()) {
+      showToast("error", "Role slug is required.");
+      return setError("Role slug is required.");
+    }
 
     setLoading(true);
 
@@ -218,10 +237,12 @@ const EditRole = () => {
       if (!res.ok || !data.success) throw new Error(data.message || "Failed to update role.");
 
       setSuccess(true);
+      showToast("success", "Changes saved successfully!");
       setTimeout(() => navigate("/admin/roles"), 1000);
 
     } catch (err) {
       setError(err.message);
+      showToast("error", err.message || "Failed to update role.");
     } finally {
       setLoading(false);
     }
@@ -572,6 +593,13 @@ const EditRole = () => {
         </div>
 
       </form>
+
+      <Toast
+        open={toast.open}
+        type={toast.type}
+        message={toast.message}
+        onClose={() => setToast((prev) => ({ ...prev, open: false }))}
+      />
     </div>
   );
 };

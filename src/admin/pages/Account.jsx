@@ -1,10 +1,24 @@
 import { useState } from "react";
 import { useAuth } from "../auth/AuthContext";
+import Toast from "../components/Toast";
 
 const API_URL = "/api";
 
 const Account = () => {
   const { user, checkAuth } = useAuth();
+
+  const [toast, setToast] = useState({
+    open: false,
+    type: "success",
+    message: "",
+  });
+
+  const showToast = (type, message) => {
+    setToast({ open: true, type, message });
+    setTimeout(() => {
+      setToast((prev) => ({ ...prev, open: false }));
+    }, 3000);
+  };
 
   // Password State
   const [currentPassword, setCurrentPassword] = useState("");
@@ -58,11 +72,13 @@ const Account = () => {
       }
 
       setPassSuccess("Password updated successfully! Your active session is secured.");
+      showToast("success", "Password updated successfully!");
       setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
     } catch (err) {
       setPassError(err.message);
+      showToast("error", err.message || "Failed to change password.");
     } finally {
       setPassLoading(false);
     }
@@ -76,6 +92,7 @@ const Account = () => {
 
     if (!newEmail.trim()) {
       setEmailError("Please enter a valid email address.");
+      showToast("error", "Please enter a valid email address.");
       return;
     }
 
@@ -96,10 +113,12 @@ const Account = () => {
       }
 
       setEmailSuccess("Email address updated successfully.");
+      showToast("success", "Email address updated successfully.");
       setNewEmail("");
       if (checkAuth) await checkAuth();
     } catch (err) {
       setEmailError(err.message);
+      showToast("error", err.message || "Failed to update email.");
     } finally {
       setEmailLoading(false);
     }
@@ -381,6 +400,13 @@ const Account = () => {
           </div>
         </div>
       </div>
+
+      <Toast
+        open={toast.open}
+        type={toast.type}
+        message={toast.message}
+        onClose={() => setToast((prev) => ({ ...prev, open: false }))}
+      />
     </div>
   );
 };

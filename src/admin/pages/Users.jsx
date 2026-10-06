@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import ConfirmModal from "../components/ConfirmModal";
+import Toast from "../components/Toast";
 import { useAuth } from "../auth/AuthContext";
 
 const API_URL = "/api";
@@ -24,6 +25,18 @@ const Users = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
+  const [toast, setToast] = useState({
+    open: false,
+    type: "success",
+    message: "",
+  });
+
+  const showToast = (type, message) => {
+    setToast({ open: true, type, message });
+    setTimeout(() => {
+      setToast((prev) => ({ ...prev, open: false }));
+    }, 3000);
+  };
 
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState("");
@@ -110,10 +123,12 @@ const Users = () => {
 
       setDeleteTarget(null);
       setSuccessMsg(`User ${deleteTarget.name} has been deactivated.`);
+      showToast("success", `User ${deleteTarget.name} has been deactivated.`);
       fetchUsers();
 
     } catch (err) {
       setError(err.message);
+      showToast("error", err.message || "Failed to delete user.");
     } finally {
       setDeleting(false);
     }
@@ -149,9 +164,11 @@ const Users = () => {
 
       setResetResult(data.temporaryPassword);
       setSuccessMsg(`Password for ${resetTarget.name} was reset successfully.`);
+      showToast("success", `Password for ${resetTarget.name} was reset successfully.`);
 
     } catch (err) {
       setError(err.message);
+      showToast("error", err.message || "Failed to reset password.");
     } finally {
       setResetting(false);
     }
@@ -569,6 +586,12 @@ const Users = () => {
         </div>
       )}
 
+      <Toast
+        open={toast.open}
+        type={toast.type}
+        message={toast.message}
+        onClose={() => setToast((prev) => ({ ...prev, open: false }))}
+      />
     </div>
   );
 };

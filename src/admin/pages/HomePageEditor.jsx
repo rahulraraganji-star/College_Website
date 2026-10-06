@@ -8,6 +8,7 @@ import CollectionEditor from "../editors/CollectionEditor";
 import MediaPicker from "../media/components/MediaPicker";
 import SectionCard from "../components/SectionCard";
 import IconPicker from "../components/IconPicker"; // Import IconPicker
+import Toast from "../components/Toast";
 import { clearClientHomeCache } from "../../utils/homeCache";
 
 const inputClass =
@@ -22,6 +23,18 @@ const HomePageEditor = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [syncingPm, setSyncingPm] = useState(false);
+  const [toast, setToast] = useState({
+    open: false,
+    type: "success",
+    message: "",
+  });
+
+  const showToast = (type, message) => {
+    setToast({ open: true, type, message });
+    setTimeout(() => {
+      setToast((prev) => ({ ...prev, open: false }));
+    }, 3000);
+  };
 
   // Section access helpers
   const canEditSection = (sectionKey) =>
@@ -122,10 +135,10 @@ const HomePageEditor = () => {
       const res = await axios.put("/api/home", home, { withCredentials: true });
       console.log(res.data);
       clearClientHomeCache?.();
-      alert("Saved successfully!");
+      showToast("success", "Changes saved successfully!");
     } catch (err) {
       console.error("Save Home Error:", err);
-      alert(err.response?.data?.message || err.message || "Failed to save");
+      showToast("error", err.response?.data?.message || err.message || "Failed to save");
     } finally {
       setSaving(false);
     }
@@ -809,6 +822,13 @@ const HomePageEditor = () => {
           )}
         </SectionCard>
       </div>
+
+      <Toast
+        open={toast.open}
+        type={toast.type}
+        message={toast.message}
+        onClose={() => setToast((prev) => ({ ...prev, open: false }))}
+      />
     </div>
   );
 };
