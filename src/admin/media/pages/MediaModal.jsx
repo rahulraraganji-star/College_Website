@@ -363,8 +363,14 @@ const handleUpload = async (files) => {
       <div
         className="fixed inset-0 z-[9999] bg-black/60 flex items-center justify-center p-6"
         onClick={handleBackdropClick}
+        onDragOver={(e) => e.preventDefault()}
+        onDrop={(e) => e.preventDefault()}
       >
-        <div className="w-full max-w-7xl h-[90vh] bg-white rounded-2xl shadow-2xl flex flex-col overflow-hidden">
+        <div
+          className="w-full max-w-7xl h-[90vh] bg-white rounded-2xl shadow-2xl flex flex-col overflow-hidden"
+          onDragOver={(e) => e.preventDefault()}
+          onDrop={(e) => e.preventDefault()}
+        >
 
           {/* ======================================================
               HEADER
