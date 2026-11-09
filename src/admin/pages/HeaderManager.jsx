@@ -11,6 +11,10 @@ import {
   CheckCircle2,
   AlertCircle,
   Image as ImageIcon,
+  Plus,
+  Trash2,
+  CornerDownLeft,
+  Split,
 } from "lucide-react";
 import { useAuth } from "../auth/AuthContext";
 import MediaPicker from "../media/components/MediaPicker";
@@ -20,15 +24,35 @@ import defaultLogoSvg from "../../assets/logo.svg";
 
 const API_URL = "/api";
 
+const renderDesktopTitle = (title) => {
+  if (!title || typeof title !== "string") return title;
+
+  if (title.includes("\n")) {
+    const lines = title.split("\n").filter((line) => line.trim().length > 0);
+    if (lines.length > 0) {
+      return lines.map((line, idx) => (
+        <span key={idx} className="block">
+          {line}
+        </span>
+      ));
+    }
+  }
+
+  return title;
+};
+
 const renderMobileTitle = (title) => {
   if (!title || typeof title !== "string") return title;
 
   if (title.includes("\n")) {
-    return title.split("\n").map((line, idx) => (
-      <span key={idx} className="block whitespace-nowrap">
-        {line}
-      </span>
-    ));
+    const lines = title.split("\n").filter((line) => line.trim().length > 0);
+    if (lines.length > 0) {
+      return lines.map((line, idx) => (
+        <span key={idx} className="block whitespace-nowrap">
+          {line}
+        </span>
+      ));
+    }
   }
 
   const collegeMatch = title.match(/^(.*?\bCollege\s+of)\s+(.*)$/i);
@@ -131,6 +155,107 @@ const HeaderManager = () => {
     setFormData((prev) => ({ ...prev, logo: url }));
   };
 
+  // Title Multi-Line Helpers & Handlers (Max 3 lines)
+  const titleLines = typeof formData.title === "string"
+    ? formData.title.split("\n").slice(0, 3)
+    : [""];
+
+  const totalWordsCount = titleLines.reduce((acc, line) => {
+    return acc + line.trim().split(/\s+/).filter(Boolean).length;
+  }, 0);
+
+  const handleLineChange = (index, value) => {
+    const currentLines = typeof formData.title === "string" ? formData.title.split("\n") : [""];
+    const safeLines = currentLines.length > 0 ? [...currentLines] : [""];
+    while (safeLines.length <= index) {
+      safeLines.push("");
+    }
+    safeLines[index] = value;
+    handleInputChange("title", safeLines.slice(0, 3).join("\n"));
+  };
+
+  const handleAddLine = () => {
+    const currentLines = typeof formData.title === "string" ? formData.title.split("\n") : [""];
+    if (currentLines.length >= 3) {
+      showToast("info", "Maximum of 3 lines allowed");
+      return;
+    }
+    const newLines = [...currentLines, ""];
+    handleInputChange("title", newLines.join("\n"));
+  };
+
+  const handleRemoveLine = (index) => {
+    const currentLines = typeof formData.title === "string" ? formData.title.split("\n") : [""];
+    if (currentLines.length <= 1) {
+      handleInputChange("title", "");
+      return;
+    }
+    const newLines = currentLines.filter((_, idx) => idx !== index);
+    handleInputChange("title", newLines.join("\n"));
+  };
+
+  const handleMergeLines = () => {
+    const currentLines = typeof formData.title === "string" ? formData.title.split("\n") : [""];
+    const singleLine = currentLines.join(" ").replace(/\s+/g, " ").trim();
+    handleInputChange("title", singleLine);
+    showToast("info", "All lines merged into one line");
+  };
+
+  const handleLineKeyDown = (e, index) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      const currentLines = typeof formData.title === "string" ? formData.title.split("\n") : [""];
+      if (currentLines.length >= 3) {
+        showToast("info", "Maximum of 3 lines allowed");
+        return;
+      }
+      const input = e.target;
+      const cursorPos = input.selectionStart ?? input.value.length;
+      const before = input.value.slice(0, cursorPos);
+      const after = input.value.slice(cursorPos);
+
+      const newLines = [...currentLines];
+      newLines[index] = before;
+      newLines.splice(index + 1, 0, after);
+      handleInputChange("title", newLines.slice(0, 3).join("\n"));
+    } else if (e.key === "Backspace" && e.target.value === "" && index > 0) {
+      e.preventDefault();
+      handleRemoveLine(index);
+    }
+  };
+
+  const handleBreakAtWord = (lineIndex, wordIndex) => {
+    const currentLines = typeof formData.title === "string" ? formData.title.split("\n") : [""];
+    if (currentLines.length >= 3) {
+      showToast("info", "Maximum of 3 lines reached. Remove an existing line break first.");
+      return;
+    }
+    const currentLine = currentLines[lineIndex] || "";
+    const words = currentLine.trim().split(/\s+/).filter(Boolean);
+    if (words.length <= 1 || wordIndex >= words.length - 1) return;
+
+    const firstPart = words.slice(0, wordIndex + 1).join(" ");
+    const secondPart = words.slice(wordIndex + 1).join(" ");
+
+    const newLines = [...currentLines];
+    newLines[lineIndex] = firstPart;
+    newLines.splice(lineIndex + 1, 0, secondPart);
+    handleInputChange("title", newLines.slice(0, 3).join("\n"));
+  };
+
+  const handleRemoveBreakBetweenLines = (lineIndex) => {
+    const currentLines = typeof formData.title === "string" ? formData.title.split("\n") : [""];
+    if (lineIndex >= currentLines.length - 1) return;
+
+    const merged = (currentLines[lineIndex] + " " + currentLines[lineIndex + 1])
+      .replace(/\s+/g, " ")
+      .trim();
+
+    const newLines = [...currentLines];
+    newLines.splice(lineIndex, 2, merged);
+    handleInputChange("title", newLines.join("\n"));
+  };
+
   const handleReset = () => {
     setFormData(initialData);
     showToast("info", "Changes reset to last saved state");
@@ -148,13 +273,25 @@ const HeaderManager = () => {
 
     try {
       setSaving(true);
+      const cleanTitle = (formData.title || "")
+        .split("\n")
+        .map((l) => l.trim())
+        .filter(Boolean)
+        .slice(0, 3)
+        .join("\n");
+
+      const payload = {
+        ...formData,
+        title: cleanTitle,
+      };
+
       const res = await fetch(`${API_URL}/settings/header`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
         },
         credentials: "include",
-        body: JSON.stringify(formData),
+        body: JSON.stringify(payload),
       });
 
       const result = await res.json();
@@ -162,7 +299,8 @@ const HeaderManager = () => {
         throw new Error(result.message || "Failed to save header settings");
       }
 
-      setInitialData(formData);
+      setFormData(payload);
+      setInitialData(payload);
       showToast("success", "Header branding updated successfully!");
     } catch (err) {
       console.error("Error saving header settings:", err);
@@ -254,22 +392,196 @@ const HeaderManager = () => {
                     )}
                   </div>
 
-                  {/* College Title */}
-                  <div className="space-y-1.5">
-                    <label className="block text-xs font-bold uppercase tracking-wider text-neutral-700">
-                      College Name / Main Title <span className="text-black">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.title}
-                      onChange={(e) => handleInputChange("title", e.target.value)}
-                      placeholder="e.g. Fr. Agnel College of Arts & Commerce"
-                      className="w-full px-3.5 py-2.5 text-sm bg-neutral-50 text-black border border-neutral-300 rounded-lg focus:bg-white focus:border-black focus:ring-1 focus:ring-black outline-none transition"
-                      disabled={!canEdit}
-                    />
-                    <p className="text-[11px] text-neutral-500">
-                      Displayed prominently in the main header across all public pages.
-                    </p>
+                  {/* College Title & Multi-Line / Line Break Manager */}
+                  <div className="space-y-3 p-4 bg-neutral-50/80 rounded-xl border border-neutral-300/80">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-neutral-200 pb-3">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <label className="block text-xs font-bold uppercase tracking-wider text-neutral-800">
+                            College Name / Main Title <span className="text-black">*</span>
+                          </label>
+                          <span
+                            className={`text-[11px] font-semibold px-2 py-0.5 rounded-md border ${
+                              titleLines.length === 3
+                                ? "bg-black text-white border-black"
+                                : "bg-white text-neutral-800 border-neutral-300"
+                            }`}
+                          >
+                            {titleLines.length} / 3 {titleLines.length === 1 ? "Line" : "Lines"}
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-neutral-500 mt-1">
+                          Select where to break lines or manage up to 3 title lines (max 3 lines).
+                        </p>
+                      </div>
+
+                      {titleLines.length > 1 && canEdit && (
+                        <button
+                          type="button"
+                          onClick={handleMergeLines}
+                          className="text-[11px] font-medium text-neutral-600 hover:text-black underline transition self-start sm:self-auto cursor-pointer"
+                          title="Merge all lines back into a single line"
+                        >
+                          Merge into 1 line
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Individual Line Inputs (Line 1, Line 2, Line 3) */}
+                    <div className="space-y-2.5">
+                      {titleLines.map((line, idx) => (
+                        <div key={idx} className="flex items-center gap-2">
+                          <div className="w-14 flex-shrink-0 text-right">
+                            <span className="text-[11px] font-bold uppercase tracking-wider text-neutral-600">
+                              Line {idx + 1}
+                            </span>
+                          </div>
+
+                          <div className="relative flex-1">
+                            <input
+                              type="text"
+                              value={line}
+                              onChange={(e) => handleLineChange(idx, e.target.value)}
+                              onKeyDown={(e) => handleLineKeyDown(e, idx)}
+                              placeholder={
+                                idx === 0
+                                  ? "e.g. Fr. Agnel College"
+                                  : idx === 1
+                                  ? "e.g. of Arts & Commerce"
+                                  : "e.g. (Optional third line)"
+                              }
+                              className="w-full px-3.5 py-2 text-sm bg-white text-black border border-neutral-300 rounded-lg focus:border-black focus:ring-1 focus:ring-black outline-none transition"
+                              disabled={!canEdit}
+                            />
+                          </div>
+
+                          {titleLines.length > 1 && canEdit && (
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveLine(idx)}
+                              className="p-2 text-neutral-400 hover:text-red-600 hover:bg-red-50 rounded-lg border border-transparent hover:border-red-200 transition cursor-pointer"
+                              title={`Remove Line ${idx + 1}`}
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Add Line Action or Max 3 Warning */}
+                    {canEdit && (
+                      <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
+                        {titleLines.length < 3 ? (
+                          <button
+                            type="button"
+                            onClick={handleAddLine}
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-neutral-800 hover:text-black bg-white hover:bg-neutral-100 border border-neutral-300 rounded-lg shadow-2xs transition cursor-pointer"
+                          >
+                            <Plus size={13} />
+                            <span>Add Line (Line {titleLines.length + 1} of 3)</span>
+                          </button>
+                        ) : (
+                          <span className="text-[11px] font-medium text-neutral-700 bg-neutral-100 px-2.5 py-1 rounded-md border border-neutral-300 inline-flex items-center gap-1.5">
+                            <AlertCircle size={12} className="text-black" />
+                            Maximum of 3 lines reached
+                          </span>
+                        )}
+
+                        <span className="text-[11px] text-neutral-400">
+                          Press <kbd className="px-1.5 py-0.5 text-[10px] bg-neutral-200/80 rounded border border-neutral-300 text-neutral-700 font-mono">Enter</kbd> to split at cursor
+                        </span>
+                      </div>
+                    )}
+
+                    {/* Interactive "Select Where to Break the Line" Tool */}
+                    {totalWordsCount > 1 && (
+                      <div className="pt-3 border-t border-neutral-200 space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-[11px] font-bold uppercase tracking-wider text-neutral-700 flex items-center gap-1.5">
+                            <Split size={13} className="text-black" />
+                            Select Line Break Position (Word Selector)
+                          </span>
+                          <span className="text-[10px] text-neutral-400">
+                            Click between words to break or rejoin
+                          </span>
+                        </div>
+
+                        <div className="p-3 bg-white rounded-lg border border-neutral-300/80 space-y-2">
+                          {titleLines.map((line, lineIndex) => {
+                            const words = line.trim().split(/\s+/).filter(Boolean);
+                            const isLastLine = lineIndex === titleLines.length - 1;
+
+                            return (
+                              <React.Fragment key={lineIndex}>
+                                <div className="flex flex-wrap items-center gap-1.5 py-0.5">
+                                  <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider mr-1">
+                                    L{lineIndex + 1}:
+                                  </span>
+
+                                  {words.length === 0 ? (
+                                    <span className="text-xs italic text-neutral-400 px-2 py-0.5 bg-neutral-100 rounded">
+                                      (empty line)
+                                    </span>
+                                  ) : (
+                                    words.map((word, wordIndex) => {
+                                      const isLastWordInLine = wordIndex === words.length - 1;
+
+                                      return (
+                                        <React.Fragment key={wordIndex}>
+                                          <span className="px-2 py-0.5 text-xs font-medium bg-neutral-100 text-neutral-800 rounded border border-neutral-200">
+                                            {word}
+                                          </span>
+
+                                          {!isLastWordInLine && (
+                                            <button
+                                              type="button"
+                                              onClick={() => handleBreakAtWord(lineIndex, wordIndex)}
+                                              disabled={!canEdit || titleLines.length >= 3}
+                                              className={`px-1.5 py-0.5 text-[10px] font-medium rounded transition flex items-center gap-0.5 border ${
+                                                titleLines.length >= 3
+                                                  ? "opacity-30 cursor-not-allowed border-transparent text-neutral-400"
+                                                  : "border-dashed border-neutral-300 hover:border-black text-neutral-500 hover:text-black hover:bg-neutral-200/80 cursor-pointer"
+                                              }`}
+                                              title={
+                                                titleLines.length >= 3
+                                                  ? "Maximum 3 lines reached. Remove an existing line break first."
+                                                  : `Break line after "${word}"`
+                                              }
+                                            >
+                                              <CornerDownLeft size={10} className="text-neutral-400" />
+                                              <span>break</span>
+                                            </button>
+                                          )}
+                                        </React.Fragment>
+                                      );
+                                    })
+                                  )}
+                                </div>
+
+                                {!isLastLine && (
+                                  <div className="flex items-center gap-2 py-1">
+                                    <div className="flex-1 border-t border-dashed border-neutral-300" />
+                                    <button
+                                      type="button"
+                                      onClick={() => handleRemoveBreakBetweenLines(lineIndex)}
+                                      disabled={!canEdit}
+                                      className="inline-flex items-center gap-1.5 px-2.5 py-0.5 text-[10.5px] font-semibold bg-black text-white hover:bg-neutral-800 rounded-md shadow-2xs transition cursor-pointer"
+                                      title="Click to remove this line break and rejoin lines"
+                                    >
+                                      <CornerDownLeft size={11} />
+                                      <span>Line Break {lineIndex + 1}</span>
+                                      <span className="text-neutral-400 hover:text-white ml-0.5 font-bold">✕</span>
+                                    </button>
+                                    <div className="flex-1 border-t border-dashed border-neutral-300" />
+                                  </div>
+                                )}
+                              </React.Fragment>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   {/* Subtitle */}
@@ -440,7 +752,7 @@ const HeaderManager = () => {
                               className="text-[#233044] text-xl md:text-3xl leading-tight tracking-wide font-normal"
                               style={{ fontFamily: "'Jaini Purva', cursive, serif" }}
                             >
-                              {formData.title || "College Name"}
+                              {renderDesktopTitle(formData.title || "College Name")}
                             </h1>
                             {formData.subtitle && (
                               <p className="mt-1.5 text-[#9A7B4F] text-xs md:text-sm tracking-[0.08em] font-medium">

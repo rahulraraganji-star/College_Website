@@ -6,11 +6,14 @@ const renderMobileTitle = (title) => {
   if (!title || typeof title !== "string") return title;
 
   if (title.includes("\n")) {
-    return title.split("\n").map((line, idx) => (
-      <span key={idx} className="block whitespace-nowrap">
-        {line}
-      </span>
-    ));
+    const lines = title.split("\n").filter((line) => line.trim().length > 0);
+    if (lines.length > 0) {
+      return lines.map((line, idx) => (
+        <span key={idx} className="block whitespace-nowrap">
+          {line}
+        </span>
+      ));
+    }
   }
 
   const collegeMatch = title.match(/^(.*?\bCollege\s+of)\s+(.*)$/i);
@@ -21,6 +24,23 @@ const renderMobileTitle = (title) => {
         <span className="block whitespace-nowrap">{collegeMatch[2]}</span>
       </>
     );
+  }
+
+  return title;
+};
+
+const renderDesktopTitle = (title) => {
+  if (!title || typeof title !== "string") return title;
+
+  if (title.includes("\n")) {
+    const lines = title.split("\n").filter((line) => line.trim().length > 0);
+    if (lines.length > 0) {
+      return lines.map((line, idx) => (
+        <span key={idx} className="block">
+          {line}
+        </span>
+      ));
+    }
   }
 
   return title;
@@ -136,7 +156,7 @@ const Header = ({ data }) => {
                   font-[Jaini_Purva]
                 "
               >
-                {data.title}
+                {renderDesktopTitle(data.title)}
               </h1>
 
               {/* Subtitle */}

@@ -118,6 +118,13 @@ export const updateHeader = async (req, res) => {
       });
     }
 
+    // Sanitize title and enforce maximum 3 lines
+    let sanitizedTitle = typeof title === "string" ? title.trim() : "";
+    if (sanitizedTitle.includes("\n")) {
+      const lines = sanitizedTitle.split("\n").map((l) => l.trim()).filter(Boolean);
+      sanitizedTitle = lines.slice(0, 3).join("\n");
+    }
+
     const before = await Settings.findOne({ type: "header" });
 
     const updated = await Settings.findOneAndUpdate(
@@ -126,7 +133,7 @@ export const updateHeader = async (req, res) => {
         $set: {
           type: "header",
           logo: typeof logo === "string" ? logo.trim() : (logo?.url || ""),
-          title: typeof title === "string" ? title.trim() : "",
+          title: sanitizedTitle,
           subtitle: typeof subtitle === "string" ? subtitle.trim() : "",
           tagline: typeof tagline === "string" ? tagline.trim() : "",
         },
