@@ -61,12 +61,14 @@ jobs:
           ssh -fNM cpanel
           ssh cpanel "echo 'SSH connection successful'"
 
+      # A. Frontend deployment
       - name: Deploy frontend
         run: |
           rsync -az \
             ./dist/ \
-            cpanel:/home/fac/test/college_Website/dist/
+            cpanel:/home/fac/Fr_Agnel_College_Website/college_Website/dist/
 
+      # B. Backend deployment
       - name: Deploy backend
         run: |
           rsync -az \
@@ -75,13 +77,14 @@ jobs:
             --exclude='uploads/' \
             --exclude='node_modules/' \
             ./Backend/ \
-            cpanel:/home/fac/test/college_Website/Backend/
+            cpanel:/home/fac/Fr_Agnel_College_Website/college_Website/Backend/
 
+      # C. Backend dependencies and restart
       - name: Install backend dependencies and restart
         run: |
           ssh cpanel '
-            export PATH=/home/fac/nodevenv/test/college_Website/Backend/20/bin:$PATH &&
-            cd /home/fac/test/college_Website/Backend &&
+            source /home/fac/nodevenv/Fr_Agnel_College_Website/college_Website/Backend/20/bin/activate &&
+            cd /home/fac/Fr_Agnel_College_Website/college_Website/Backend &&
             npm install --omit=dev --no-audit --no-fund &&
             touch tmp/restart.txt
           '
