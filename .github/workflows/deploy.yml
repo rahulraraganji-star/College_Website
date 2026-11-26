@@ -84,15 +84,17 @@ jobs:
           echo "=== Checking remote rsync ==="
           ssh -T cpanel 'command -v rsync && rsync --version | head -n 2'
 
-      # A. Frontend deployment
+      # A. Frontend deployment (DISABLED)
       - name: Deploy frontend
+        if: false
         run: |
           rsync -az \
             ./dist/ \
             cpanel:/home/fac/Fr_Agnel_College_Website/college_Website/dist/
 
-      # B. Backend deployment
+      # B. Backend deployment (DISABLED)
       - name: Deploy backend
+        if: false
         run: |
           rsync -az \
             --exclude='.env' \
@@ -102,8 +104,9 @@ jobs:
             ./Backend/ \
             cpanel:/home/fac/Fr_Agnel_College_Website/college_Website/Backend/
 
-      # C. Backend dependencies and restart
+      # C. Backend dependencies and restart (DISABLED)
       - name: Install backend dependencies and restart
+        if: false
         run: |
           ssh cpanel '
             source /home/fac/nodevenv/Fr_Agnel_College_Website/college_Website/Backend/20/bin/activate &&
