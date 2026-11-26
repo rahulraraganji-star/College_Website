@@ -194,18 +194,16 @@ const PageTemplate = ({
                   if (itemSlug) prefetchPage(itemSlug);
                 }}
                 className={({ isActive }) =>
-                  `group relative flex items-center py-3 pl-6 pr-3 -ml-[2px] border-l-2 transition-all duration-200 ${
-                    isActive
-                      ? "border-[#C9A555] text-[#2A2623] font-semibold bg-gradient-to-r from-[#C9A555]/10 via-[#C9A555]/5 to-transparent rounded-r-lg"
-                      : "border-transparent text-[#2A2623]/70 hover:text-[#2A2623] hover:border-[#C9A555]/50 hover:bg-black/[0.02] rounded-r-lg font-medium"
+                  `group relative flex items-center py-3 pl-6 pr-3 -ml-[2px] border-l-2 transition-all duration-200 ${isActive
+                    ? "border-[#C9A555] text-[#2A2623] font-semibold bg-gradient-to-r from-[#C9A555]/10 via-[#C9A555]/5 to-transparent rounded-r-lg"
+                    : "border-transparent text-[#2A2623]/70 hover:text-[#2A2623] hover:border-[#C9A555]/50 hover:bg-black/[0.02] rounded-r-lg font-medium"
                   }`
                 }
               >
                 {({ isActive }) => (
                   <span
-                    className={`font-['Inter'] text-[16px] leading-snug transition-transform duration-200 ${
-                      isActive ? "translate-x-0.5" : "group-hover:translate-x-0.5"
-                    }`}
+                    className={`font-['Inter'] text-[16px] leading-snug transition-transform duration-200 ${isActive ? "translate-x-0.5" : "group-hover:translate-x-0.5"
+                      }`}
                   >
                     {item.label}
                   </span>
@@ -248,9 +246,8 @@ const PageTemplate = ({
               <span>{mobileNavOpen ? "Close" : "Menu"}</span>
               <ChevronDown
                 size={16}
-                className={`transition-transform duration-300 ${
-                  mobileNavOpen ? "rotate-180" : ""
-                }`}
+                className={`transition-transform duration-300 ${mobileNavOpen ? "rotate-180" : ""
+                  }`}
               />
             </div>
           </button>
@@ -264,10 +261,9 @@ const PageTemplate = ({
                   to={item.to}
                   onClick={() => setMobileNavOpen(false)}
                   className={({ isActive }) =>
-                    `flex items-center justify-between py-2.5 px-3 rounded-lg text-sm transition-colors ${
-                      isActive
-                        ? "bg-[#8A6B3F]/10 text-[#2A2623] font-semibold"
-                        : "text-[#5C554C] hover:text-[#2A2623] hover:bg-white"
+                    `flex items-center justify-between py-2.5 px-3 rounded-lg text-sm transition-colors ${isActive
+                      ? "bg-[#8A6B3F]/10 text-[#2A2623] font-semibold"
+                      : "text-[#5C554C] hover:text-[#2A2623] hover:bg-white"
                     }`
                   }
                 >
@@ -364,9 +360,8 @@ const PageTemplate = ({
           MAIN EDITORIAL CONTENT
       ====================================================== */}
       <main
-        className={`mx-auto px-6 md:px-10 lg:px-12 py-12 md:py-16 ${
-          isStaffPage ? "max-w-[1440px]" : "max-w-[1440px]"
-        }`}
+        className={`mx-auto px-6 md:px-10 lg:px-12 py-12 md:py-16 ${isStaffPage ? "max-w-[1440px]" : "max-w-[1440px]"
+          }`}
       >
         {/* Mobile Navigation Dropdown (< lg) */}
         {renderMobileSubNav()}
