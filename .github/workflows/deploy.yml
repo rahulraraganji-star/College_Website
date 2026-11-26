@@ -79,13 +79,14 @@ jobs:
             ./Backend/ \
             cpanel:/home/fac/Fr_Agnel_College_Website/college_Website/Backend/
 
-      # C. Backend dependencies and restart
+      # C. Backend dependencies and restart (improved)
       - name: Install backend dependencies and restart
         run: |
           ssh cpanel '
             source /home/fac/nodevenv/Fr_Agnel_College_Website/college_Website/Backend/20/bin/activate &&
             cd /home/fac/Fr_Agnel_College_Website/college_Website/Backend &&
             npm install --omit=dev --no-audit --no-fund &&
+            mkdir -p tmp &&
             touch tmp/restart.txt
           '
 
