@@ -16,7 +16,125 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
+          node-version: 20name: Deploy to cPanel
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
           node-version: 20
+          cache: npm
+
+      - name: Install frontend dependencies
+        run: npm ci
+
+      - name: Build frontend
+        run: npm run build
+
+      - name: Configure SSH
+        env:
+          CPANEL_SSH_PRIVATE_KEY: ${{ secrets.CPANEL_SSH_PRIVATE_KEY }}
+        run: |
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+
+          printf '%s\n' "$CPANEL_SSH_PRIVATE_KEY" > ~/.ssh/cpanel_deploy
+          chmod 600 ~/.ssh/cpanel_deploy
+
+          ssh-keyscan -4 -p 7822 fragnelcollege.edu.in >> ~/.ssh/known_hosts
+          chmod 644 ~/.ssh/known_hosts
+
+          cat > ~/.ssh/config <<'EOF'
+          Host cpanel
+            HostName fragnelcollege.edu.in
+            User fac
+            Port 7822
+            IdentityFile ~/.ssh/cpanel_deploy
+            IdentitiesOnly yes
+            AddressFamily inet
+            MACs hmac-sha2-512
+            ControlMaster auto
+            ControlPath ~/.ssh/control-%C
+            ControlPersist 10m
+            ServerAliveInterval 30
+            ServerAliveCountMax 5
+          EOF
+
+          chmod 600 ~/.ssh/config
+
+      - name: Connect to cPanel (Multiplexed)
+        run: |
+          ssh -fNM cpanel
+          ssh cpanel "echo 'SSH connection successful'"
+
+      - name: Diagnose cPanel shell output
+        run: |
+          echo "=== Checking unexpected SSH output ==="
+
+          ssh -T cpanel 'true' > ssh-stdout.txt 2> ssh-stderr.txt
+
+          echo "=== SSH STDOUT (should be EMPTY) ==="
+          if [ -s ssh-stdout.txt ]; then
+            cat -A ssh-stdout.txt
+          else
+            echo "EMPTY - No unexpected stdout"
+          fi
+
+          echo "=== SSH STDERR ==="
+          if [ -s ssh-stderr.txt ]; then
+            cat -A ssh-stderr.txt
+          else
+            echo "EMPTY"
+          fi
+
+          echo "=== Checking remote rsync ==="
+          ssh -T cpanel 'command -v rsync && rsync --version | head -n 2'
+
+      # A. Frontend deployment
+      - name: Deploy frontend
+        run: |
+          rsync -az \
+            ./dist/ \
+            cpanel:/home/fac/Fr_Agnel_College_Website/college_Website/dist/
+
+      # B. Backend deployment
+      - name: Deploy backend
+        run: |
+          rsync -az \
+            --exclude='.env' \
+            --exclude='.env.production' \
+            --exclude='uploads/' \
+            --exclude='node_modules/' \
+            ./Backend/ \
+            cpanel:/home/fac/Fr_Agnel_College_Website/college_Website/Backend/
+
+      # C. Backend dependencies and restart (improved)
+      - name: Install backend dependencies and restart
+        run: |
+          ssh cpanel '
+            source /home/fac/nodevenv/Fr_Agnel_College_Website/college_Website/Backend/20/bin/activate &&
+            cd /home/fac/Fr_Agnel_College_Website/college_Website/Backend &&
+            npm install --omit=dev --no-audit --no-fund &&
+            mkdir -p tmp &&
+            touch tmp/restart.txt
+          '
+
+      - name: Close SSH session
+        if: always()
+        run: |
+          ssh -O exit cpanel 2>/dev/null || true
           cache: npm
 
       - name: Install frontend dependencies
